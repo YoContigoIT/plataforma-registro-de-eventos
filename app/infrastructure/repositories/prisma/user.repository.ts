@@ -72,4 +72,9 @@ export const PrismaUserRepository = (
       data: { password: newPassword },
     });
   },
+
+  delete: async (id): Promise<void> => {
+    console.log("Deleting user with id:", id); // Debug log
+    //Aplicar soft delete
+  },
 });

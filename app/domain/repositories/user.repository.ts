@@ -18,4 +18,5 @@ export interface IUserRepository {
   findByEmail(email: string): Promise<User | null>;
   update(data: UpdateUserDTO): Promise<UserEntity>;
   updatePassword(userId: string, newPassword: string): Promise<void>;
+  delete(id: string): Promise<void>;
 }

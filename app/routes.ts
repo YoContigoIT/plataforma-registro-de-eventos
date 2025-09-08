@@ -25,6 +25,7 @@ export default [
       "/usuarios/ver/:userId",
       "presentation/usuarios/routes/user-by-id.tsx"
     ),
+    route("/usuarios/eliminar", "presentation/usuarios/routes/delete-user.tsx"),
     // route("/usuarios/crear", "presentation/usuarios/routes/create-user.tsx"),
     // route(
     //   "/usuarios/editar/:userId",
