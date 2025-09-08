@@ -43,22 +43,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* <div className="hidden lg:block lg:w-1/2 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/40 relative overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
-          {/* Calendar and meeting UI elements can be added here 
-          <img
-            src="https://images.pexels.com/photos/2774556/pexels-photo-2774556.jpeg"
-            alt="Login illustration"
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </div> */}
-
-      {/* Right side - Image/Illustration */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center p-10">
-          {/* Modern card describing app features */}
-
           <img
             src="https://images.pexels.com/photos/2774556/pexels-photo-2774556.jpeg"
             alt="Login illustration"
@@ -136,13 +122,6 @@ export default function LoginPage() {
                 </div>
               </div>
             </CardContent>
-
-            {/* <CardFooter className="flex justify-between">
-              <div className="text-sm text-foreground">
-                Únete a miles de organizadores de eventos que confían en nuestra
-                plataforma
-              </div>
-            </CardFooter> */}
           </Card>
         </div>
       </div>

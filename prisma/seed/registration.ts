@@ -1,7 +1,7 @@
 import {
-    type PrismaClient,
-    type Registration,
-    RegistrationStatus,
+  type PrismaClient,
+  type Registration,
+  RegistrationStatus,
 } from "@prisma/client";
 import * as crypto from "crypto";
 
@@ -14,9 +14,6 @@ function generateQRCode(userId: string, eventId: string): string {
 }
 
 export async function seedRegistrations(prisma: PrismaClient) {
-  // Clear existing registrations if needed
-  await prisma.registration.deleteMany();
-
   // Get attendees
   const attendees = await prisma.user.findMany({
     where: {

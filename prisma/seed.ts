@@ -8,6 +8,13 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Starting seeding...");
 
+  console.log("Clearing existing data...");
+  await prisma.registration.deleteMany();
+  await prisma.event.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.user.deleteMany();
+  console.log("Existing data cleared successfully");
+  
   // Seed in order of dependencies
   await seedUsers(prisma);
   console.log("Users seeded successfully");

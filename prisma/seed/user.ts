@@ -6,44 +6,42 @@ export async function hashPassword(password: string) {
 }
 
 export async function seedUsers(prisma: PrismaClient) {
-  // Clear existing users if needed
-  await prisma.user.deleteMany();
 
   // Create admin user
   const admin = await prisma.user.create({
     data: {
-      email: "admin@example.com",
-      name: "Admin User",
-      password: await hashPassword("admin123"),
+      email: "admin@eventos.com",
+      name: "Administrador Sistema",
+      password: await hashPassword("AdminPass123!"),
       role: UserRole.ADMIN,
-      company: "Event Manager Inc.",
-      title: "System Administrator",
-      phone: "+1234567890",
+      company: "Gestión de Eventos S.L.",
+      title: "Administrador del Sistema",
+      phone: "+523323456780",
     },
   });
 
   // Create organizer users
   const organizer1 = await prisma.user.create({
     data: {
-      email: "organizer1@example.com",
-      name: "John Organizer",
-      password: await hashPassword("organizer123"),
+      email: "organizador1@eventos.com",
+      name: "Juan Organizador",
+      password: await hashPassword("OrganizadorPass123!"),
       role: UserRole.ORGANIZER,
-      company: "Tech Events Ltd",
-      title: "Event Manager",
-      phone: "+1987654321",
+      company: "Eventos Tecnológicos S.A.",
+      title: "Gestor de Eventos",
+      phone: "+523387654320",
     },
   });
 
   const organizer2 = await prisma.user.create({
     data: {
-      email: "organizer2@example.com",
-      name: "Jane Planner",
-      password: await hashPassword("planner123"),
+      email: "organizador2@eventos.com",
+      name: "María Planificadora",
+      password: await hashPassword("PlanificadoraPass123!"),
       role: UserRole.ORGANIZER,
-      company: "Conference Solutions",
-      title: "Senior Event Planner",
-      phone: "+1122334455",
+      company: "Soluciones para Conferencias",
+      title: "Planificadora Senior de Eventos",
+      phone: "+523312233440",
     },
   });
 
@@ -53,13 +51,13 @@ export async function seedUsers(prisma: PrismaClient) {
     attendees.push(
       await prisma.user.create({
         data: {
-          email: `attendee${i}@example.com`,
-          name: `Attendee ${i}`,
-          password: await hashPassword(`attendee${i}`),
+          email: `asistente${i}@eventos.com`,
+          name: `Asistente ${i}`,
+          password: await hashPassword(`AsistentePass${i}123!`),
           role: UserRole.ATTENDEE,
-          company: i % 2 === 0 ? "Tech Corp" : "Digital Solutions",
-          title: i % 2 === 0 ? "Software Developer" : "Product Manager",
-          phone: `+1${i}00${i}00${i}00`,
+          company: i % 2 === 0 ? "Corporación Tecnológica" : "Soluciones Digitales",
+          title: i % 2 === 0 ? "Desarrollador de Software" : "Gerente de Producto",
+          phone: `+5233{i}${i}0${i}${i}${i}${i}${i}${i}`,
         },
       }),
     );

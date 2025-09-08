@@ -9,9 +9,10 @@ datasource db {
 }
 
 enum UserRole {
-    ATTENDEE // Register and attend events
-    ORGANIZER // Create and manage their own events
-    ADMIN // Full control over the platform
+    ATTENDEE
+    ORGANIZER
+    ADMIN
+    GUARD //should have access to the QR scanning and registration page maybe?
 
     @@schema("auth")
 }
