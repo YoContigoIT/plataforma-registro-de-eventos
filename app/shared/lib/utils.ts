@@ -49,6 +49,7 @@ export function getUserInitials(user: Partial<User>) {
 } */
 
 import { Temporal } from "@js-temporal/polyfill";
+import type { User } from "@prisma/client";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -114,7 +115,7 @@ export {
   getPayrollStatusBadge,
   getPurchaseOrderStatusBadge,
   getSessionStatusBadge,
-  getUserRoleBadge
+  getUserRoleBadge,
 } from "./badge-utils";
 
 // Legacy function for backward compatibility - deprecated
@@ -178,7 +179,7 @@ export function formatDateShortTemporal(date: Date | string): string {
 
 // Parse date string safely using Temporal API
 export function parseDate(
-  dateString: string | undefined | null,
+  dateString: string | undefined | null
 ): Date | undefined {
   if (!dateString || dateString === "") {
     return undefined;
@@ -230,7 +231,7 @@ export interface WhereClauseConfig {
  */
 export function buildWhereClause(
   searchTerm?: string,
-  config: WhereClauseConfig = {},
+  config: WhereClauseConfig = {}
 ): Record<string, unknown> {
   const where: Record<string, unknown> = {};
 
@@ -305,7 +306,7 @@ export function buildWhereClause(
 export function calculatePaginationInfo(
   page: number,
   limit: number,
-  totalItems: number,
+  totalItems: number
 ) {
   const totalPages = Math.ceil(totalItems / limit);
 
@@ -315,4 +316,30 @@ export function calculatePaginationInfo(
     totalItems,
     itemsPerPage: limit,
   };
+}
+
+// Formatear iniciales del user
+export function getUserInitials(
+  user: Partial<User> | Omit<User, "password">
+): string {
+  if (!user.name) {
+    return "NN"; // Nombre no disponible
+  }
+  const names = user.name.trim().split(" ");
+  if (names.length === 1) {
+    return names[0].charAt(0).toUpperCase();
+  }
+  const firstInitial = names[0].charAt(0).toUpperCase();
+  const lastInitial = names[names.length - 1].charAt(0).toUpperCase();
+  return firstInitial + lastInitial;
+}
+
+//Funcion para formatear nombre del user
+export function formatName(
+  user: Partial<User> | Omit<User, "password">
+): string {
+  if (!user) {
+    return "No hay información del usuario";
+  }
+  return user.name || "No hay información del usuario";
 }

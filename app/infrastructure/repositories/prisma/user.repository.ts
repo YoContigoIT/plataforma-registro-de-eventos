@@ -1,12 +1,11 @@
 import { buildWhereClause, calculatePaginationInfo } from "@/shared/lib/utils";
 import type { PaginatedResponse } from "@/shared/types";
-import type { Prisma, PrismaClient } from "@prisma/client";
-import { UserRole } from "@prisma/client";
+import { UserRole, type Prisma, type PrismaClient } from "@prisma/client";
 import type { UserEntity } from "~/domain/entities/user.entity";
 import type { IUserRepository } from "~/domain/repositories/user.repository";
 
 export const PrismaUserRepository = (
-  prisma: PrismaClient,
+  prisma: PrismaClient
 ): IUserRepository => ({
   create: async (data) => {
     return await prisma.user.create({
@@ -15,13 +14,16 @@ export const PrismaUserRepository = (
   },
   findMany: async (
     { page, limit },
-    filters,
+    filters
   ): Promise<PaginatedResponse<UserEntity>> => {
     const offset = (page - 1) * limit;
+
+    const excludedRoles = [UserRole.ADMIN, ...(filters?.excludeRoles ?? [])];
+
     const where = buildWhereClause(undefined, {
       customFilters: {
         id: filters?.currentUserId ? { not: filters.currentUserId } : undefined,
-        role: { not: UserRole.ADMIN },
+        role: { notIn: excludedRoles },
       },
     }) as Prisma.UserWhereInput;
 

@@ -20,5 +20,6 @@ export default [
   route("/cerrar-sesion", `${ROUTES_PATH.auth.logout}`),
   layout(`${ROUTES_PATH.layout}`, [
     route("/panel", "presentation/panel/routes/panel.tsx"),
+    route("/usuarios", "presentation/usuarios/routes/users.tsx"),
   ]),
 ] satisfies RouteConfig;

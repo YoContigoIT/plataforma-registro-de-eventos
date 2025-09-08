@@ -5,13 +5,14 @@ import type { UserEntity } from "../entities/user.entity";
 
 export interface UserFilters {
   currentUserId?: string;
+  excludeRoles?: User["role"][];
 }
 
 export interface IUserRepository {
   create(data: CreateUserDTO): Promise<UserEntity>;
   findMany(
     params: { page: number; limit: number },
-    filters?: UserFilters,
+    filters?: UserFilters
   ): Promise<PaginatedResponse<UserEntity>>;
   findUnique(id: string): Promise<UserEntity | null>;
   findByEmail(email: string): Promise<User | null>;
