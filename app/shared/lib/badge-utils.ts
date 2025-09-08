@@ -46,9 +46,10 @@ export function getMovementTypeBadge(tipo: string): BadgeConfig {
 // Configuración unificada para badges de roles de usuario
 export function getUserRoleBadge(rol: string): BadgeConfig {
   const roleConfig: Record<string, BadgeConfig> = {
-    super_admin: { variant: "destructive", label: "Super Admin" },
-    admin: { variant: "sky", label: "Admin" },
-    usuario: { variant: "emerald", label: "Usuario" },
+    ATTENDEE: { variant: "destructive", label: "Invitado" },
+    ORGANIZER: { variant: "sky", label: "Organizador" },
+    ADMIN: { variant: "emerald", label: "Admin" },
+    GUARD: { variant: "emerald", label: "Guardia" },
   };
 
   return (
