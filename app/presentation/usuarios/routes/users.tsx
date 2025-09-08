@@ -15,7 +15,6 @@ export function meta() {
 
 export const loader = getAllUsersPagination;
 export default function UsersPage({ loaderData }: Route.ComponentProps) {
-  console.log("loaderData: ", loaderData);
   return (
     <div className="w-full max-w-[95rem] mx-auto">
       <UserCardHeader />

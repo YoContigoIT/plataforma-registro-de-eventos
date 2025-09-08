@@ -2,42 +2,23 @@ import type { User } from "@prisma/client";
 import { ChevronRight, Mail, UserCircle } from "lucide-react";
 import { Link } from "react-router";
 import { Badge } from "~/shared/components/ui/badge";
-import { formatName, getUserInitials } from "~/shared/lib/utils";
+import {
+  formatName,
+  getUserInitials,
+  getUserRoleBadge,
+} from "~/shared/lib/utils";
 
 interface UserCardInfoProps {
   user: User;
 }
 
-export const roleBadgeStyles: Record<
-  string,
-  { label: string; className: string }
-> = {
-  ADMIN: {
-    label: "Administrador",
-    className: "bg-red-100 text-red-800 dark:bg-red-200/30",
-  },
-  GUARD: {
-    label: "Guardia",
-    className: "bg-blue-100 text-blue-800 dark:bg-blue-200/30",
-  },
-  ORGANIZER: {
-    label: "Organizador",
-    className: "bg-green-100 text-green-800 dark:bg-green-200/30",
-  },
-  ATTENDEE: {
-    label: "Asistente",
-    className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-200/30",
-  },
-};
-
 export function UserCardInfo({ user }: UserCardInfoProps) {
-  console.log("user: ", user);
-  const label = roleBadgeStyles[user.role];
+  const { label, variant } = getUserRoleBadge(user.role);
   return (
     <Link
-      to={`/usuarios/visualizar/${user.id}`}
+      to={`/usuarios/ver/${user.id}`}
       key={user.id}
-      className={`group bg-white dark:bg-[#3D3D3D] rounded-lg shadow-sm dark:shadow-lg transition-all duration-200 overflow-hidden
+      className={`group bg-card rounded-lg shadow-sm dark:shadow-lg transition-all duration-200 overflow-hidden
         active:border-[#6A1C32]/30 dark:active:border-[#BE9657]/30 active:shadow-inner active:bg-gray-50 dark:active:bg-[#4D4D4D]
         touch-manipulation text-left w-full flex flex-col h-full lg:cursor-pointer lg:hover:scale-[1.01] lg:hover:shadow-lg lg:hover:border-[#6A1C32]/30 dark:lg:hover:border-[#BE9657]/30
         sm:transform sm:transition-transform sm:duration-200 sm:ease-in-out`}
@@ -64,10 +45,11 @@ export function UserCardInfo({ user }: UserCardInfoProps) {
 
         <div className="flex flex-wrap gap-2 mt-3 sm:mt-4">
           <Badge
-            className={`px-2 py-1 sm:px-2.5 sm:py-1.5 inline-flex items-center text-xs leading-5 font-semibold rounded-full ${label.className}`}
+            className={`px-2 py-1 sm:px-2.5 sm:py-1.5 inline-flex items-center text-xs leading-5 font-semibold rounded-full `}
+            variant={variant}
           >
             <UserCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5" />
-            {label.label}
+            {label}
           </Badge>
           {/* <Badge
             className={`px-2 py-1 sm:px-2.5 sm:py-1.5 inline-flex items-center text-xs leading-5 font-semibold rounded-full ${statusInfo.className}`}

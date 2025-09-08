@@ -21,5 +21,14 @@ export default [
   layout(`${ROUTES_PATH.layout}`, [
     route("/panel", "presentation/panel/routes/panel.tsx"),
     route("/usuarios", "presentation/usuarios/routes/users.tsx"),
+    route(
+      "/usuarios/ver/:userId",
+      "presentation/usuarios/routes/user-by-id.tsx"
+    ),
+    // route("/usuarios/crear", "presentation/usuarios/routes/create-user.tsx"),
+    // route(
+    //   "/usuarios/editar/:userId",
+    //   "presentation/usuarios/routes/edit-user.tsx"
+    // ),
   ]),
 ] satisfies RouteConfig;
