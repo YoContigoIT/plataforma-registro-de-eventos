@@ -1,0 +1,114 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+    schemas  = ["public", "auth"] // Not really sure if we need this multischema stuff, maybe but we will leave it for now
+}
+
+enum UserRole {
+    ATTENDEE // Register and attend events
+    ORGANIZER // Create and manage their own events
+    ADMIN // Full control over the platform
+
+    @@schema("auth")
+}
+
+enum EventStatus {
+    UPCOMING
+    ONGOING
+    ENDED
+    CANCELLED
+    DRAFT
+
+    @@schema("auth")
+}
+
+enum RegistrationStatus {
+    REGISTERED
+    WAITLISTED
+    CHECKED_IN
+    CANCELLED
+
+    @@schema("auth")
+}
+
+model User {
+    id      String  @id @default(uuid()) @db.Uuid
+    email   String  @unique
+    name    String
+    company String?
+    title   String?
+    phone   String?
+
+    password String?
+
+    role UserRole @default(ATTENDEE)
+
+    registrations Registration[]
+    sessions      Session[]
+
+    createdEvents Event[] @relation("EventsByOrganizer")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@schema("auth")
+}
+
+model Session {
+    id                 String   @id @default(uuid()) @db.Uuid
+    user_id            String   @db.Uuid
+    refresh_token_hash String   @unique
+    expires_at         DateTime
+    device_fingerprint String?
+    ip_address         String?
+    user_agent         String?
+    created_at         DateTime @default(now())
+    updated_at         DateTime @updatedAt
+
+    user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+    @@schema("auth")
+}
+
+model Event {
+    id          String      @id @default(uuid()) @db.Uuid
+    name        String
+    start_date  DateTime
+    end_date    DateTime
+    location    String
+    agenda      String?
+    capacity    Int
+    description String?
+    maxTickets  Int?
+    status      EventStatus @default(DRAFT)
+
+    organizerId String @db.Uuid
+    organizer   User   @relation("EventsByOrganizer", fields: [organizerId], references: [id])
+
+    registrations Registration[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@schema("auth")
+}
+
+model Registration {
+    id     String             @id @default(uuid()) @db.Uuid
+    qrCode String             @unique
+    status RegistrationStatus @default(REGISTERED)
+
+    userId String @db.Uuid
+    user   User   @relation(fields: [userId], references: [id])
+
+    eventId String @db.Uuid
+    event   Event  @relation(fields: [eventId], references: [id])
+
+    registeredAt DateTime @default(now())
+
+    @@schema("auth")
+}

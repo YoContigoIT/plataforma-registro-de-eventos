@@ -9,6 +9,18 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "strict": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@/*": ["./app/*"],
+      "@/shared/*": ["./app/shared/*"],
+      "@/ui/*": ["./app/shared/components/ui/*"],
+      "@/components/*": ["./app/shared/components/*"],
+      "@/lib/*": ["./app/shared/lib/*"],
+      "@/utils/*": ["./app/shared/lib/utils/*"],
+      "@/hooks/*": ["./app/shared/hooks/*"],
+      "@/infrastructure/*": ["./app/infrastructure/*"],
+      "@/domain/*": ["./app/domain/*"],
+      "@/presentation/*": ["./app/presentation/*"]
+    }
   }
 }
