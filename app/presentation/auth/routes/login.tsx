@@ -17,7 +17,7 @@ export function meta() {
     { title: "Inicio de sesión - Gestor de eventos" },
     {
       name: "description",
-      content: "Página de inicio de sesión de Gestor de Finanzas",
+      content: "Página de inicio de sesión de Gestor de Eventos",
     },
   ];
 }
