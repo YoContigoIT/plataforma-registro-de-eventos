@@ -52,6 +52,7 @@ import { Temporal } from "@js-temporal/polyfill";
 import type { User } from "@prisma/client";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import type { ZodError } from "zod";
 
 // Using Temporal API for modern, reliable date handling
 // Temporal provides better timezone support, immutable objects, and more reliable parsing
@@ -318,6 +319,21 @@ export function calculatePaginationInfo(
   };
 }
 
+export function simplifyZodErrors<T>(
+  error: ZodError<T>
+): Record<string, string[]> {
+  const errors: Record<string, string[]> = {};
+  if (error.issues) {
+    for (const issue of error.issues) {
+      const path = issue.path.join(".");
+      if (!errors[path]) {
+        errors[path] = [];
+      }
+      errors[path].push(issue.message);
+    }
+  }
+  return errors;
+}
 // Formatear iniciales del user
 export function getUserInitials(
   user: Partial<User> | Omit<User, "password">

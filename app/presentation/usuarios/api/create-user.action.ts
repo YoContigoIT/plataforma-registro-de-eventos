@@ -1,5 +1,5 @@
-import { createUserSchema } from "~/domain/dtos/user.dto";
-import { formatZodErrors } from "~/shared/lib/zod-errors";
+import { createUserSchema, type CreateUserDTO } from "~/domain/dtos/user.dto";
+import { simplifyZodErrors } from "~/shared/lib/utils";
 import type { Route } from "../routes/+types/create-user";
 
 export const createUserAction = async ({
@@ -23,7 +23,7 @@ export const createUserAction = async ({
     if (!result.success) {
       return {
         error: "Error de validación",
-        errors: formatZodErrors(result.error),
+        errors: simplifyZodErrors<CreateUserDTO>(result.error),
       };
     }
 
