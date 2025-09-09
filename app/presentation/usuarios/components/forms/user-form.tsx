@@ -25,9 +25,9 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
     useUserForm(isEditing);
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-full mx-auto">
       {/* Header */}
-      <div className="flex items-center mb-8">
+      <div className="flex items-center mb-6">
         <PageTitleBack
           title={isEditing ? "Editar usuario" : "Crear usuario"}
           subtitle={
@@ -40,7 +40,7 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
       </div>
 
       {/* Card con los colores de identidad */}
-      <div className="bg-card rounded-xl shadow-sm p-6 md:p-8 border border-border">
+      <div className="w-full bg-card rounded-xl shadow-sm p-6 md:p-8 border border-border">
         <Form method="post" action={actionUrl} className="space-y-8">
           {/* Sección de datos personales */}
           <section>
@@ -196,15 +196,7 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
 
           {/* Botones de acción */}
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-6 border-t border-border">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full sm:w-auto"
-              disabled={isSubmitting}
-              onClick={() => window.history.back()}
-            >
-              Cancelar
-            </Button>
+         
             <Button
               type="submit"
               className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90"
