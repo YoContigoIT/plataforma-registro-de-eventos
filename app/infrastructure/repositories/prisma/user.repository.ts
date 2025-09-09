@@ -75,7 +75,6 @@ export const PrismaUserRepository = (
   },
 
   delete: async (id): Promise<void> => {
-    //Aplicar soft delete
     await prisma.user.update({
       where: { id },
       data: { archived: true },
