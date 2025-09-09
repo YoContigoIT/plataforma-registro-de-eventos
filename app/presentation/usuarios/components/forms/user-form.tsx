@@ -51,6 +51,7 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
             <div className="grid gap-5 md:grid-cols-2">
               <FormField id="name" error={errors?.name}>
                 <TextInput
+                  defaultValue={defaultValues.name || ""}
                   label="Nombre completo"
                   id="name"
                   name="name"
@@ -69,6 +70,7 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
 
               <FormField id="email" error={errors?.email}>
                 <TextInput
+                  defaultValue={defaultValues.email || ""}
                   label="Correo electrónico"
                   icon={<Mail size={20} className="text-muted-foreground" />}
                   id="email"
@@ -94,6 +96,7 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
             <div className="grid gap-5 md:grid-cols-2">
               <FormField id="company" error={errors?.company}>
                 <TextInput
+                  defaultValue={defaultValues.company || ""}
                   label="Departamento"
                   id="company"
                   name="company"
@@ -110,6 +113,7 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
 
               <FormField id="title" error={errors?.title}>
                 <TextInput
+                  defaultValue={defaultValues.title || ""}
                   label="Puesto"
                   id="title"
                   name="title"
@@ -124,6 +128,7 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
 
               <FormField id="phone" error={errors?.phone}>
                 <TextInput
+                  defaultValue={defaultValues.phone || ""}
                   label="Teléfono"
                   id="phone"
                   name="phone"

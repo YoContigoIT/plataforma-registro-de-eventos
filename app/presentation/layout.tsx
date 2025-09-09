@@ -16,8 +16,8 @@ import type { Route } from "./+types/layout";
 
 export function meta() {
   return [
-    { title: "Página de inicio - Gestor de Finanzas" },
-    { name: "description", content: "Bienvenido a el Gestor de Finanzas!" },
+    { title: "Página de inicio - Gestor de Eventos" },
+    { name: "description", content: "Bienvenido a el Gestor de Eventos!" },
   ];
 }
 

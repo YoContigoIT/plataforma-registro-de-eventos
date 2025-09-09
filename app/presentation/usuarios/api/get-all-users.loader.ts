@@ -9,8 +9,7 @@ export async function getAllUsersPagination({
   const url = new URL(request.url);
   const page = Number(url.searchParams.get("page")) || 1;
   const limit = Number(url.searchParams.get("limit")) || 10;
-  // Procesamos los parámetros de filtro
-  //   const filters = extractFiltersFromSearchParams(url.searchParams);
+
   const users = await repositories.userRepository.findMany(
     { page, limit },
     {

@@ -42,11 +42,7 @@ export function useUserForm(isEditing = false) {
   const defaultValues = isEditing ? loaderData?.user || {} : {};
 
   useEffect(() => {
-    console.log("actionData:", actionData);
-
     if (actionData?.error) {
-      console.log("ERROR:", actionData);
-
       toast.error(actionData.message || actionData.error);
     }
     if (actionData?.message) {

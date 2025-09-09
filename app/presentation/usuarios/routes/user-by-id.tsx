@@ -8,7 +8,7 @@ export function meta() {
     { title: "Usuario - Gestor de eventos" },
     {
       name: "description",
-      content: "Página de usuario de Gestor de Finanzas",
+      content: "Página de usuario de Gestor de Eventos",
     },
   ];
 }

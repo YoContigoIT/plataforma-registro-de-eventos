@@ -8,7 +8,7 @@ export function meta() {
     { title: "Lista de usuarios - Gestor de eventos" },
     {
       name: "description",
-      content: "Página de lista de usuarios de Gestor de Finanzas",
+      content: "Página de lista de usuarios de Gestor de Eventos",
     },
   ];
 }

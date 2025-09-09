@@ -60,9 +60,9 @@ export const PrismaUserRepository = (
       },
     });
   },
-  update: async (data) => {
+  update: async (userId, data) => {
     return await prisma.user.update({
-      where: { email: data.email },
+      where: { id: userId },
       data,
     });
   },

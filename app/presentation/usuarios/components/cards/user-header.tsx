@@ -32,7 +32,7 @@ export function UserHeader({ user }: { user: Omit<User, "password"> }) {
 
       <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto sm:items-center">
         <ActionButtons
-          editUrl={`/users/edit/${user.id}`}
+          editUrl={`/usuarios/editar/${user.id}`}
           deleteAction={`/usuarios/eliminar`}
           deleteId={user.id}
           canEdit={true}
