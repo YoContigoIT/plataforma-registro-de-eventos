@@ -13,10 +13,10 @@ export function UserDetails({ user }: { user: Omit<User, "password"> }) {
           subtitle="Aquí puedes ver y editar la información del usuario."
         />
       </div>
-      <div className="w-full bg-card rounded-lg shadow-sm overflow-hidden p-6">
+      <div className="w-full bg-card/70 rounded-2xl  p-6">
         <UserHeader user={user} />
 
-        <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="w-full p-6 md:p-8 grid grid-cols-1 md:grid-cols-1 ">
           <AccountInfo user={user} />
         </div>
       </div>
