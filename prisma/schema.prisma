@@ -48,6 +48,7 @@ model User {
 
     role UserRole @default(ATTENDEE)
 
+    archived      Boolean        @default(false)
     registrations Registration[]
     sessions      Session[]
 

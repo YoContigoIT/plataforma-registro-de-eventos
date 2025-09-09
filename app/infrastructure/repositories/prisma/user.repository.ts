@@ -24,6 +24,7 @@ export const PrismaUserRepository = (
       customFilters: {
         id: filters?.currentUserId ? { not: filters.currentUserId } : undefined,
         role: { notIn: excludedRoles },
+        archived: false,
       },
     }) as Prisma.UserWhereInput;
 
@@ -74,7 +75,10 @@ export const PrismaUserRepository = (
   },
 
   delete: async (id): Promise<void> => {
-    console.log("Deleting user with id:", id); // Debug log
     //Aplicar soft delete
+    await prisma.user.update({
+      where: { id },
+      data: { archived: true },
+    });
   },
 });
