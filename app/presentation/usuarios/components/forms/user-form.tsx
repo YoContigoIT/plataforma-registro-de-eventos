@@ -34,7 +34,7 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
               ? "Modifica la información del usuario"
               : "Completa la información para crear un nuevo usuario"
           }
-          href="/usuarios"
+          href={isEditing ? `/usuarios/ver/${defaultValues.id}` : "/usuarios"}
         />
       </div>
       {/* Card principal */}
