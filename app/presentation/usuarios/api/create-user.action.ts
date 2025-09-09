@@ -8,7 +8,6 @@ export const createUserAction = async ({
 }: Route.ActionArgs) => {
   try {
     const formData = await request.formData();
-    console.log("formData: ", formData);
     const data = Object.fromEntries(formData);
 
     const result = createUserSchema.safeParse({
@@ -20,11 +19,8 @@ export const createUserAction = async ({
       role: data.role || undefined,
       password: data.password,
     });
-    console.log("result: ", result);
 
     if (!result.success) {
-      console.log("RETURNING ERRORS", formatZodErrors(result.error));
-
       return {
         error: "Error de validación",
         errors: formatZodErrors(result.error),

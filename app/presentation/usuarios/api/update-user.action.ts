@@ -21,8 +21,6 @@ export const updateUserAction = async ({
     });
 
     if (!result.success) {
-      console.log("RETURNING ERRORS", formatZodErrors(result.error));
-
       return {
         error: "Error de validación",
         errors: formatZodErrors(result.error),

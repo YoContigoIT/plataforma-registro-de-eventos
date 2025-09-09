@@ -55,8 +55,6 @@ export function useUserForm(isEditing = false) {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    console.log(e.target.name, e.target.value);
-
     const { name, value } = e.target;
     validateField(name, value);
   };
