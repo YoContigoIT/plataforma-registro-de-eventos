@@ -1,5 +1,6 @@
 import { Temporal } from "@js-temporal/polyfill";
 import { type ClassValue, clsx } from "clsx";
+import * as crypto from "crypto";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { twMerge } from "tailwind-merge";
@@ -402,3 +403,11 @@ export const pluralizeItemName = (count: number, itemName: string): string => {
 
   return `${itemName}s`;
 };
+
+// Generate a unique QR code for each registration
+export function generateQRCode(userId: string, eventId: string): string {
+  return crypto
+    .createHash("sha256")
+    .update(`${userId}-${eventId}-${Date.now()}`)
+    .digest("hex");
+}
