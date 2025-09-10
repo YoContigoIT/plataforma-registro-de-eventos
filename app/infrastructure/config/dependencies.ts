@@ -4,13 +4,13 @@ import type { IEventRepository } from "~/domain/repositories/event.repository";
 import type { IJWTRepository } from "~/domain/repositories/jwt.repository";
 import type { ISessionRepository } from "~/domain/repositories/session.repository";
 import type { IUserRepository } from "~/domain/repositories/user.repository";
-/* import { PaymentService } from "~/domain/services/payment.service";
-import { PurchaseOrderService } from "~/domain/services/purchase-order.service"; */
+import type { IEmailService } from "~/domain/services/email.service";
 import { bcryptRepository } from "../auth/bcrypt.repository";
 import { JWTRepository } from "../auth/jwt.repository";
 import { PrismaEventRepository } from "../repositories/prisma/event.repository";
 import { PrismaSessionRepository } from "../repositories/prisma/session.repository";
 import { PrismaUserRepository } from "../repositories/prisma/user.repository";
+import { EmailService } from "../services/email.service";
 
 export interface IRepositoriesContainer {
   jwtRepository: IJWTRepository;
@@ -20,14 +20,13 @@ export interface IRepositoriesContainer {
   eventRepository: IEventRepository;
 }
 
-/* export interface IServicesContainer {
-  paymentService: IPaymentService;
-  purchaseOrderService: IPurchaseOrderService;
+export interface IServicesContainer {
+  emailService: IEmailService;
 }
- */
+
 export interface IDependenciesContainer {
   repositories: IRepositoriesContainer;
-  //services: IServicesContainer;
+  services: IServicesContainer;
 }
 
 /**
@@ -56,28 +55,15 @@ export const createRepositoriesContainer = (
  * Contenedor de inyección de dependencias para servicios
  * Centraliza la creación e inyección de todas las dependencias de servicios
  */
-/* export const createServicesContainer = (
+export const createServicesContainer = (
   repositories: IRepositoriesContainer,
 ): IServicesContainer => {
-  // Crear purchaseOrderService primero ya que paymentService lo necesita
-  const purchaseOrderService = PurchaseOrderService({
-    purchaseOrderRepository: repositories.purchaseOrderRepository,
-    fundingRepository: repositories.fundingRepository,
-    expenseRepository: repositories.expenseRepository,
-  });
-
-  const paymentService = PaymentService({
-    repositories,
-    services: {
-      purchaseOrderService,
-    },
-  });
+  const emailService = EmailService();
 
   return {
-    paymentService,
-    purchaseOrderService,
+    emailService,
   };
-}; */
+};
 
 /**
  * Contenedor principal de dependencias
@@ -87,10 +73,10 @@ export const createDependenciesContainer = (
   prisma: PrismaClient,
 ): IDependenciesContainer => {
   const repositories = createRepositoriesContainer(prisma);
-  //const services = createServicesContainer(repositories);
+  const services = createServicesContainer(repositories);
 
   return {
     repositories,
-    //services,
+    services,
   };
 };

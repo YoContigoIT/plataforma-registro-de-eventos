@@ -141,3 +141,81 @@ export const archiveEventAction = async ({
     };
   }
 };
+
+export const testEmailAction = async ({
+  request,
+  context: { repositories, services, session },
+}: RouteList.ActionArgs): Promise<ActionData> => {
+  const formData = Object.fromEntries(await request.formData());
+  const userId = session.get("user")?.id;
+  const eventId = formData.eventId as string;
+
+  if (!userId) {
+    return {
+      success: false,
+      error: "No se ha iniciado sesión",
+    };
+  }
+
+  try {
+    // Get user and event data
+    const user = await repositories.userRepository.findUnique(userId);
+    const event = await repositories.eventRepository.findUnique(eventId);
+
+    if (!user || !event) {
+      return {
+        success: false,
+        error: "Usuario o evento no encontrado",
+      };
+    }
+
+    // Generate a test QR code
+    const testQrCode = `TEST-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(testQrCode)}`;
+
+    // Prepare registration data for email
+    const registrationData = {
+      userName: user.name,
+      eventName: event.name,
+      eventDate: new Date(event.start_date).toLocaleDateString("es-ES", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+      eventLocation: event.location || "Ubicación por confirmar",
+      eventTime: new Date(event.start_date).toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      qrCode: testQrCode,
+      qrCodeUrl: qrCodeUrl,
+      customMessage:
+        "Este es un correo de prueba del sistema de confirmación de registro.",
+      eventDetailsUrl: `${process.env.APP_URL || "http://localhost:5173"}/eventos/${event.id}`,
+      supportEmail: "soporte@eventos.com",
+    };
+
+    // Send test email
+    const tempEmail = "jesustrujillor23@gmail.com";
+
+    await services.emailService.sendRegistrationConfirmation(
+      tempEmail,
+      registrationData,
+    );
+
+    return {
+      success: true,
+      message: `Correo de prueba enviado exitosamente a ${tempEmail}`,
+    };
+  } catch (error) {
+    console.error("Error sending test email:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Error al enviar el correo de prueba",
+    };
+  }
+};

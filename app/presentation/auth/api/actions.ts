@@ -10,7 +10,7 @@ import {
 
 export const loginAction = async ({
   request,
-  context: { repositories, clientInfo },
+  context: { repositories, services, clientInfo },
 }: RouteLogin.ActionArgs) => {
   const formData = Object.fromEntries(await request.formData());
 
@@ -53,6 +53,22 @@ export const loginAction = async ({
   sessionStore.set("accessToken", accessToken);
   sessionStore.set("refreshToken", refreshToken);
   sessionStore.set("sessionId", session.id);
+
+  /* try {
+    await services.emailService.sendLoginNotification(
+      user.email,
+      user.name,
+      {
+        ipAddress: clientInfo.ipAddress,
+        userAgent: clientInfo.userAgent,
+        timestamp: new Date(),
+      }
+    );
+    console.log(`Login notification email sent to: ${user.email}`);
+  } catch (error) {
+    // Don't fail the login if email fails, just log the error
+    console.error("Failed to send login notification email:", error);
+  } */
 
   return redirect("/", {
     headers: {

@@ -1,6 +1,7 @@
 import {
   createDependenciesContainer,
   type IRepositoriesContainer,
+  type IServicesContainer,
 } from "@/infrastructure/config/dependencies";
 import prisma from "@/infrastructure/db/prisma";
 import { createRequestHandler } from "@react-router/express";
@@ -16,7 +17,7 @@ import {
 declare module "react-router" {
   interface AppLoadContext {
     repositories: IRepositoriesContainer;
-    /* services: IServicesContainer; */
+    services: IServicesContainer;
     session: Session<SessionData, SessionFlashData>;
     clientInfo: {
       ipAddress: string;
@@ -42,7 +43,7 @@ app.use(
   createRequestHandler({
     build: () => import("virtual:react-router/server-build"),
     async getLoadContext(req: express.Request) {
-      const { repositories } = createDependenciesContainer(prisma);
+      const { repositories, services } = createDependenciesContainer(prisma);
       const session = await getSession(req.headers.cookie);
 
       // Obtener información del cliente
@@ -53,7 +54,7 @@ app.use(
 
       return {
         repositories,
-        /*  services, */
+        services,
         session,
         clientInfo,
       };
