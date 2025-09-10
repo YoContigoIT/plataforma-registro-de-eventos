@@ -1,4 +1,5 @@
 import { Temporal } from "@js-temporal/polyfill";
+import type { User } from "@prisma/client";
 import { type ClassValue, clsx } from "clsx";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -8,6 +9,50 @@ import type { ZodError } from "zod";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+/* export function simplifyZodErrors<T>(
+  error: z.ZodError<T>,
+): Record<string, string[]> {
+  const errors: Record<string, string[]> = {};
+
+  error.errors.forEach((err) => {
+    if (err.path.length > 0) {
+      const key = err.path.join(".");
+      if (!errors[key]) {
+        errors[key] = [];
+      }
+      errors[key].push(err.message);
+    }
+  });
+  return errors;
+}
+
+export function formatName(
+  person: Partial<User> | Omit<User, "password"> | null,
+) {
+  if (!person) {
+    return "No hay información de la persona";
+  }
+  const apellidoPaterno = person
+    ? person.apellido_paterno
+    : "";
+  const apellidoMaterno = person.apellido_materno
+    ? person.apellido_materno
+    : "";
+  return `${person.nombre} ${apellidoPaterno} ${apellidoMaterno}`;
+}
+
+export function getUserInitials(user: Partial<User>) {
+  const nombreInitial = user.nombre?.charAt(0) || "";
+  const apellido_paternoInitial = user.apellido_paterno?.charAt(0) || "";
+  const apellido_maternoInitial = user.apellido_materno?.charAt(0) || "";
+  return (
+    nombreInitial +
+    apellido_paternoInitial +
+    apellido_maternoInitial
+  ).toUpperCase();
+} */
+
 
 // Using Temporal API for modern, reliable date handling
 // Temporal provides better timezone support, immutable objects, and more reliable parsing
@@ -62,6 +107,30 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+// Re-export badge utilities for backward compatibility
+export {
+  formatRoleName,
+  getEmployeeStatusBadge,
+  getFundingStatusBadge,
+  getMovementTypeBadge,
+  getPayrollStatusBadge,
+  getPurchaseOrderStatusBadge,
+  getSessionStatusBadge,
+  getUserRoleBadge
+} from "./badge-utils";
+
+// Legacy function for backward compatibility - deprecated
+export function getRoleBadgeVariant(rol: string): string {
+  const rolColors = {
+    super_admin: "bg-red-100 text-red-800 border-red-200",
+    admin: "bg-sky-100 text-sky-800 border-sky-200",
+    usuario: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  };
+  return (
+    rolColors[rol as keyof typeof rolColors] || "bg-gray-100 text-gray-800"
+  );
+}
+
 // Date formatting utilities for data tables
 export function formatDateShort(date: Date | string): string {
   const dateObj = typeof date === "string" ? new Date(date) : date;
@@ -111,7 +180,7 @@ export function formatDateShortTemporal(date: Date | string): string {
 
 // Parse date string safely using Temporal API
 export function parseDate(
-  dateString: string | undefined | null,
+  dateString: string | undefined | null
 ): Date | undefined {
   if (!dateString || dateString === "") {
     return undefined;
@@ -163,7 +232,7 @@ export interface WhereClauseConfig {
  */
 export function buildWhereClause(
   searchTerm?: string,
-  config: WhereClauseConfig = {},
+  config: WhereClauseConfig = {}
 ): Record<string, unknown> {
   const where: Record<string, unknown> = {};
 
@@ -238,7 +307,7 @@ export function buildWhereClause(
 export function calculatePaginationInfo(
   page: number,
   limit: number,
-  totalItems: number,
+  totalItems: number
 ) {
   const totalPages = Math.ceil(totalItems / limit);
 
@@ -250,10 +319,10 @@ export function calculatePaginationInfo(
   };
 }
 
-
-export function simplifyZodErrors<T>(error: ZodError<T>): Record<string, string[]> {
+export function simplifyZodErrors<T>(
+  error: ZodError<T>
+): Record<string, string[]> {
   const errors: Record<string, string[]> = {};
-
   if (error.issues) {
     for (const issue of error.issues) {
       const path = issue.path.join(".");
@@ -263,9 +332,34 @@ export function simplifyZodErrors<T>(error: ZodError<T>): Record<string, string[
       errors[path].push(issue.message);
     }
   }
-
   return errors;
 }
+// Formatear iniciales del user
+export function getUserInitials(
+  user: Partial<User> | Omit<User, "password">
+): string {
+  if (!user.name) {
+    return "NN"; // Nombre no disponible
+  }
+  const names = user.name.trim().split(" ");
+  if (names.length === 1) {
+    return names[0].charAt(0).toUpperCase();
+  }
+  const firstInitial = names[0].charAt(0).toUpperCase();
+  const lastInitial = names[names.length - 1].charAt(0).toUpperCase();
+  return firstInitial + lastInitial;
+}
+
+//Funcion para formatear nombre del user
+export function formatName(
+  user: Partial<User> | Omit<User, "password">
+): string {
+  if (!user) {
+    return "No hay información del usuario";
+  }
+  return user.name || "No hay información del usuario";
+}
+
 
 interface PluralizationRule {
   test: RegExp;
