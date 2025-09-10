@@ -5,20 +5,21 @@ export async function getEventByIdLoader({
   context: { repositories },
 }: Route.LoaderArgs) {
   const eventId = params.eventId;
-  console.log("eventId: ", eventId);
 
   if (!eventId) {
     return { error: "No se encontró el evento solicitado." };
   }
+  const event = await repositories.eventRepository.findUnique(eventId);
 
-  // Datos de ejemplo
+  if (!event) {
+    return {
+      success: false,
+      error: "Event not found",
+    };
+  }
+
   return {
-    event: {
-      id: "1",
-      name: "Evento de ejemplo 2024 ",
-      date: "2024-12-31",
-      location: "Ciudad de Ejemplo",
-      description: "Descripción del evento de ejemplo",
-    },
+    success: true,
+    data: event,
   };
 }
