@@ -1,6 +1,6 @@
 import type {
-    EmailOptions,
-    IEmailService,
+  EmailOptions,
+  IEmailService,
 } from "~/domain/services/email.service";
 import { env } from "../config/env";
 import { transporter } from "../config/nodemailer";
@@ -135,5 +135,78 @@ export const EmailService = (): IEmailService => ({
       subject,
       html,
     });
+  },
+
+  sendRegistrationConfirmation: async (
+    to: string,
+    registrationData: {
+      userName: string;
+      eventName: string;
+      eventDate: string;
+      eventLocation: string;
+      eventTime: string;
+      qrCode: string;
+      qrCodeUrl: string;
+      customMessage?: string;
+      eventDetailsUrl?: string;
+      supportEmail?: string;
+    },
+  ): Promise<void> => {
+    const subject = `Confirmación de registro - ${registrationData.eventName}`;
+    
+    // Read the HTML template
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    
+    try {
+      const templatePath = path.join(process.cwd(), 'app', 'presentation', 'templates', 'registration-confirmation.html');
+      let htmlTemplate = await fs.readFile(templatePath, 'utf-8');
+      
+      // Replace template variables
+      htmlTemplate = htmlTemplate
+        .replace(/{{userName}}/g, registrationData.userName)
+        .replace(/{{eventName}}/g, registrationData.eventName)
+        .replace(/{{eventDate}}/g, registrationData.eventDate)
+        .replace(/{{eventLocation}}/g, registrationData.eventLocation)
+        .replace(/{{eventTime}}/g, registrationData.eventTime)
+        .replace(/{{qrCode}}/g, registrationData.qrCode)
+        .replace(/{{qrCodeUrl}}/g, registrationData.qrCodeUrl)
+        .replace(/{{customMessage}}/g, registrationData.customMessage || 'Te esperamos en este increíble evento. ¡Será una experiencia inolvidable!')
+        .replace(/{{eventDetailsUrl}}/g, registrationData.eventDetailsUrl || '#')
+        .replace(/{{supportEmail}}/g, registrationData.supportEmail || env.EMAIL_FROM);
+
+      await transporter.sendMail({
+        from: env.EMAIL_FROM,
+        to,
+        subject,
+        html: htmlTemplate,
+      });
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      // Fallback to inline HTML if template file is not found
+      const fallbackHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">¡Hola ${registrationData.userName}!</h2>
+          <p>Tu registro para <strong>${registrationData.eventName}</strong> ha sido confirmado.</p>
+          <div style="text-align: center; margin: 20px 0;">
+            <img src="${registrationData.qrCodeUrl}" alt="Código QR" style="width: 150px; height: 150px;">
+            <p>Código QR: ${registrationData.qrCode}</p>
+          </div>
+          <p><strong>Fecha:</strong> ${registrationData.eventDate}</p>
+          <p><strong>Ubicación:</strong> ${registrationData.eventLocation}</p>
+          <p><strong>Hora:</strong> ${registrationData.eventTime}</p>
+          <p>${registrationData.customMessage || 'Te esperamos en este increíble evento.'}</p>
+          <hr style="margin: 20px 0;">
+          <p style="color: #666; font-size: 12px;">Este es un correo automático, por favor no responder.</p>
+        </div>
+      `;
+      
+      await transporter.sendMail({
+        from: env.EMAIL_FROM,
+        to,
+        subject,
+        html: fallbackHtml,
+      });
+    }
   },
 });
