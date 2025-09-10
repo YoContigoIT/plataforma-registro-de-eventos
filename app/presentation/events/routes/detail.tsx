@@ -17,6 +17,7 @@ import {
   Edit,
   FileText,
   List,
+  Loader2,
   MapPin,
   Power,
   Trash2,
@@ -119,11 +120,11 @@ export default function EventDetails() {
         description={`Detalles del evento • ${getStatusLabel(event.status)}`}
         goBack="/eventos"
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-col md:flex-row gap-2">
             <Link to={`/eventos/actualizar/${event.id}`}>
               <Button variant="outline" size="sm">
-                <Edit className="w-4 h-4 mr-2" />
-                Editar
+                <Edit className="size-5 md:mr-2" />
+                <span className="hidden md:block">Editar</span>
               </Button>
             </Link>
             <Button
@@ -132,8 +133,14 @@ export default function EventDetails() {
               onClick={handleArchiveClick}
               disabled={fetcher.state === "submitting"}
             >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {fetcher.state === "submitting" ? "Archivando..." : "Eliminar"}
+              {fetcher.state === "submitting" ? (
+                <Loader2 className="size-5 md:mr-2 animate-spin" />
+              ) : (
+                <Trash2 className="size-5 md:mr-2" />
+              )}
+              <span className="hidden md:inline">
+                {fetcher.state === "submitting" ? "Archivando..." : "Eliminar"}
+              </span>
             </Button>
           </div>
         }
