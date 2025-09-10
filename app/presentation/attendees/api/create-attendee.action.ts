@@ -7,7 +7,7 @@ import type { Route } from "../routes/+types/join";
 export const createAttendeeAction = async ({
   request,
   params,
-  context: { repositories },
+  context: { repositories, services },
 }: Route.ActionArgs) => {
   try {
     const formData = await request.formData();
@@ -90,6 +90,16 @@ export const createAttendeeAction = async ({
     await Promise.all(
       registrations.map((r) => repositories.registrationRepository.create(r))
     );
+
+    await services.emailService.sendRegistrationConfirmation(user.email, {
+      userName: user.name,
+      eventName: event.name,
+      eventDate: event.start_date.toISOString().split("T")[0],
+      eventLocation: event.location,
+      eventTime: event.start_date.toISOString().split("T")[1],
+      qrCode: registrations[0].qrCode,
+      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(registrations[0].qrCode)}`, //TODO: Cambiar cuando este implementado
+    });
 
     return {
       message: "Asistente registrado exitosamente.",
