@@ -1,4 +1,3 @@
-import type { User } from "@prisma/client";
 import { useEffect } from "react";
 import {
   useActionData,
@@ -8,6 +7,7 @@ import {
 } from "react-router";
 import { toast } from "sonner";
 import { updateUserSchema, type UpdateUserDTO } from "~/domain/dtos/user.dto";
+import type { UserEntity } from "~/domain/entities/user.entity";
 import { useFormValidation } from "~/shared/hooks/use-form-validation.hook";
 
 interface UpdateUserActionData {
@@ -31,7 +31,7 @@ export function useUpdateUserForm() {
   const navigation = useNavigation();
   const actionData = useActionData() as UpdateUserActionData | undefined;
   const { user } = useLoaderData() as {
-    user: User;
+    user: UserEntity;
   };
   const navigate = useNavigate();
   const isSubmitting = navigation.state === "submitting";

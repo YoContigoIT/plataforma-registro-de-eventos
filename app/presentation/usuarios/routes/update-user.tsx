@@ -31,7 +31,7 @@ export default function UpdateUserPage() {
   const { userId } = useParams<{ userId: string }>();
 
   return (
-    <div className="w-full max-w-[95rem] mx-auto">
+    <div>
       <UserForm actionUrl={`/usuarios/editar/${userId}`} isEditing />
     </div>
   );
