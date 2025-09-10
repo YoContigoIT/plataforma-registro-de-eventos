@@ -17,21 +17,35 @@ import {
   Edit,
   FileText,
   List,
+  Loader2,
   MapPin,
   Power,
   Trash2,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, redirect, useFetcher, useLoaderData } from "react-router";
+import { toast } from "sonner";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import { ConfirmationDialog } from "~/shared/components/common/confirmation-dialog";
 import type { LoaderData } from "~/shared/types";
-import { archiveEventAction } from "../api/actions";
+import { archiveEventAction, testEmailAction } from "../api/actions";
 import { getEventByIdLoader } from "../api/loaders";
 
 export const loader = getEventByIdLoader;
-export const action = archiveEventAction;
+export const action = async (args: any) => {
+  const formData = await args.request.formData();
+  const intent = formData.get("intent");
+
+  switch (intent) {
+    case "archive":
+      return archiveEventAction(args);
+    case "testEmail":
+      return testEmailAction(args);
+    default:
+      return archiveEventAction(args);
+  }
+};
 
 const getStatusBadgeVariant = (status: string) => {
   switch (status) {
@@ -67,11 +81,33 @@ const getStatusLabel = (status: string) => {
   }
 };
 
-export default function EventDetails() {
+export default function EventDetailPage() {
   const fetcher = useFetcher();
+  const emailFetcher = useFetcher();
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
   const { data: event } = useLoaderData<LoaderData<EventEntity>>();
+
+  // Handle email fetcher response with Sonner toast
+  useEffect(() => {
+    if (emailFetcher.data) {
+      if (emailFetcher.data.success) {
+        toast.success(
+          emailFetcher.data.message || "Email enviado correctamente",
+          {
+            description: "El correo de confirmación ha sido enviado.",
+            duration: 4000,
+          }
+        );
+      } else {
+        toast.error(emailFetcher.data.message || "Error al enviar email", {
+          description:
+            "Hubo un problema al enviar el correo. Inténtalo de nuevo.",
+          duration: 5000,
+        });
+      }
+    }
+  }, [emailFetcher.data]);
 
   if (!event) {
     return (
@@ -98,14 +134,24 @@ export default function EventDetails() {
   const handleConfirmArchive = () => {
     if (event?.id) {
       fetcher.submit(
-        { id: event.id },
+        {},
         {
           method: "post",
+          action: `/eventos/archivar/${event.id}`,
         }
       );
     }
     redirect("/eventos");
     setIsArchiveDialogOpen(false);
+  };
+
+  const handleTestEmail = () => {
+    const formData = new FormData();
+    formData.append("eventId", event.id);
+    emailFetcher.submit(formData, {
+      method: "post",
+      action: "/eventos/test-email",
+    });
   };
 
   const handleCloseDialog = () => {
@@ -119,22 +165,32 @@ export default function EventDetails() {
         description={`Detalles del evento • ${getStatusLabel(event.status)}`}
         goBack="/eventos"
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-col md:flex-row gap-2">
             <Link to={`/eventos/actualizar/${event.id}`}>
               <Button variant="outline" size="sm">
-                <Edit className="w-4 h-4 mr-2" />
-                Editar
+                <Edit className="size-5 md:mr-2" />
+                <span className="hidden md:block">Editar</span>
               </Button>
             </Link>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleArchiveClick}
-              disabled={fetcher.state === "submitting"}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {fetcher.state === "submitting" ? "Archivando..." : "Eliminar"}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleArchiveClick}
+                disabled={fetcher.state === "submitting"}
+              >
+                {fetcher.state === "submitting" ? (
+                  <Loader2 className="size-5 md:mr-2 animate-spin" />
+                ) : (
+                  <Trash2 className="size-5 md:mr-2" />
+                )}
+                <span className="hidden md:inline">
+                  {fetcher.state === "submitting"
+                    ? "Archivando..."
+                    : "Eliminar"}
+                </span>
+              </Button>
+            </div>
           </div>
         }
       />
@@ -293,8 +349,28 @@ export default function EventDetails() {
                 onClick={handleArchiveClick}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Eliminar evento
+                Archivar evento
               </Button>
+              {process.env.NODE_ENV === "development" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTestEmail}
+                  disabled={emailFetcher.state === "submitting"}
+                  className="w-full justify-start"
+                >
+                  {emailFetcher.state === "submitting" ? (
+                    <Loader2 className="size-5 md:mr-2 animate-spin" />
+                  ) : (
+                    <FileText className="size-5 md:mr-2" />
+                  )}
+                  <span className="hidden md:inline">
+                    {emailFetcher.state === "submitting"
+                      ? "Enviando..."
+                      : `Test de correo para ${event.name}`}
+                  </span>
+                </Button>
+              )}
             </CardContent>
           </Card>
 
@@ -333,6 +409,33 @@ export default function EventDetails() {
           </Card>
         </div>
       </div>
+      {/* Email Test Feedback */}
+      {/*  {emailFetcher.data && (
+        <div
+          className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+            emailFetcher.data.success
+              ? "bg-green-100 border border-green-400 text-green-700"
+              : "bg-red-100 border border-red-400 text-red-700"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {emailFetcher.data.success ? (
+              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                <span className="text-white text-xs">✓</span>
+              </div>
+            ) : (
+              <AlertTriangle className="w-5 h-5" />
+            )}
+            <span className="font-medium">
+              {emailFetcher.data.message ||
+                (emailFetcher.data.success
+                  ? "Email enviado"
+                  : "Error al enviar email")}
+            </span>
+          </div>
+        </div>
+      )} */}
+
       <ConfirmationDialog
         isOpen={isArchiveDialogOpen}
         onClose={handleCloseDialog}

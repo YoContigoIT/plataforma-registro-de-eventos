@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/ui/button";
-import { Calendar, Grid, List } from "lucide-react";
+import { CalendarPlus, Grid, List } from "lucide-react";
 import { useState } from "react";
 import { Link, useLoaderData } from "react-router";
 import { Pagination } from "~/shared/components/ui/pagination";
@@ -56,8 +56,8 @@ export default function Events() {
         title="Eventos"
         description="Crea y administra eventos"
         actions={
-          <div className="flex justify-end gap-4">
-            <div className="bg-card border rounded-md flex items-center p-1">
+          <div className="flex gap-2">
+            <div className="hidden bg-card border rounded-md md:flex items-center p-1">
               <Button
                 variant={viewMode === "grid" ? "default" : "ghost"}
                 size="icon"
@@ -79,8 +79,8 @@ export default function Events() {
             </div>
             <Link to="/eventos/crear">
               <Button size="lg">
-                <Calendar className="w-5 h-5 mr-2" />
-                Crear evento
+                <CalendarPlus className="size-5 md:mr-2" />
+                <span className="hidden md:block">Crear evento</span>
               </Button>
             </Link>
           </div>
@@ -95,11 +95,24 @@ export default function Events() {
             getStatusLabel={getStatusLabel}
           />
         ) : (
-          <EventListView
-            events={events}
-            getStatusBadgeVariant={getStatusBadgeVariant}
-            getStatusLabel={getStatusLabel}
-          />
+          <>
+            {/* List view only on md+ screens */}
+            <div className="hidden md:block">
+              <EventListView
+                events={events}
+                getStatusBadgeVariant={getStatusBadgeVariant}
+                getStatusLabel={getStatusLabel}
+              />
+            </div>
+            {/* Fallback to grid on smaller screens */}
+            <div className="block md:hidden">
+              <EventGridView
+                events={events}
+                getStatusBadgeVariant={getStatusBadgeVariant}
+                getStatusLabel={getStatusLabel}
+              />
+            </div>
+          </>
         )}
       </div>
 

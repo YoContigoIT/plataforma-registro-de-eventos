@@ -17,6 +17,8 @@ const ROUTES_PATH = {
     detail: "presentation/events/routes/detail.tsx",
     create: "presentation/events/routes/create.tsx",
     update: "presentation/events/routes/update.tsx",
+    archive: "presentation/events/routes/archive.ts",
+    testEmail: "presentation/events/routes/test-email.ts",
   },
   attendee: {
     join: "presentation/attendees/routes/join.tsx",
@@ -44,5 +46,7 @@ export default [
     route("/eventos/detalle/:id", `${ROUTES_PATH.events.detail}`),
     route("/eventos/crear", `${ROUTES_PATH.events.create}`),
     route("/eventos/actualizar/:id", `${ROUTES_PATH.events.update}`),
+    route("/eventos/archivar/:id", `${ROUTES_PATH.events.archive}`),
+    route("/eventos/test-email", `${ROUTES_PATH.events.testEmail}`),
   ]),
 ] satisfies RouteConfig;
