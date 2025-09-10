@@ -1,25 +1,21 @@
-import type { User } from "@prisma/client";
 import { Mail } from "lucide-react";
-import { ActionButtons } from "~/shared/components/common/action-buttons";
+import type { UserEntity } from "~/domain/entities/user.entity";
 import { Badge } from "~/shared/components/ui/badge";
 import { Card, CardContent } from "~/shared/components/ui/card";
 import { getUserRoleBadge } from "~/shared/lib/badge-utils";
 import { formatName, getUserInitials } from "~/shared/lib/utils";
 
-export function UserHeader({ user }: { user: Omit<User, "password"> }) {
+export function UserHeader({ user }: { user: Omit<UserEntity, "password"> }) {
   const { label, variant } = getUserRoleBadge(user.role);
 
   return (
-    <Card className="w-full shadow-lg relative z-10 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-      <CardContent className="flex flex-col sm:flex-row items-start sm:items-center p-6 md:p-8 gap-4 md:gap-6">
-        {/* Avatar */}
+    <Card>
+      <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="h-20 w-20 rounded-lg bg-gradient-to-br from-primary to-secondary dark:from-secondary dark:to-primary flex items-center justify-center shadow-md flex-shrink-0">
           <span className="text-2xl font-bold text-white">
             {getUserInitials(user)}
           </span>
         </div>
-
-        {/* Información */}
         <div className="flex-1 min-w-0">
           <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white mb-1 truncate">
             {formatName(user)}
@@ -28,7 +24,6 @@ export function UserHeader({ user }: { user: Omit<User, "password"> }) {
             <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
             <span className="truncate">{user.email}</span>
           </div>
-
           <div className="flex flex-wrap gap-2">
             <Badge
               className="px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded-full"
@@ -37,21 +32,6 @@ export function UserHeader({ user }: { user: Omit<User, "password"> }) {
               {label}
             </Badge>
           </div>
-        </div>
-
-        {/* Botones de acción */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto sm:items-center mt-4 sm:mt-0">
-          <ActionButtons
-            editUrl={`/usuarios/editar/${user.id}`}
-            deleteAction={`/usuarios/eliminar`}
-            deleteId={user.id}
-            canEdit
-            canDelete
-            deleteTitle="Eliminar usuario"
-            deleteDescription="¿Deseas eliminar este usuario?"
-            variant="dropdown"
-            size="sm"
-          />
         </div>
       </CardContent>
     </Card>

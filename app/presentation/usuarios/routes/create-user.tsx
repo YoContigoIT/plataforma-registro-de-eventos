@@ -14,7 +14,7 @@ export { createUserAction as action };
 
 export default function CreateUserPage() {
   return (
-    <div className="w-full max-w-[95rem] mx-auto">
+    <div>
       <UserForm actionUrl="/usuarios/crear" />
     </div>
   );

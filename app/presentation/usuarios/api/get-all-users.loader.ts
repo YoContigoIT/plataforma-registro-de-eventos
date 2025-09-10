@@ -1,14 +1,13 @@
-import { UserRole, type User } from "@prisma/client";
-import type { PaginatedResponse } from "~/shared/types";
+import { UserRole } from "@prisma/client";
 import type { Route } from "../routes/+types/users";
 
 export async function getAllUsersPagination({
   request,
   context: { repositories },
-}: Route.LoaderArgs): Promise<PaginatedResponse<User>> {
+}: Route.LoaderArgs) {
   const url = new URL(request.url);
-  const page = Number(url.searchParams.get("page")) || 1;
-  const limit = Number(url.searchParams.get("limit")) || 10;
+  const page = parseInt(url.searchParams.get("page") || "1", 10);
+  const limit = parseInt(url.searchParams.get("limit") || "10", 10);
 
   const users = await repositories.userRepository.findMany(
     { page, limit },
@@ -18,5 +17,8 @@ export async function getAllUsersPagination({
     }
   );
 
-  return users;
+  return {
+    users: users.data,
+    pagination: users.pagination,
+  };
 }

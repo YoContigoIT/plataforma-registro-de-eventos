@@ -1,10 +1,11 @@
 import { Temporal } from "@js-temporal/polyfill";
-import type { User } from "@prisma/client";
 import { type ClassValue, clsx } from "clsx";
+import * as crypto from "crypto";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { twMerge } from "tailwind-merge";
 import type { ZodError } from "zod";
+import type { UserEntity } from "~/domain/entities/user.entity";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -52,7 +53,6 @@ export function getUserInitials(user: Partial<User>) {
     apellido_maternoInitial
   ).toUpperCase();
 } */
-
 
 // Using Temporal API for modern, reliable date handling
 // Temporal provides better timezone support, immutable objects, and more reliable parsing
@@ -116,7 +116,7 @@ export {
   getPayrollStatusBadge,
   getPurchaseOrderStatusBadge,
   getSessionStatusBadge,
-  getUserRoleBadge
+  getUserRoleBadge,
 } from "./badge-utils";
 
 // Legacy function for backward compatibility - deprecated
@@ -336,7 +336,7 @@ export function simplifyZodErrors<T>(
 }
 // Formatear iniciales del user
 export function getUserInitials(
-  user: Partial<User> | Omit<User, "password">
+  user: Partial<UserEntity> | Omit<UserEntity, "password">
 ): string {
   if (!user.name) {
     return "NN"; // Nombre no disponible
@@ -352,14 +352,13 @@ export function getUserInitials(
 
 //Funcion para formatear nombre del user
 export function formatName(
-  user: Partial<User> | Omit<User, "password">
+  user: Partial<UserEntity> | Omit<UserEntity, "password">
 ): string {
   if (!user) {
     return "No hay información del usuario";
   }
   return user.name || "No hay información del usuario";
 }
-
 
 interface PluralizationRule {
   test: RegExp;
@@ -404,3 +403,11 @@ export const pluralizeItemName = (count: number, itemName: string): string => {
 
   return `${itemName}s`;
 };
+
+// Generate a unique QR code for each registration
+export function generateQRCode(userId: string, eventId: string): string {
+  return crypto
+    .createHash("sha256")
+    .update(`${userId}-${eventId}-${Date.now()}`)
+    .digest("hex");
+}
