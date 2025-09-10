@@ -18,12 +18,16 @@ const ROUTES_PATH = {
     create: "presentation/events/routes/create.tsx",
     update: "presentation/events/routes/update.tsx",
   },
+  attendee: {
+    join: "presentation/attendees/routes/join.tsx",
+  },
 };
 
 export default [
   index(`${ROUTES_PATH.redirect_root}`),
   route("/iniciar-sesion", `${ROUTES_PATH.auth.login}`),
   route("/cerrar-sesion", `${ROUTES_PATH.auth.logout}`),
+  route("/join/:eventId", `${ROUTES_PATH.attendee.join}`),
   layout(`${ROUTES_PATH.layout}`, [
     route("/panel", "presentation/panel/routes/panel.tsx"),
     route("/usuarios", "presentation/usuarios/routes/users.tsx"),
