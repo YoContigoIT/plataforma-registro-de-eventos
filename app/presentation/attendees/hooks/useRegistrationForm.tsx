@@ -49,7 +49,7 @@ export function useRegistrationForm() {
     isLoading,
     errors,
     handleInputChange,
-    loaderData,
+    loaderData: loaderData?.data,
     showSuccess,
   };
 }

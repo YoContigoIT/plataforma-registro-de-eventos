@@ -9,6 +9,7 @@ import {
 import {
   AlertCircle,
   CheckCircle,
+  Key,
   Loader2,
   Mail,
   Phone,
@@ -17,6 +18,8 @@ import {
 import { useEffect, useState } from "react";
 import { Form } from "react-router";
 import { FormField } from "~/shared/components/common/form-field";
+import { PasswordInput } from "~/shared/components/common/password-input";
+import { SelectInput } from "~/shared/components/common/select-input";
 import { TextInput } from "~/shared/components/common/text-input";
 import { useRegistrationForm } from "../../hooks/useRegistrationForm";
 import { RegistrationConfirm } from "./registration-confirm";
@@ -36,11 +39,15 @@ export function RegistrationForm() {
     name: false,
     email: false,
     phone: false,
+    password: false,
+    quantity: false,
   });
   const [formData, setFormData] = useState({
     name: false,
     email: false,
     phone: false,
+    password: false,
+    quantity: false,
   });
 
   // Efecto para simular progreso de carga
@@ -69,11 +76,15 @@ export function RegistrationForm() {
   // Calcular progreso de completado del formulario
   const completionPercentage = () => {
     let completed = 0;
-    const totalFields = 3;
+    const totalFields = 5;
 
     if (touchedFields.name && !errors.name && formData.name) completed++;
     if (touchedFields.email && !errors.email && formData.email) completed++;
     if (touchedFields.phone && !errors.phone && formData.phone) completed++;
+    if (touchedFields.password && !errors.password && formData.password)
+      completed++;
+    if (touchedFields.quantity && !errors.quantity && formData.quantity)
+      completed++;
 
     return (completed / totalFields) * 100;
   };
@@ -108,9 +119,9 @@ export function RegistrationForm() {
             <CardTitle className="text-2xl font-bold text-gray-800">
               Registro al Evento
             </CardTitle>
-            {loaderData?.event?.name && (
+            {loaderData?.name && (
               <span className="bg-primary/10 text-primary text-sm font-medium px-3 py-1 rounded-full">
-                {loaderData.event.name}
+                {loaderData.name}
               </span>
             )}
           </div>
@@ -205,6 +216,50 @@ export function RegistrationForm() {
               </p>
             )}
           </div>
+          {/* Password */}
+          <div className="space-y-2">
+            <FormField id="password" error={errors.password}>
+              <PasswordInput
+                name="password"
+                label="Contraseña"
+                placeholder="Escribe una contraseña segura"
+                autoComplete="new-password"
+                icon={<Key size={20} className="text-muted-foreground" />}
+                required
+                disabled={isSubmitting || isLoading}
+                onChange={(e) => {
+                  handleInputChange(e);
+                  if (!touchedFields.password) {
+                    setTouchedFields((prev) => ({
+                      ...prev,
+                      password: true,
+                    }));
+                  }
+                  const hasValue = e.target.value.trim() !== "";
+                  setFormData((prev) => ({ ...prev, password: hasValue }));
+                }}
+                onBlur={() => handleFieldBlur("password")}
+                aria-invalid={!!errors.password}
+                aria-errormessage={
+                  errors.password ? "password-error" : undefined
+                }
+                className={
+                  touchedFields.password &&
+                  !errors.password &&
+                  formData.password
+                    ? "border-green-500 focus:ring-green-500"
+                    : ""
+                }
+              />
+            </FormField>
+            {touchedFields.password &&
+              !errors.password &&
+              formData.password && (
+                <p className="text-green-600 text-xs flex items-center">
+                  <CheckCircle size={14} className="mr-1" /> Campo válido
+                </p>
+              )}
+          </div>
 
           {/* Telefono */}
           <div className="space-y-2">
@@ -247,6 +302,57 @@ export function RegistrationForm() {
                 <CheckCircle size={14} className="mr-1" /> Campo válido
               </p>
             )}
+          </div>
+
+          {/* Cantidad de Tickets a comprar */}
+          <div className="space-y-2">
+            <FormField id="quantity" error={errors.quantity}>
+              <SelectInput
+                label="Cantidad de tickets a comprar"
+                id="quantity"
+                name="quantity"
+                required
+                options={Array.from(
+                  { length: loaderData.maxTickets },
+                  (_, index) => ({
+                    value: (index + 1).toString(),
+                    label: (index + 1).toString(),
+                  })
+                )}
+                disabled={isSubmitting || isLoading}
+                onValueChange={(value) => {
+                  handleInputChange({
+                    target: { name: "quantity", value },
+                  } as React.ChangeEvent<HTMLInputElement>);
+                  if (!touchedFields.quantity) {
+                    setTouchedFields((prev) => ({
+                      ...prev,
+                      quantity: true,
+                    }));
+                  }
+                  const hasValue = value.trim() !== "";
+                  setFormData((prev) => ({ ...prev, quantity: hasValue }));
+                }}
+                aria-invalid={!!errors.quantity}
+                aria-errormessage={
+                  errors.quantity ? "quantity-error" : undefined
+                }
+                className={
+                  touchedFields.quantity &&
+                  !errors.quantity &&
+                  formData.quantity
+                    ? "border-green-500 focus:ring-green-500"
+                    : ""
+                }
+              />
+            </FormField>
+            {touchedFields.quantity &&
+              !errors.quantity &&
+              formData.quantity && (
+                <p className="text-green-600 text-xs flex items-center">
+                  <CheckCircle size={14} className="mr-1" /> Campo valido
+                </p>
+              )}
           </div>
 
           {/* Botón */}
