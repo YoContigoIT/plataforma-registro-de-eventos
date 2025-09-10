@@ -309,6 +309,7 @@ export function RegistrationForm() {
             <FormField id="quantity" error={errors.quantity}>
               <SelectInput
                 label="Cantidad de tickets a comprar"
+                placeholder="Seleccione una cantidad"
                 id="quantity"
                 name="quantity"
                 required
