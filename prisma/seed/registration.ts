@@ -26,7 +26,7 @@ export async function seedRegistrations(prisma: PrismaClient) {
 
   if (attendees.length === 0 || events.length === 0) {
     throw new Error(
-      "No attendees or events found. Please seed users and events first.",
+      "No attendees or events found. Please seed users and events first."
     );
   }
 
@@ -48,7 +48,7 @@ export async function seedRegistrations(prisma: PrismaClient) {
               userId: attendee.id,
               eventId: event.id,
             },
-          }),
+          })
         );
       }
     }
@@ -66,7 +66,7 @@ export async function seedRegistrations(prisma: PrismaClient) {
               userId: attendees[i].id,
               eventId: event.id,
             },
-          }),
+          })
         );
       }
     }
@@ -84,7 +84,7 @@ export async function seedRegistrations(prisma: PrismaClient) {
               userId: attendees[i].id,
               eventId: event.id,
             },
-          }),
+          })
         );
       }
     }

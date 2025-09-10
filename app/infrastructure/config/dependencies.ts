@@ -6,9 +6,11 @@ import type { ISessionRepository } from "~/domain/repositories/session.repositor
 import type { IUserRepository } from "~/domain/repositories/user.repository";
 /* import { PaymentService } from "~/domain/services/payment.service";
 import { PurchaseOrderService } from "~/domain/services/purchase-order.service"; */
+import type { IRegistrationRepository } from "~/domain/repositories/registration.repository";
 import { bcryptRepository } from "../auth/bcrypt.repository";
 import { JWTRepository } from "../auth/jwt.repository";
 import { PrismaEventRepository } from "../repositories/prisma/event.repository";
+import { PrismaRegistrationRepository } from "../repositories/prisma/registration.repository";
 import { PrismaSessionRepository } from "../repositories/prisma/session.repository";
 import { PrismaUserRepository } from "../repositories/prisma/user.repository";
 
@@ -18,6 +20,7 @@ export interface IRepositoriesContainer {
   userRepository: IUserRepository;
   sessionRepository: ISessionRepository;
   eventRepository: IEventRepository;
+  registrationRepository: IRegistrationRepository;
 }
 
 /* export interface IServicesContainer {
@@ -35,13 +38,14 @@ export interface IDependenciesContainer {
  * Centraliza la creación e inyección de todas las dependencias de repositorios
  */
 export const createRepositoriesContainer = (
-  prisma: PrismaClient,
+  prisma: PrismaClient
 ): IRepositoriesContainer => {
   const jwtRepository = JWTRepository();
   const encryptorRepository = bcryptRepository();
   const userRepository = PrismaUserRepository(prisma);
   const sessionRepository = PrismaSessionRepository(prisma, jwtRepository);
   const eventRepository = PrismaEventRepository(prisma);
+  const registrationRepository = PrismaRegistrationRepository(prisma);
 
   return {
     encryptorRepository,
@@ -49,6 +53,7 @@ export const createRepositoriesContainer = (
     userRepository,
     sessionRepository,
     eventRepository,
+    registrationRepository,
   };
 };
 
@@ -84,7 +89,7 @@ export const createRepositoriesContainer = (
  * Combina repositorios y servicios en un solo contenedor
  */
 export const createDependenciesContainer = (
-  prisma: PrismaClient,
+  prisma: PrismaClient
 ): IDependenciesContainer => {
   const repositories = createRepositoriesContainer(prisma);
   //const services = createServicesContainer(repositories);
