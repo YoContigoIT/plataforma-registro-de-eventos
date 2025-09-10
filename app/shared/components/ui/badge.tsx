@@ -50,4 +50,14 @@ function Badge({
   );
 }
 
-export { Badge, badgeVariants };
+type BadgeVariants =
+  | "default"
+  | "secondary"
+  | "destructive"
+  | "outline"
+  | "emerald"
+  | "sky"
+  | "slate"
+  | "amber";
+
+export { Badge, badgeVariants, type BadgeVariants };

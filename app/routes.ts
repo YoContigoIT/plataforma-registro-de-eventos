@@ -12,6 +12,12 @@ const ROUTES_PATH = {
     login: "presentation/auth/routes/login.tsx",
     logout: "presentation/auth/routes/logout.tsx",
   },
+  events: {
+    list: "presentation/events/routes/events.tsx",
+    detail: "presentation/events/routes/detail.tsx",
+    create: "presentation/events/routes/create.tsx",
+    update: "presentation/events/routes/update.tsx",
+  },
 };
 
 export default [
@@ -23,13 +29,17 @@ export default [
     route("/usuarios", "presentation/usuarios/routes/users.tsx"),
     route(
       "/usuarios/ver/:userId",
-      "presentation/usuarios/routes/user-by-id.tsx"
+      "presentation/usuarios/routes/user-by-id.tsx",
     ),
     route("/usuarios/eliminar", "presentation/usuarios/routes/delete-user.tsx"),
     route("/usuarios/crear", "presentation/usuarios/routes/create-user.tsx"),
     route(
       "/usuarios/editar/:userId",
-      "presentation/usuarios/routes/update-user.tsx"
+      "presentation/usuarios/routes/update-user.tsx",
     ),
+    route("/eventos", `${ROUTES_PATH.events.list}`),
+    route("/eventos/detalle/:id", `${ROUTES_PATH.events.detail}`),
+    route("/eventos/crear", `${ROUTES_PATH.events.create}`),
+    route("/eventos/actualizar/:id", `${ROUTES_PATH.events.update}`),
   ]),
 ] satisfies RouteConfig;

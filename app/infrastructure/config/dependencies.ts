@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import type { IEncryptorRepository } from "~/domain/repositories/encrypt.repository";
+import type { IEventRepository } from "~/domain/repositories/event.repository";
 import type { IJWTRepository } from "~/domain/repositories/jwt.repository";
 import type { ISessionRepository } from "~/domain/repositories/session.repository";
 import type { IUserRepository } from "~/domain/repositories/user.repository";
@@ -7,6 +8,7 @@ import type { IUserRepository } from "~/domain/repositories/user.repository";
 import { PurchaseOrderService } from "~/domain/services/purchase-order.service"; */
 import { bcryptRepository } from "../auth/bcrypt.repository";
 import { JWTRepository } from "../auth/jwt.repository";
+import { PrismaEventRepository } from "../repositories/prisma/event.repository";
 import { PrismaSessionRepository } from "../repositories/prisma/session.repository";
 import { PrismaUserRepository } from "../repositories/prisma/user.repository";
 
@@ -15,6 +17,7 @@ export interface IRepositoriesContainer {
   encryptorRepository: IEncryptorRepository;
   userRepository: IUserRepository;
   sessionRepository: ISessionRepository;
+  eventRepository: IEventRepository;
 }
 
 /* export interface IServicesContainer {
@@ -38,32 +41,14 @@ export const createRepositoriesContainer = (
   const encryptorRepository = bcryptRepository();
   const userRepository = PrismaUserRepository(prisma);
   const sessionRepository = PrismaSessionRepository(prisma, jwtRepository);
-  /*  const projectRepository = PrismaProjectRepository(prisma);
-  const fundingRepository = PrismaFundingRepository(prisma);
-  const providerRepository = PrismaProviderRepository(prisma);
-  const purchaseOrderRepository = PrismaPurchaseOrderRepository(prisma);
-  const orderItemRepository = PrismaOrderItemRepository(prisma);
-  const expenseRepository = PrismaExpenseRepository(prisma);
-  const incomeRepository = PrismaIncomeRepository(prisma);
-  const employeeRepository = PrismaEmployeeRepository(prisma);
-  const payrollRepository = PrismaPayrollRepository(prisma);
-  const payrollItemRepository = PrismaPayrollItemRepository(prisma); */
+  const eventRepository = PrismaEventRepository(prisma);
 
   return {
     encryptorRepository,
     jwtRepository,
     userRepository,
     sessionRepository,
-    /*  projectRepository,
-    fundingRepository,
-    providerRepository,
-    purchaseOrderRepository,
-    orderItemRepository,
-    expenseRepository,
-    incomeRepository,
-    employeeRepository,
-    payrollRepository,
-    payrollItemRepository, */
+    eventRepository,
   };
 };
 

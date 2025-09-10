@@ -1,5 +1,10 @@
+import { Temporal } from "@js-temporal/polyfill";
+import type { User } from "@prisma/client";
 import { type ClassValue, clsx } from "clsx";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 import { twMerge } from "tailwind-merge";
+import type { ZodError } from "zod";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -48,11 +53,6 @@ export function getUserInitials(user: Partial<User>) {
   ).toUpperCase();
 } */
 
-import { Temporal } from "@js-temporal/polyfill";
-import type { User } from "@prisma/client";
-import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
-import type { ZodError } from "zod";
 
 // Using Temporal API for modern, reliable date handling
 // Temporal provides better timezone support, immutable objects, and more reliable parsing
@@ -116,7 +116,7 @@ export {
   getPayrollStatusBadge,
   getPurchaseOrderStatusBadge,
   getSessionStatusBadge,
-  getUserRoleBadge,
+  getUserRoleBadge
 } from "./badge-utils";
 
 // Legacy function for backward compatibility - deprecated
@@ -359,3 +359,48 @@ export function formatName(
   }
   return user.name || "No hay información del usuario";
 }
+
+
+interface PluralizationRule {
+  test: RegExp;
+  replace: string | ((match: string) => string);
+}
+
+const pluralizationRules: PluralizationRule[] = [
+  { test: /ora$/i, replace: "oras" },
+  { test: /ana$/i, replace: "anas" },
+  { test: /ona$/i, replace: "onas" },
+  { test: /esa$/i, replace: "esas" },
+  { test: /ina$/i, replace: "inas" },
+  { test: /iza$/i, replace: "izas" },
+  { test: /triz$/i, replace: "trices" },
+
+  { test: /or$/i, replace: "ores" },
+  { test: /án$/i, replace: (match) => `${match.slice(0, -2)}anes` },
+  { test: /ón$/i, replace: (match) => `${match.slice(0, -2)}ones` },
+  { test: /z$/i, replace: (match) => `${match.slice(0, -1)}ces` },
+  { test: /([aeiou])s$/i, replace: "$1ses" },
+  { test: /([^aeiou])s$/i, replace: "$1es" },
+  { test: /ís$/i, replace: "ises" },
+  { test: /í$/i, replace: "íes" },
+  { test: /(.)$/i, replace: "$1s" },
+];
+
+export const pluralizeItemName = (count: number, itemName: string): string => {
+  if (count === 1) {
+    return itemName;
+  }
+
+  const lowerItemName = itemName.toLowerCase();
+
+  for (const rule of pluralizationRules) {
+    if (rule.test.test(lowerItemName)) {
+      if (typeof rule.replace === "string") {
+        return itemName.replace(rule.test, rule.replace);
+      }
+      return rule.replace(itemName);
+    }
+  }
+
+  return `${itemName}s`;
+};

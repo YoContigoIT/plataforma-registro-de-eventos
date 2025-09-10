@@ -55,7 +55,7 @@ export function DateInput({
           placeholder={placeholder}
           name={name}
           onInputChange={onInputChange}
-          className={cn("h-11", className)}
+          className={className}
         />
       </div>
       {error && <span className="text-sm text-destructive">{error}</span>}

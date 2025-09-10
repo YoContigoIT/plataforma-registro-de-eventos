@@ -1,6 +1,6 @@
+import { cn } from "@/shared/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router";
-import { cn } from "~/shared/lib/utils";
 import { Button } from "../ui/button";
 
 interface PageHeaderProps {
@@ -30,7 +30,7 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 pt-5",
+        "flex flex-col gap-4 md:flex-row items-center justify-between backdrop-blur-sm sticky top-0 z-10 py-4",
         className
       )}
     >
