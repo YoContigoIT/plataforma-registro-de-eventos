@@ -6,10 +6,8 @@ import {
 } from "~/infrastructure/auth/session.service";
 import type { Route } from "../../presentation/+types/layout";
 
-// Define public routes that don't require authentication
 const PUBLIC_ROUTES = ["/iniciar-sesion", "/registro", "/", "/inicio"];
 
-// Definition of routes protected by role
 const ROLE_PROTECTED_ROUTES: Record<UserRole, string[]> = {
   [UserRole.ADMIN]: [
     "/panel",

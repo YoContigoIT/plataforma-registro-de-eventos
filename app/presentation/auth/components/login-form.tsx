@@ -8,7 +8,7 @@ import {
 import { Button } from "@/ui/button";
 import { Info, Loader2, X } from "lucide-react";
 import { useId, useState } from "react";
-import { Form, Link } from "react-router";
+import { Form } from "react-router";
 import { useLoginForm } from "../hooks/use-login-form.hook";
 
 export function LoginForm() {
@@ -17,13 +17,8 @@ export function LoginForm() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col items-center gap-3 text-center">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          ¡Bienvenido de nuevo!
-        </h1>
-        <p className="text-muted-foreground">
-          Accede a tu cuenta para gestionar tus eventos
-        </p>
+      <div className="flex flex-col items-center gap-2">
+        <h1 className="text-2xl font-bold">Inicia sesión</h1>
       </div>
 
       <Form method="POST" className="flex flex-col gap-6" replace>
@@ -69,14 +64,6 @@ export function LoginForm() {
               {errors.password}
             </p>
           )}
-          <div className="flex justify-end">
-            <Link
-              to="/recuperar-contrasena"
-              className="text-sm text-primary hover:text-primary/80 hover:underline transition-colors"
-            >
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </div>
         </div>
         <Button
           type="submit"
@@ -100,17 +87,17 @@ export function LoginForm() {
         <Alert className="border-sky-200 bg-sky-50 dark:border-sky-800 dark:bg-sky-950/50 relative">
           <button
             onClick={() => setShowCredentials(false)}
-            className="absolute top-4 right-4 text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300"
+            className="absolute top-2 right-2 text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300"
             aria-label="Cerrar"
             type="button"
           >
             <X className="h-4 w-4" />
           </button>
-          <Info className="h-4 w-4 mt-1 text-sky-600 dark:text-sky-400" />
-          <AlertTitle className="text-sky-800 dark:text-sky-300 text-lg">
-            Credenciales de prueba
+          <Info className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+          <AlertTitle className="text-sky-800 dark:text-sky-300">
+            Credenciales de administrador (solo desarrollo)
           </AlertTitle>
-          <AlertDescription className="text-sky-700 dark:text-sky-400 mt-2">
+          <AlertDescription className="text-sky-700 dark:text-sky-400">
             <div className="space-y-1">
               <p>
                 <strong>Correo:</strong> admin@eventos.com

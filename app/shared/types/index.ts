@@ -6,6 +6,13 @@ export interface ActionData {
   errors?: Record<string, string[]>;
 }
 
+export interface LoaderData<T> {
+  success: boolean;
+  data?: T | null;
+  error?: string;
+  message?: string;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   pagination: {

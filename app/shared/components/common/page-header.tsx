@@ -1,6 +1,6 @@
-import { Link } from "react-router";
+import { cn } from "@/shared/lib/utils";
 import { ArrowLeft } from "lucide-react";
-import { cn } from "../../utils";
+import { Link } from "react-router";
 import { Button } from "../ui/button";
 
 interface PageHeaderProps {
@@ -30,8 +30,8 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 pt-5",
-        className,
+        "flex flex-col gap-4 md:flex-row items-center justify-between backdrop-blur-sm sticky top-0 z-10 py-4",
+        className
       )}
     >
       <div className="space-y-2">
@@ -46,7 +46,9 @@ export function PageHeader({
           <h1 className={cn("text-3xl font-bold", titleClassName)}>{title}</h1>
         </div>
         {description && (
-          <p className={cn("text-muted-foreground", descriptionClassName)}>{description}</p>
+          <p className={cn("text-muted-foreground", descriptionClassName)}>
+            {description}
+          </p>
         )}
       </div>
       {actions && <div className={cn("", actionsClassName)}>{actions}</div>}

@@ -1,56 +1,13 @@
+import { Temporal } from "@js-temporal/polyfill";
 import { type ClassValue, clsx } from "clsx";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 import { twMerge } from "tailwind-merge";
+import type { ZodError } from "zod";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-
-/* export function simplifyZodErrors<T>(
-  error: z.ZodError<T>,
-): Record<string, string[]> {
-  const errors: Record<string, string[]> = {};
-
-  error.errors.forEach((err) => {
-    if (err.path.length > 0) {
-      const key = err.path.join(".");
-      if (!errors[key]) {
-        errors[key] = [];
-      }
-      errors[key].push(err.message);
-    }
-  });
-  return errors;
-}
-
-export function formatName(
-  person: Partial<User> | Omit<User, "password"> | null,
-) {
-  if (!person) {
-    return "No hay información de la persona";
-  }
-  const apellidoPaterno = person
-    ? person.apellido_paterno
-    : "";
-  const apellidoMaterno = person.apellido_materno
-    ? person.apellido_materno
-    : "";
-  return `${person.nombre} ${apellidoPaterno} ${apellidoMaterno}`;
-}
-
-export function getUserInitials(user: Partial<User>) {
-  const nombreInitial = user.nombre?.charAt(0) || "";
-  const apellido_paternoInitial = user.apellido_paterno?.charAt(0) || "";
-  const apellido_maternoInitial = user.apellido_materno?.charAt(0) || "";
-  return (
-    nombreInitial +
-    apellido_paternoInitial +
-    apellido_maternoInitial
-  ).toUpperCase();
-} */
-
-import { Temporal } from "@js-temporal/polyfill";
-import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
 
 // Using Temporal API for modern, reliable date handling
 // Temporal provides better timezone support, immutable objects, and more reliable parsing
@@ -103,30 +60,6 @@ export function formatCurrency(amount: number): string {
     style: "currency",
     currency: "MXN",
   }).format(amount);
-}
-
-// Re-export badge utilities for backward compatibility
-export {
-  formatRoleName,
-  getEmployeeStatusBadge,
-  getFundingStatusBadge,
-  getMovementTypeBadge,
-  getPayrollStatusBadge,
-  getPurchaseOrderStatusBadge,
-  getSessionStatusBadge,
-  getUserRoleBadge
-} from "./badge-utils";
-
-// Legacy function for backward compatibility - deprecated
-export function getRoleBadgeVariant(rol: string): string {
-  const rolColors = {
-    super_admin: "bg-red-100 text-red-800 border-red-200",
-    admin: "bg-sky-100 text-sky-800 border-sky-200",
-    usuario: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  };
-  return (
-    rolColors[rol as keyof typeof rolColors] || "bg-gray-100 text-gray-800"
-  );
 }
 
 // Date formatting utilities for data tables
@@ -316,3 +249,64 @@ export function calculatePaginationInfo(
     itemsPerPage: limit,
   };
 }
+
+
+export function simplifyZodErrors<T>(error: ZodError<T>): Record<string, string[]> {
+  const errors: Record<string, string[]> = {};
+
+  if (error.issues) {
+    for (const issue of error.issues) {
+      const path = issue.path.join(".");
+      if (!errors[path]) {
+        errors[path] = [];
+      }
+      errors[path].push(issue.message);
+    }
+  }
+
+  return errors;
+}
+
+interface PluralizationRule {
+  test: RegExp;
+  replace: string | ((match: string) => string);
+}
+
+const pluralizationRules: PluralizationRule[] = [
+  { test: /ora$/i, replace: "oras" },
+  { test: /ana$/i, replace: "anas" },
+  { test: /ona$/i, replace: "onas" },
+  { test: /esa$/i, replace: "esas" },
+  { test: /ina$/i, replace: "inas" },
+  { test: /iza$/i, replace: "izas" },
+  { test: /triz$/i, replace: "trices" },
+
+  { test: /or$/i, replace: "ores" },
+  { test: /án$/i, replace: (match) => `${match.slice(0, -2)}anes` },
+  { test: /ón$/i, replace: (match) => `${match.slice(0, -2)}ones` },
+  { test: /z$/i, replace: (match) => `${match.slice(0, -1)}ces` },
+  { test: /([aeiou])s$/i, replace: "$1ses" },
+  { test: /([^aeiou])s$/i, replace: "$1es" },
+  { test: /ís$/i, replace: "ises" },
+  { test: /í$/i, replace: "íes" },
+  { test: /(.)$/i, replace: "$1s" },
+];
+
+export const pluralizeItemName = (count: number, itemName: string): string => {
+  if (count === 1) {
+    return itemName;
+  }
+
+  const lowerItemName = itemName.toLowerCase();
+
+  for (const rule of pluralizationRules) {
+    if (rule.test.test(lowerItemName)) {
+      if (typeof rule.replace === "string") {
+        return itemName.replace(rule.test, rule.replace);
+      }
+      return rule.replace(itemName);
+    }
+  }
+
+  return `${itemName}s`;
+};

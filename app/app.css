@@ -18,12 +18,13 @@ body {
   }
 }
 
+/* Update the gradient-sidebar variables in the :root section (around line 70) */
 :root {
   --background: oklch(0.9842 0.0034 247.8575);
   --foreground: oklch(0.2077 0.0398 265.7549);
-  --card: oklch(0.9683 0.0069 247.8956 / 0.8); /* Added transparency */
+  --card: oklch(0.9683 0.0069 247.8956 / 0.75); /* Added transparency */
   --card-foreground: oklch(0.2077 0.0398 265.7549);
-  --popover: oklch(1 0 0 / 0.8); /* Added transparency */
+  --popover: oklch(1 0 0 / 0.75); /* Added transparency */
   --popover-foreground: oklch(0.2077 0.0398 265.7549);
   --primary: oklch(0.6231 0.188 259.8145);
   --primary-foreground: oklch(1 0 0);
@@ -75,14 +76,23 @@ body {
   --shadow-2xl: 0px 4px 12px -2px hsl(215.3846 16.3180% 46.8627% / 0.25);
   --tracking-normal: 0px;
   --spacing: 0.25rem;
+
+  /* Beautiful radial gradients for sidebar - Light mode */
+  --gradient-sidebar: radial-gradient(
+    circle,
+    oklch(0.6231 0.188 259.8145) 0% /* Primary blue at center */,
+    oklch(0.6231 0.188 259.8145 / 0.4) 15% /* Primary blue with transparency - smaller radius */,
+    oklch(0.9842 0.0034 247.8575 / 0.15) 35% /* Background color with transparency - smaller radius */,
+    transparent 60% /* Fully transparent - much smaller radius */
+  );
 }
 
 .dark {
   --background: oklch(0.1363 0.0364 259.201);
   --foreground: oklch(0.9842 0.0034 247.8575);
-  --card: oklch(0.2077 0.0398 265.7549 / 0.85); /* Added transparency */
+  --card: oklch(0.2077 0.0398 265.7549 / 0.75); /* Added transparency */
   --card-foreground: oklch(0.9842 0.0034 247.8575);
-  --popover: oklch(0.1802 0.0325 266.6248 / 0.85); /* Added transparency */
+  --popover: oklch(0.1802 0.0325 266.6248 / 0.75); /* Added transparency */
   --popover-foreground: oklch(0.9842 0.0034 247.8575);
   --primary: oklch(0.6231 0.188 259.8145);
   --primary-foreground: oklch(1 0 0);
@@ -113,7 +123,7 @@ body {
   --font-sans: Inter;
   --font-serif: Georgia;
   --font-mono: monospace;
-  --radius: 0.5rem;
+  --radius: 1.25rem;
   --shadow-2xs: 0px 4px 12px -2px hsl(0 0% 0% / 0.1);
   --shadow-xs: 0px 4px 12px -2px hsl(0 0% 0% / 0.1);
   --shadow-sm:
@@ -127,6 +137,14 @@ body {
   --shadow-xl:
     0px 4px 12px -2px hsl(0 0% 0% / 0.2), 0px 8px 10px -3px hsl(0 0% 0% / 0.2);
   --shadow-2xl: 0px 4px 12px -2px hsl(0 0% 0% / 0.5);
+
+  --gradient-sidebar: radial-gradient(
+    circle,
+    oklch(0.6231 0.188 259.8145) 0% /* Primary blue at center */,
+    oklch(0.6231 0.188 259.8145 / 0.3) 15% /* Primary blue with transparency - smaller radius */,
+    oklch(0.1363 0.0364 259.201 / 0.12) 35% /* Dark background with transparency - smaller radius */,
+    transparent 60% /* Fully transparent - much smaller radius */
+  );
 }
 
 @theme inline {
@@ -196,4 +214,9 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Add this after the existing CSS variables */
+.bg-gradient-sidebar {
+  background: var(--gradient-sidebar);
 }
