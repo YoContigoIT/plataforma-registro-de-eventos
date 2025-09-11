@@ -1,5 +1,5 @@
 import { redirect } from "react-router";
-import type { Route } from "../routes/+types/delete-user";
+import type { Route } from "../routes/+types/user-by-id";
 
 export const deleteUserAction = async ({
   request,

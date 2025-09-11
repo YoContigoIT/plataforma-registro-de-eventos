@@ -3,7 +3,7 @@ import type { VariantProps } from "class-variance-authority";
 
 type BadgeVariant = VariantProps<typeof badgeVariants>["variant"];
 
-interface BadgeConfig {
+export interface BadgeConfig {
   variant: BadgeVariant;
   label: string;
 }

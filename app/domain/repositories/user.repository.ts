@@ -15,7 +15,7 @@ export interface IUserRepository {
     filters?: UserFilters
   ): Promise<PaginatedResponse<UserEntity>>;
   findUnique(id: string): Promise<UserEntity | null>;
-  findByEmail(email: string): Promise<User | null>;
+  findByEmail(email: string): Promise<UserEntity | null>;
   update(userId: string, data: UpdateUserDTO): Promise<UserEntity>;
   updatePassword(userId: string, newPassword: string): Promise<void>;
   delete(id: string): Promise<void>;

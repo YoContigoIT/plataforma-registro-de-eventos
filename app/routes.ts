@@ -20,24 +20,27 @@ const ROUTES_PATH = {
     archive: "presentation/events/routes/archive.ts",
     testEmail: "presentation/events/routes/test-email.ts",
   },
+  attendee: {
+    join: "presentation/attendees/routes/join.tsx",
+  },
 };
 
 export default [
   index(`${ROUTES_PATH.redirect_root}`),
   route("/iniciar-sesion", `${ROUTES_PATH.auth.login}`),
   route("/cerrar-sesion", `${ROUTES_PATH.auth.logout}`),
+  route("/join/:eventId", `${ROUTES_PATH.attendee.join}`),
   layout(`${ROUTES_PATH.layout}`, [
     route("/panel", "presentation/panel/routes/panel.tsx"),
     route("/usuarios", "presentation/usuarios/routes/users.tsx"),
     route(
       "/usuarios/ver/:userId",
-      "presentation/usuarios/routes/user-by-id.tsx",
+      "presentation/usuarios/routes/user-by-id.tsx"
     ),
-    route("/usuarios/eliminar", "presentation/usuarios/routes/delete-user.tsx"),
     route("/usuarios/crear", "presentation/usuarios/routes/create-user.tsx"),
     route(
       "/usuarios/editar/:userId",
-      "presentation/usuarios/routes/update-user.tsx",
+      "presentation/usuarios/routes/update-user.tsx"
     ),
     route("/eventos", `${ROUTES_PATH.events.list}`),
     route("/eventos/detalle/:id", `${ROUTES_PATH.events.detail}`),
