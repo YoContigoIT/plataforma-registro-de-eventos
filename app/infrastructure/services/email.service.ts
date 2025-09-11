@@ -46,7 +46,7 @@ export const EmailService = (): IEmailService => ({
   sendLoginNotification: async (
     to: string,
     userName: string,
-    loginInfo: { ipAddress: string; userAgent: string; timestamp: Date },
+    loginInfo: { ipAddress: string; userAgent: string; timestamp: Date }
   ): Promise<void> => {
     const subject = "Nuevo inicio de sesión detectado";
     const formattedDate = loginInfo.timestamp.toLocaleString("es-ES", {
@@ -89,7 +89,7 @@ export const EmailService = (): IEmailService => ({
   sendEventInvitation: async (
     to: string,
     eventName: string,
-    eventDate: string,
+    eventDate: string
   ): Promise<void> => {
     const subject = `Invitación al evento: ${eventName}`;
     const html = `
@@ -150,18 +150,25 @@ export const EmailService = (): IEmailService => ({
       customMessage?: string;
       eventDetailsUrl?: string;
       supportEmail?: string;
-    },
+      ticketQuantity: string;
+    }
   ): Promise<void> => {
     const subject = `Confirmación de registro - ${registrationData.eventName}`;
-    
+
     // Read the HTML template
-    const fs = await import('node:fs/promises');
-    const path = await import('node:path');
-    
+    const fs = await import("node:fs/promises");
+    const path = await import("node:path");
+
     try {
-      const templatePath = path.join(process.cwd(), 'app', 'presentation', 'templates', 'registration-confirmation.html');
-      let htmlTemplate = await fs.readFile(templatePath, 'utf-8');
-      
+      const templatePath = path.join(
+        process.cwd(),
+        "app",
+        "presentation",
+        "templates",
+        "registration-confirmation.html"
+      );
+      let htmlTemplate = await fs.readFile(templatePath, "utf-8");
+
       // Replace template variables
       htmlTemplate = htmlTemplate
         .replace(/{{userName}}/g, registrationData.userName)
@@ -171,9 +178,20 @@ export const EmailService = (): IEmailService => ({
         .replace(/{{eventTime}}/g, registrationData.eventTime)
         .replace(/{{qrCode}}/g, registrationData.qrCode)
         .replace(/{{qrCodeUrl}}/g, registrationData.qrCodeUrl)
-        .replace(/{{customMessage}}/g, registrationData.customMessage || 'Te esperamos en este increíble evento. ¡Será una experiencia inolvidable!')
-        .replace(/{{eventDetailsUrl}}/g, registrationData.eventDetailsUrl || '#')
-        .replace(/{{supportEmail}}/g, registrationData.supportEmail || env.EMAIL_FROM);
+        .replace(/{{ticketsQuantity}}/g, registrationData.ticketQuantity)
+        .replace(
+          /{{customMessage}}/g,
+          registrationData.customMessage ||
+            "Te esperamos en este increíble evento. ¡Será una experiencia inolvidable!"
+        )
+        .replace(
+          /{{eventDetailsUrl}}/g,
+          registrationData.eventDetailsUrl || "#"
+        )
+        .replace(
+          /{{supportEmail}}/g,
+          registrationData.supportEmail || env.EMAIL_FROM
+        );
 
       await transporter.sendMail({
         from: env.EMAIL_FROM,
@@ -182,7 +200,7 @@ export const EmailService = (): IEmailService => ({
         html: htmlTemplate,
       });
     } catch (error) {
-      console.error('Error reading email template:', error);
+      console.error("Error reading email template:", error);
       // Fallback to inline HTML if template file is not found
       const fallbackHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -195,12 +213,12 @@ export const EmailService = (): IEmailService => ({
           <p><strong>Fecha:</strong> ${registrationData.eventDate}</p>
           <p><strong>Ubicación:</strong> ${registrationData.eventLocation}</p>
           <p><strong>Hora:</strong> ${registrationData.eventTime}</p>
-          <p>${registrationData.customMessage || 'Te esperamos en este increíble evento.'}</p>
+          <p>${registrationData.customMessage || "Te esperamos en este increíble evento."}</p>
           <hr style="margin: 20px 0;">
           <p style="color: #666; font-size: 12px;">Este es un correo automático, por favor no responder.</p>
         </div>
       `;
-      
+
       await transporter.sendMail({
         from: env.EMAIL_FROM,
         to,

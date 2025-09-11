@@ -11,6 +11,12 @@ export async function getEventByIdLoader({
   }
   const event = await repositories.eventRepository.findUnique(eventId);
 
+  //TODO: Cambiar por el usuario invitado
+
+  const user = await repositories.userRepository.findByEmail(
+    "andygtz99@gmail.com"
+  );
+
   if (!event) {
     return {
       success: false,
@@ -20,6 +26,9 @@ export async function getEventByIdLoader({
 
   return {
     success: true,
-    data: event,
+    data: {
+      event,
+      user,
+    },
   };
 }

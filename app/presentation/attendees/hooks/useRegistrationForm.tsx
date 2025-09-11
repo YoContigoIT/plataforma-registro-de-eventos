@@ -15,6 +15,7 @@ export function useRegistrationForm() {
   const navigate = useNavigate();
   const loaderData = useLoaderData();
 
+  const { event, user } = loaderData?.data || {};
   const [showSuccess, setShowSuccess] = useState(false);
 
   const isSubmitting = navigation.state === "submitting";
@@ -49,7 +50,8 @@ export function useRegistrationForm() {
     isLoading,
     errors,
     handleInputChange,
-    loaderData: loaderData?.data,
     showSuccess,
+    event,
+    user,
   };
 }
