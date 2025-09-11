@@ -91,6 +91,11 @@ export const createAttendeeAction = async ({
       registrations.map((r) => repositories.registrationRepository.create(r))
     );
 
+    const ticketQuantity =
+      await repositories.registrationRepository.countRegistrations({
+        userId: user.id,
+        eventId: eventId,
+      });
     await services.emailService.sendRegistrationConfirmation(user.email, {
       userName: user.name,
       eventName: event.name,
@@ -99,6 +104,7 @@ export const createAttendeeAction = async ({
       eventTime: event.start_date.toISOString().split("T")[1],
       qrCode: registrations[0].qrCode,
       qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(registrations[0].qrCode)}`, //TODO: Cambiar cuando este implementado
+      ticketQuantity: ticketQuantity.toString(),
     });
 
     return {
