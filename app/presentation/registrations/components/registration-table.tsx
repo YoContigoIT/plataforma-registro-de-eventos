@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Eye, Mail, MoreHorizontal, QrCode } from "lucide-react";
 import type { RegistrationWithRelations } from "~/domain/entities/registration.entity";
+import { Checkbox } from "~/shared/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,14 +62,9 @@ export function RegistrationTable({
           <TableHeader>
             <TableRow className="border-b bg-muted/50">
               <TableHead className="w-12">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  ref={(input) => {
-                    if (input) input.indeterminate = someSelected;
-                  }}
-                  onChange={(e) => onSelectAll(e.target.checked)}
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
+                <Checkbox
+                  checked={someSelected ? "indeterminate" : allSelected}
+                  onCheckedChange={(checked) => onSelectAll(!!checked)}
                 />
               </TableHead>
               <TableHead>Usuario</TableHead>
@@ -92,13 +88,11 @@ export function RegistrationTable({
                   className="hover:bg-muted/50 transition-colors"
                 >
                   <TableCell>
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={isSelected}
-                      onChange={(e) =>
-                        onSelectRegistration(registration.id, e.target.checked)
+                      onCheckedChange={(checked) =>
+                        onSelectRegistration(registration.id, !!checked)
                       }
-                      className="rounded border-gray-300 text-primary focus:ring-primary"
                     />
                   </TableCell>
                   <TableCell>

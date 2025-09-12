@@ -187,32 +187,10 @@ export const PrismaRegistrationRepository = (
           take: limit,
           orderBy: { invitedAt: "desc" },
           include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                company: true,
-                title: true,
-                role: true,
-              },
-            },
+            user: true,
             event: {
-              select: {
-                id: true,
-                name: true,
-                start_date: true,
-                end_date: true,
-                location: true,
-                status: true,
-                capacity: true,
-                organizer: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                  },
-                },
+              include: {
+                organizer: true,
               },
             },
           },
@@ -225,6 +203,14 @@ export const PrismaRegistrationRepository = (
         data: registrations,
         pagination,
       };
+    },
+    findExactInvitation: async (eventId: string, userId: string) => {
+      return await prisma.registration.findFirst({
+        where: {
+          eventId,
+          userId,
+        },
+      });
     },
     findOne: async (id: string) => {
       return await prisma.registration.findUnique({

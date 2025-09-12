@@ -1,7 +1,10 @@
+import { invitationEmailSchema } from "~/domain/dtos/email-invitation.dto";
 import type {
   EmailOptions,
   IEmailService,
 } from "~/domain/services/email.service";
+import type { InvitationEmailDto } from "../../domain/dtos/email-invitation.dto";
+import { generateInvitationEmailTemplate } from "../../presentation/templates/invitation-email.template";
 import { env } from "../config/env";
 import { transporter } from "../config/nodemailer";
 
@@ -86,32 +89,6 @@ export const EmailService = (): IEmailService => ({
     });
   },
 
-  sendEventInvitation: async (
-    to: string,
-    eventName: string,
-    eventDate: string,
-  ): Promise<void> => {
-    const subject = `Invitación al evento: ${eventName}`;
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">¡Estás invitado!</h2>
-        <p>Te invitamos al evento <strong>${eventName}</strong></p>
-        <p><strong>Fecha:</strong> ${eventDate}</p>
-        <p>No te pierdas esta oportunidad única.</p>
-        <a href="#" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Confirmar Asistencia</a>
-        <hr style="margin: 20px 0;">
-        <p style="color: #666; font-size: 12px;">Este es un correo automático, por favor no responder.</p>
-      </div>
-    `;
-
-    await transporter.sendMail({
-      from: env.EMAIL_FROM,
-      to,
-      subject,
-      html,
-    });
-  },
-
   sendPasswordReset: async (to: string, resetCode: string): Promise<void> => {
     const subject = "Código de restablecimiento de contraseña";
     const html = `
@@ -153,15 +130,21 @@ export const EmailService = (): IEmailService => ({
     },
   ): Promise<void> => {
     const subject = `Confirmación de registro - ${registrationData.eventName}`;
-    
+
     // Read the HTML template
-    const fs = await import('node:fs/promises');
-    const path = await import('node:path');
-    
+    const fs = await import("node:fs/promises");
+    const path = await import("node:path");
+
     try {
-      const templatePath = path.join(process.cwd(), 'app', 'presentation', 'templates', 'registration-confirmation.html');
-      let htmlTemplate = await fs.readFile(templatePath, 'utf-8');
-      
+      const templatePath = path.join(
+        process.cwd(),
+        "app",
+        "presentation",
+        "templates",
+        "registration-confirmation.html",
+      );
+      let htmlTemplate = await fs.readFile(templatePath, "utf-8");
+
       // Replace template variables
       htmlTemplate = htmlTemplate
         .replace(/{{userName}}/g, registrationData.userName)
@@ -171,9 +154,19 @@ export const EmailService = (): IEmailService => ({
         .replace(/{{eventTime}}/g, registrationData.eventTime)
         .replace(/{{qrCode}}/g, registrationData.qrCode)
         .replace(/{{qrCodeUrl}}/g, registrationData.qrCodeUrl)
-        .replace(/{{customMessage}}/g, registrationData.customMessage || 'Te esperamos en este increíble evento. ¡Será una experiencia inolvidable!')
-        .replace(/{{eventDetailsUrl}}/g, registrationData.eventDetailsUrl || '#')
-        .replace(/{{supportEmail}}/g, registrationData.supportEmail || env.EMAIL_FROM);
+        .replace(
+          /{{customMessage}}/g,
+          registrationData.customMessage ||
+            "Te esperamos en este increíble evento. ¡Será una experiencia inolvidable!",
+        )
+        .replace(
+          /{{eventDetailsUrl}}/g,
+          registrationData.eventDetailsUrl || "#",
+        )
+        .replace(
+          /{{supportEmail}}/g,
+          registrationData.supportEmail || env.EMAIL_FROM,
+        );
 
       await transporter.sendMail({
         from: env.EMAIL_FROM,
@@ -182,7 +175,7 @@ export const EmailService = (): IEmailService => ({
         html: htmlTemplate,
       });
     } catch (error) {
-      console.error('Error reading email template:', error);
+      console.error("Error reading email template:", error);
       // Fallback to inline HTML if template file is not found
       const fallbackHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -195,12 +188,12 @@ export const EmailService = (): IEmailService => ({
           <p><strong>Fecha:</strong> ${registrationData.eventDate}</p>
           <p><strong>Ubicación:</strong> ${registrationData.eventLocation}</p>
           <p><strong>Hora:</strong> ${registrationData.eventTime}</p>
-          <p>${registrationData.customMessage || 'Te esperamos en este increíble evento.'}</p>
+          <p>${registrationData.customMessage || "Te esperamos en este increíble evento."}</p>
           <hr style="margin: 20px 0;">
           <p style="color: #666; font-size: 12px;">Este es un correo automático, por favor no responder.</p>
         </div>
       `;
-      
+
       await transporter.sendMail({
         from: env.EMAIL_FROM,
         to,
@@ -211,35 +204,22 @@ export const EmailService = (): IEmailService => ({
   },
 
   sendInvitationEmail: async (
-    to: string,
-    invitationData: {
-      userName: string;
-      eventName: string;
-      eventDate: string;
-      eventLocation: string;
-      eventTime: string;
-      customMessage?: string;
-      inviteToken: string;
-      inviteUrl?: string;
-      supportEmail?: string;
-    },
+    emailData: InvitationEmailDto,
+    recipientEmail: string,
   ): Promise<void> => {
-    const subject = `Invitación al evento - ${invitationData.eventName}`;
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">Invitación al evento</h2>
-        <p>Has sido invitado al evento <strong>${invitationData.eventName}</strong>.</p>
-        <p><strong>Fecha:</strong> ${invitationData.eventDate}</p>
-        <p><strong>Ubicación:</strong> ${invitationData.eventLocation}</p>
-        <p>
-        rest of the data: ${invitationData}</p>`
+    const { success, data } = invitationEmailSchema.safeParse(emailData);
 
-        await transporter.sendMail({
+    if (!success) {
+      throw new Error("Invalid invitation email data");
+    }
+
+    const htmlContent = generateInvitationEmailTemplate(data);
+
+    await transporter.sendMail({
+      to: recipientEmail,
       from: env.EMAIL_FROM,
-      to,
-      subject,
-      html,
+      subject: `Invitación: ${emailData.eventName}`,
+      html: htmlContent,
     });
-  }
-
+  },
 });
