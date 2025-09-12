@@ -1,9 +1,9 @@
 import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/ui/button";
+import { Pagination } from "@/ui/pagination";
 import { CalendarPlus, Grid, List } from "lucide-react";
 import { useState } from "react";
 import { Link, useLoaderData } from "react-router";
-import { Pagination } from "~/shared/components/ui/pagination";
 import { eventsLoader } from "../api/loaders";
 import { EventGridView } from "../components/event-grid-view";
 import { EventListView } from "../components/event-list-view";

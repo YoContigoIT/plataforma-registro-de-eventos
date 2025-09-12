@@ -24,4 +24,16 @@ export interface IEmailService {
     eventDetailsUrl?: string;
     supportEmail?: string;
   }): Promise<void>;
+  // Add new method for invitations
+  sendInvitationEmail(to: string, invitationData: {
+    userName: string;
+    eventName: string;
+    eventDate: string;
+    eventLocation: string;
+    eventTime: string;
+    customMessage?: string;
+    inviteToken: string;
+    inviteUrl?: string;
+    supportEmail?: string;
+  }): Promise<void>;
 }

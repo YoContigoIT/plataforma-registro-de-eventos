@@ -35,12 +35,12 @@ export default [
     route("/usuarios", "presentation/usuarios/routes/users.tsx"),
     route(
       "/usuarios/ver/:userId",
-      "presentation/usuarios/routes/user-by-id.tsx"
+      "presentation/usuarios/routes/user-by-id.tsx",
     ),
     route("/usuarios/crear", "presentation/usuarios/routes/create-user.tsx"),
     route(
       "/usuarios/editar/:userId",
-      "presentation/usuarios/routes/update-user.tsx"
+      "presentation/usuarios/routes/update-user.tsx",
     ),
     route("/eventos", `${ROUTES_PATH.events.list}`),
     route("/eventos/detalle/:id", `${ROUTES_PATH.events.detail}`),
@@ -48,5 +48,11 @@ export default [
     route("/eventos/actualizar/:id", `${ROUTES_PATH.events.update}`),
     route("/eventos/archivar/:id", `${ROUTES_PATH.events.archive}`),
     route("/eventos/test-email", `${ROUTES_PATH.events.testEmail}`),
+
+    route("/registros", "presentation/registrations/routes/registrations.tsx"),
+    route(
+      "/registros/enviar-invitaciones/:id",
+      "presentation/registrations/routes/send-invitations.tsx",
+    ),
   ]),
 ] satisfies RouteConfig;

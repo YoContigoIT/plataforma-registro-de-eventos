@@ -5,15 +5,50 @@ import type { EventEntity } from "../entities/event.entity";
 
 export interface EventFilters {
   organizerId?: string;
-  title?: string;
-  date?: Date;
-  location?: string;
   status?: EventStatus;
+  location?: string;
   archived?: boolean;
+  search?: string;
+  name?: string;
+  description?: string;
+  agenda?: string;
+  capacity?: {
+    min?: number;
+    max?: number;
+  };
+  maxTickets?: {
+    min?: number;
+    max?: number;
+  };
+  
+  //Filtros de fechas
+  startDate?: {
+    from?: Date;
+    to?: Date;
+  };
+  endDate?: {
+    from?: Date;
+    to?: Date;
+  };
   dateRange?: {
     startDate?: Date;
     endDate?: Date;
   };
+  
+  //Filtros de fechas de sistema
+  createdAt?: {
+    from?: Date;
+    to?: Date;
+  };
+  updatedAt?: {
+    from?: Date;
+    to?: Date;
+  };
+
+  //Filtros opcionales
+  hasAvailableSpots?: boolean; //Eventos con espacios disponibles
+  isUpcoming?: boolean; //Solo eventos futuros
+  isActive?: boolean; //Solo eventos activos (no cancelados/archivados)
 }
 
 export interface IEventRepository {

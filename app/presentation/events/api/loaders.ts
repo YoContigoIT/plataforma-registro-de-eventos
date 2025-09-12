@@ -10,11 +10,8 @@ export const eventsLoader = async ({
 }: Route.LoaderArgs) => {
   const url = new URL(request.url);
 
-  // Extract pagination parameters
   const page = parseInt(url.searchParams.get("page") || "1", 10);
   const limit = parseInt(url.searchParams.get("limit") || "10", 10);
-
-  // Extract filter parameters
   const filters: EventFilters = {};
 
   // Status filter
@@ -47,23 +44,22 @@ export const eventsLoader = async ({
   }
 
   // Fetch events with pagination and filters
-  const result = await repositories.eventRepository.findMany(
+  const { data, pagination } = await repositories.eventRepository.findMany(
     { page, limit },
     filters,
   );
 
   return {
-    events: result.data,
-    pagination: result.pagination,
+    events: data,
+    pagination,
   };
 };
 
 export const getEventByIdLoader = async ({
-  request,
+  params,
   context: { repositories },
 }: Route.LoaderArgs): Promise<LoaderData<EventEntity>> => {
-  const url = new URL(request.url);
-  const id = url.pathname.split("/").pop();
+  const id = params.id;
 
   if (!id) {
     return {

@@ -17,8 +17,7 @@
 ## Fase 2: Envío de invitaciones
 
 ### Paso 3: Selección de invitados
-- El organizador accede a la lista de usuarios del sistema
-- Selecciona los usuarios que desea invitar al evento
+- El organizador selecciona o ingresa los usuarios que desea invitar al evento
 - Puede buscar por `name`, `email` o filtrar por criterios específicos
 - Confirma la lista final de invitados
 

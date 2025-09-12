@@ -209,4 +209,37 @@ export const EmailService = (): IEmailService => ({
       });
     }
   },
+
+  sendInvitationEmail: async (
+    to: string,
+    invitationData: {
+      userName: string;
+      eventName: string;
+      eventDate: string;
+      eventLocation: string;
+      eventTime: string;
+      customMessage?: string;
+      inviteToken: string;
+      inviteUrl?: string;
+      supportEmail?: string;
+    },
+  ): Promise<void> => {
+    const subject = `Invitación al evento - ${invitationData.eventName}`;
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">Invitación al evento</h2>
+        <p>Has sido invitado al evento <strong>${invitationData.eventName}</strong>.</p>
+        <p><strong>Fecha:</strong> ${invitationData.eventDate}</p>
+        <p><strong>Ubicación:</strong> ${invitationData.eventLocation}</p>
+        <p>
+        rest of the data: ${invitationData}</p>`
+
+        await transporter.sendMail({
+      from: env.EMAIL_FROM,
+      to,
+      subject,
+      html,
+    });
+  }
+
 });
