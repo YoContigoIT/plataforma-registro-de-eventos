@@ -5,23 +5,10 @@ export function generateInvitationEmailTemplate(
 ): string {
   const {
     userName,
-    userEmail,
-    userCompany,
-    userTitle,
     eventName,
-    eventDescription,
     eventDate,
-    eventTime,
-    eventLocation,
-    eventCapacity,
-    maxTickets,
-    organizerName,
-    organizerEmail,
     customMessage,
     inviteUrl,
-    eventDetailsUrl,
-    inviteToken,
-    supportEmail,
     responseDeadline,
   } = data;
 
@@ -30,7 +17,7 @@ export function generateInvitationEmailTemplate(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invitación al Evento</title>
+    <title>Invitación al evento</title>
     <style>
         * {
             margin: 0;
@@ -62,164 +49,149 @@ export function generateInvitationEmailTemplate(
             background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
             color: white;
             padding: 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            text-align: center;
         }
         
         .header-content h1 {
             font-size: 32px;
             font-weight: bold;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }
         
         .header-content p {
             color: rgba(255, 255, 255, 0.9);
-            margin-top: 4px;
+            margin-bottom: 16px;
         }
         
         .rsvp-badge {
             background: rgba(255, 255, 255, 0.2);
             color: white;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
             border: 1px solid rgba(255, 255, 255, 0.3);
+            display: inline-block;
         }
         
         .content {
-            padding: 24px;
+            padding: 32px 24px;
         }
         
         .greeting {
-            margin-bottom: 24px;
+            margin-bottom: 32px;
+            text-align: center;
         }
         
         .greeting h2 {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            color: #1f2937;
         }
         
         .greeting p {
             color: #6b7280;
+            font-size: 16px;
         }
         
-        .event-info-card {
-            background: linear-gradient(135deg, #ffffff 0%, rgba(59, 130, 246, 0.05) 100%);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            border-radius: 12px;
-            padding: 24px;
-            margin: 24px 0;
+        .event-highlight {
+            background: linear-gradient(135deg, #ffffff 0%, rgba(59, 130, 246, 0.08) 100%);
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: 16px;
+            padding: 40px 32px;
+            margin: 32px 0;
+            text-align: center;
         }
         
-        .event-title {
-            font-size: 32px;
-            font-weight: bold;
+        .event-name {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+        
+        .event-date {
+            font-size: 24px;
+            font-weight: 600;
+            color: #374151;
             margin-bottom: 8px;
         }
         
-        .event-description {
-            color: #6b7280;
-            margin-bottom: 24px;
+        .date-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
         }
         
-        .event-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-            margin-top: 24px;
-        }
-        
-        .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .detail-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(59, 130, 246, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-        
-        .detail-content p:first-child {
-            font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 2px;
-        }
-        
-        .detail-content p:last-child {
-            font-weight: 600;
-        }
-        
-        .invitation-details {
+        .custom-message {
             background: rgba(59, 130, 246, 0.05);
+            border-left: 4px solid #3b82f6;
             border-radius: 8px;
-            padding: 16px;
+            padding: 20px;
             margin: 24px 0;
         }
         
-        .invitation-details h4 {
+        .custom-message h4 {
             font-weight: 600;
             margin-bottom: 8px;
+            color: #1f2937;
         }
         
-        .invitation-details .detail-list {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        
-        .invitation-details .detail-list p {
-            font-size: 14px;
-            color: #6b7280;
+        .custom-message p {
+            color: #4b5563;
+            font-style: italic;
         }
         
         .cta-section {
-            margin: 24px 0;
+            margin: 32px 0;
+            text-align: center;
         }
         
-        .button-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         
         .btn {
-            padding: 12px 24px;
-            border-radius: 6px;
+            padding: 14px 28px;
+            border-radius: 8px;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 16px;
             text-align: center;
             display: inline-block;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            min-width: 160px;
         }
         
         .btn-primary {
-            background: #22c55e;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
             color: white;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
         }
         
         .btn-primary:hover {
-            background: #16a34a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
         }
         
         .btn-outline {
             background: transparent;
-            color: #374151;
-            border: 1px solid #d1d5db;
+            color: #dc2626;
+            border: 2px solid #dc2626;
         }
         
         .btn-outline:hover {
-            background: #f9fafb;
+            background: #dc2626;
+            color: white;
+            transform: translateY(-2px);
         }
         
         .btn-ghost {
@@ -228,39 +200,38 @@ export function generateInvitationEmailTemplate(
             text-align: center;
             display: block;
             margin-top: 16px;
+            font-weight: 500;
         }
         
         .btn-ghost:hover {
             color: #2563eb;
+            text-decoration: underline;
         }
         
         .important-note {
             border-top: 1px solid #e5e7eb;
-            padding-top: 16px;
-            margin-top: 24px;
+            padding-top: 20px;
+            margin-top: 32px;
+            text-align: center;
         }
         
         .important-note p {
             font-size: 14px;
             color: #6b7280;
+            line-height: 1.5;
         }
         
         .footer {
             background: rgba(0, 0, 0, 0.02);
-            padding: 16px 24px;
+            padding: 20px 24px;
             border-top: 1px solid #e5e7eb;
             text-align: center;
         }
         
         .footer p {
-            font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 8px;
-        }
-        
-        .footer p:last-child {
             font-size: 12px;
-            margin-bottom: 0;
+            color: #9ca3af;
+            margin-bottom: 8px;
         }
         
         .footer-links {
@@ -297,25 +268,34 @@ export function generateInvitationEmailTemplate(
             }
             
             .header {
-                flex-direction: column;
-                text-align: center;
-                gap: 12px;
+                padding: 20px 16px;
             }
             
             .header-content h1 {
                 font-size: 24px;
             }
             
-            .event-title {
-                font-size: 24px;
+            .content {
+                padding: 24px 16px;
             }
             
-            .event-details {
-                grid-template-columns: 1fr;
+            .event-name {
+                font-size: 28px;
             }
             
-            .button-grid {
-                grid-template-columns: 1fr;
+            .event-date {
+                font-size: 20px;
+            }
+            
+            .button-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 280px;
             }
             
             .footer-links {
@@ -332,10 +312,10 @@ export function generateInvitationEmailTemplate(
             <div class="header">
                 <div class="header-content">
                     <h1>¡Estás Invitado!</h1>
-                    <p>Invitación al Evento</p>
-                </div>
-                <div class="rsvp-badge">
-                    Confirmación Requerida
+                    <p>Te esperamos en este evento especial</p>
+                    <div class="rsvp-badge">
+                        Confirmación Requerida
+                    </div>
                 </div>
             </div>
             
@@ -345,69 +325,19 @@ export function generateInvitationEmailTemplate(
                 <div class="greeting">
                     <h2>¡Hola ${userName || 'estimado/a invitado/a'}!</h2>
                     <p>
-                        Has sido personalmente invitado/a a asistir a <strong>${eventName}</strong>. 
-                        Sería un honor tenerte con nosotros en este evento exclusivo.
+                        Has sido personalmente invitado/a a un evento exclusivo. 
+                        Sería un honor tenerte con nosotros.
                     </p>
                 </div>
                 
-                <!-- Event Information Card -->
-                <div class="event-info-card">
-                    <h3 class="event-title">${eventName}</h3>
-                    ${eventDescription ? `<p class="event-description">${eventDescription}</p>` : ''}
-                    
-                    <div class="event-details">
-                        <div class="detail-item">
-                            <div class="detail-icon">📅</div>
-                            <div class="detail-content">
-                                <p>Fecha</p>
-                                <p>${eventDate}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <div class="detail-icon">🕐</div>
-                            <div class="detail-content">
-                                <p>Hora</p>
-                                <p>${eventTime}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <div class="detail-icon">📍</div>
-                            <div class="detail-content">
-                                <p>Ubicación</p>
-                                <p>${eventLocation}</p>
-                            </div>
-                        </div>
-                        
-                        ${eventCapacity ? `
-                        <div class="detail-item">
-                            <div class="detail-icon">👥</div>
-                            <div class="detail-content">
-                                <p>Capacidad</p>
-                                <p>${eventCapacity} asistentes</p>
-                            </div>
-                        </div>
-                        ` : ''}
-                    </div>
+                <!-- Event Highlight -->
+                <div class="event-highlight">
+                    <h3 class="event-name">${eventName}</h3>
+                    <p class="event-date">${eventDate}</p>
                 </div>
-                
-                <!-- Invitation Details -->
-                ${userCompany ? `
-                <div class="invitation-details">
-                    <h4>Detalles de la Invitación</h4>
-                    <div class="detail-list">
-                        <p><strong>Invitado:</strong> ${userName}</p>
-                        <p><strong>Empresa:</strong> ${userCompany}</p>
-                        ${userTitle ? `<p><strong>Cargo:</strong> ${userTitle}</p>` : ''}
-                        <p><strong>Email:</strong> ${userEmail}</p>
-                        ${maxTickets ? `<p><strong>Máximo de Boletos:</strong> ${maxTickets}</p>` : ''}
-                    </div>
-                </div>
-                ` : ''}
                 
                 ${customMessage ? `
-                <div class="invitation-details">
+                <div class="custom-message">
                     <h4>Mensaje Especial</h4>
                     <p>${customMessage}</p>
                 </div>
@@ -415,13 +345,8 @@ export function generateInvitationEmailTemplate(
                 
                 <!-- Call to Action -->
                 <div class="cta-section">
-                    <div class="button-grid">
-                        <a href="${inviteUrl}" class="btn btn-primary">Aceptar Invitación</a>
-                        <a href="${inviteUrl}" class="btn btn-outline">Rechazar</a>
-                    </div>
-                    
-                    <a href="${eventDetailsUrl}" class="btn btn-ghost">
-                        Ver Detalles Completos del Evento →
+                    <a href="${inviteUrl}" class="btn btn-ghost">
+                        Ver invitación al evento →
                     </a>
                 </div>
                 
@@ -436,8 +361,6 @@ export function generateInvitationEmailTemplate(
             
             <!-- Footer -->
             <div class="footer">
-                <p><strong>Organizado por ${organizerName}</strong></p>
-                <p>¿Preguntas? Contáctanos en ${organizerEmail}</p>
                 <div class="footer-links">
                     <a href="#">Política de Privacidad</a>
                     <span>•</span>
@@ -445,6 +368,7 @@ export function generateInvitationEmailTemplate(
                     <span>•</span>
                     <a href="#">Cancelar Suscripción</a>
                 </div>
+                <p>© 2024 Event Manager. Todos los derechos reservados.</p>
             </div>
         </div>
         

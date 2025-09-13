@@ -18,8 +18,8 @@ export const invitationEmailSchema = z.object({
   customMessage: z.string().optional(),
   inviteUrl: z.string().url("Invalid invite URL").optional(),
   eventDetailsUrl: z.string().url("Invalid event details URL").optional(),
-  inviteToken: z.string().min(1, "Invite token is required"),
-  supportEmail: z.string().email("Invalid support email").optional(),
+  inviteToken: z.string().optional(),
+  supportEmail: z.email("Invalid support email").optional(),
   responseDeadline: z.string().optional(),
 });
 

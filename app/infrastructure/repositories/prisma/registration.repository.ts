@@ -266,6 +266,17 @@ export const PrismaRegistrationRepository = (
         },
       });
     },
+    findByInviteToken: async (inviteToken: string) => {
+      return await prisma.registration.findUnique({
+        where: {
+          inviteToken,
+        },
+        include: {
+          user: true,
+          event: true,
+        },
+      });
+    },
     update: async (data: UpdateRegistrationDto) => {
       return await prisma.registration.update({
         where: {

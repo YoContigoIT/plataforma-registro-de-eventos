@@ -61,7 +61,6 @@ function parseEmails(emailsString: string): string[] {
 */
 export const sendInvitationsAction = async ({
   request,
-  params,
   context: { repositories, services, session },
 }: Route.ActionArgs): Promise<ActionData> => {
   const formData = Object.fromEntries(await request.formData());
@@ -220,10 +219,9 @@ export const sendInvitationsAction = async ({
               customMessage:
                 customMessage ||
                 "Te invitamos a participar en este increíble evento. ¡Esperamos verte allí!",
-              eventDetailsUrl: `${process.env.APP_URL || "http://localhost:5173"}/invitaciones/${inviteToken}`,
+              eventDetailsUrl: `${process.env.APP_URL || "http://localhost:3000"}/invitacion/${inviteToken}`,
               supportEmail: "soporte@eventos.com",
-              inviteUrl: `${process.env.APP_URL || "http://localhost:5173"}/invitaciones/${inviteToken}`,
-              inviteToken,
+              inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/invitacion/${inviteToken}`,
             };
 
             // Send invitation email using the existing email service
