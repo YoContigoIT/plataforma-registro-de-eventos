@@ -25,6 +25,40 @@ function parseEmails(emailsString: string): string[] {
     .filter((email, index, arr) => arr.indexOf(email) === index); // Remove duplicates
 }
 
+/* Steps in sendInvitationsAction:
+1. Validate authentication and authorization
+   - Check if user is logged in
+   - Verify user has ORGANIZER or ADMIN role
+
+2. Validate form data using schema
+   - Parse and validate input data
+   - Extract eventId, emails and custom message
+
+3. Verify event exists and user permissions
+   - Check if event exists in database
+
+4. Process email list
+   - Parse and validate email addresses
+   - Check for duplicates
+   - Enforce maximum limit of 100 emails
+
+5. For each email:
+   - Check if user exists, create if not
+   - Check for existing registration
+   - Generate invite token and QR code
+   - Create pending registration
+   - Send invitation email with event details
+
+6. Track results
+   - Count successful invites
+   - Track failed attempts
+   - Note already invited users
+
+7. Return summary
+   - Return success/failure status
+   - Include redirect URL on success
+   - Return error details on failure
+*/
 export const sendInvitationsAction = async ({
   request,
   params,
@@ -149,7 +183,7 @@ export const sendInvitationsAction = async ({
               invitedAt: new Date(),
             };
 
-            const registration =
+            
               await repositories.registrationRepository.create(
                 registrationData,
               );
@@ -176,15 +210,19 @@ export const sendInvitationsAction = async ({
             // Prepare invitation email data
             const invitationData: InvitationEmailDto = {
               userName: user.name || email.split("@")[0],
+              userEmail: user.email || email,
               eventName: event.name,
+              eventDescription: event.description || "Descripción por confirmar",
               eventDate,
               eventLocation: event.location || "Ubicación por confirmar",
               eventTime,
+              eventCapacity: event.capacity,
               customMessage:
                 customMessage ||
                 "Te invitamos a participar en este increíble evento. ¡Esperamos verte allí!",
               eventDetailsUrl: `${process.env.APP_URL || "http://localhost:5173"}/invitaciones/${inviteToken}`,
               supportEmail: "soporte@eventos.com",
+              inviteUrl: `${process.env.APP_URL || "http://localhost:5173"}/invitaciones/${inviteToken}`,
               inviteToken,
             };
 
@@ -242,6 +280,79 @@ export const sendInvitationsAction = async ({
       success: false,
       error: "Error al enviar las invitaciones",
       message: error instanceof Error ? error.message : "Error desconocido",
+    };
+  }
+};
+
+export const deleteRegistrationAction = async ({
+  request,
+  context: { repositories, session },
+}: Route.ActionArgs): Promise<ActionData> => {
+  const formData = Object.fromEntries(await request.formData());
+  const registrationId = formData.registrationId as string;
+  const userId = session.get("user")?.id;
+  const userRole = session.get("user")?.role;
+
+  // Authentication check
+  if (!userId) {
+    return {
+      success: false,
+      error: "No se ha iniciado sesión",
+    };
+  }
+
+  // Authorization check - only organizers and admins can delete registrations
+  if (
+    !userRole ||
+    (userRole !== UserRole.ORGANIZER && userRole !== UserRole.ADMIN)
+  ) {
+    return {
+      success: false,
+      error: "No tienes permisos para eliminar registros",
+    };
+  }
+
+  if (!registrationId) {
+    return {
+      success: false,
+      error: "ID de registro requerido",
+    };
+  }
+
+  try {
+    // First, verify the registration exists and get event info for authorization
+    const registration = await repositories.registrationRepository.findOne(registrationId);
+    
+    if (!registration) {
+      return {
+        success: false,
+        error: "Registro no encontrado",
+      };
+    }
+
+    // Additional authorization: organizers can only delete registrations from their own events
+    if (userRole === UserRole.ORGANIZER) {
+      const event = await repositories.eventRepository.findUnique(registration.eventId);
+      if (!event || event.organizerId !== userId) {
+        return {
+          success: false,
+          error: "No tienes permisos para eliminar este registro",
+        };
+      }
+    }
+
+    // Delete the registration
+    await repositories.registrationRepository.delete(registrationId);
+
+    return {
+      success: true,
+      message: "Registro eliminado exitosamente. Ahora se puede enviar una nueva invitación.",
+    };
+  } catch (error) {
+    console.error("Error deleting registration:", error);
+    return {
+      success: false,
+      error: "Error interno del servidor al eliminar el registro",
     };
   }
 };

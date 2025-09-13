@@ -1,36 +1,42 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Email invitation template data schema
 export const invitationEmailSchema = z.object({
-  userName: z.string().min(1, 'User name is required'),
-  eventName: z.string().min(1, 'Event name is required'),
-  eventDate: z.string().min(1, 'Event date is required'),
-  eventTime: z.string().min(1, 'Event time is required'),
-  eventLocation: z.string().min(1, 'Event location is required'),
+  userName: z.string().min(1, "User name is required"),
+  userEmail: z.email("Invalid user email").optional(),
+  userCompany: z.string().optional(),
+  userTitle: z.string().optional(),
+  eventName: z.string().min(1, "Event name is required"),
+  eventDescription: z.string().optional(),
+  eventDate: z.string().min(1, "Event date is required"),
+  eventTime: z.string().min(1, "Event time is required"),
+  eventLocation: z.string().min(1, "Event location is required"),
+  eventCapacity: z.number().optional(),
+  maxTickets: z.number().optional(),
+  organizerName: z.string().min(1, "Organizer name is required").optional(),
+  organizerEmail: z.email("Invalid organizer email").optional(),
   customMessage: z.string().optional(),
-  inviteUrl: z.string().url('Invalid invite URL'),
-  eventDetailsUrl: z.string().url('Invalid event details URL'),
-  inviteToken: z.string().min(1, 'Invite token is required'),
-  supportEmail: z.string().email('Invalid support email')
+  inviteUrl: z.string().url("Invalid invite URL").optional(),
+  eventDetailsUrl: z.string().url("Invalid event details URL").optional(),
+  inviteToken: z.string().min(1, "Invite token is required"),
+  supportEmail: z.string().email("Invalid support email").optional(),
+  responseDeadline: z.string().optional(),
 });
 
-// Send email invitation request schema
-export const SendEmailInvitationSchema = z.object({
-  recipientEmail: z.string().email('Invalid recipient email'),
-  recipientName: z.string().min(1, 'Recipient name is required'),
-  eventId: z.string().min(1, 'Event ID is required'),
+// Registration confirmation email template data schema
+export const registrationConfirmationEmailSchema = z.object({
+  userName: z.string().min(1, "User name is required"),
+  eventName: z.string().min(1, "Event name is required"),
+  eventDate: z.string().min(1, "Event date is required"),
+  eventTime: z.string().min(1, "Event time is required"),
+  eventLocation: z.string().min(1, "Event location is required"),
+  qrCode: z.string().min(1, "QR code is required"),
+  qrCodeUrl: z.string().url("Invalid QR code URL"),
   customMessage: z.string().optional(),
-  inviteToken: z.string().min(1, 'Invite token is required')
-});
-
-// Email invitation response schema
-export const EmailInvitationResponseSchema = z.object({
-  success: z.boolean(),
-  messageId: z.string().optional(),
-  error: z.string().optional()
+  eventDetailsUrl: z.string().url("Invalid event details URL").optional(),
+  supportEmail: z.string().email("Invalid support email").optional(),
 });
 
 // Type inference from schemas
 export type InvitationEmailDto = z.infer<typeof invitationEmailSchema>;
-export type SendEmailInvitationDto = z.infer<typeof SendEmailInvitationSchema>;
-export type EmailInvitationResponseDto = z.infer<typeof EmailInvitationResponseSchema>;
+export type RegistrationConfirmationEmailDto = z.infer<typeof registrationConfirmationEmailSchema>;

@@ -54,5 +54,9 @@ export default [
       "/registros/enviar-invitaciones/:id",
       "presentation/registrations/routes/send-invitations.tsx",
     ),
+    route(
+      "/registros/delete-registration",
+      "presentation/registrations/routes/delete-registration.tsx",
+    ),
   ]),
 ] satisfies RouteConfig;

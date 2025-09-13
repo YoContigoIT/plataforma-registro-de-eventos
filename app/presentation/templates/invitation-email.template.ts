@@ -5,15 +5,24 @@ export function generateInvitationEmailTemplate(
 ): string {
   const {
     userName,
+    userEmail,
+    userCompany,
+    userTitle,
     eventName,
+    eventDescription,
     eventDate,
     eventTime,
     eventLocation,
+    eventCapacity,
+    maxTickets,
+    organizerName,
+    organizerEmail,
     customMessage,
     inviteUrl,
     eventDetailsUrl,
     inviteToken,
     supportEmail,
+    responseDeadline,
   } = data;
 
   return `<!DOCTYPE html>
@@ -23,445 +32,425 @@ export function generateInvitationEmailTemplate(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invitación al Evento</title>
     <style>
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        * {
             margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, 
-                oklch(0.9842 0.0034 247.8575) 0%, 
-                oklch(0.9683 0.0069 247.8956) 50%, 
-                oklch(0.9132 0.0422 257.1315) 100%);
-            color: oklch(0.2077 0.0398 265.7549);
-            min-height: 100vh;
-            position: relative;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        body::before {
-            content: '';
-            position: absolute;
-            top: -50px;
-            left: -50px;
-            width: 200px;
-            height: 200px;
-            background: oklch(0.6231 0.188 259.8145 / 0.1);
-            border-radius: 50%;
-            z-index: 0;
-        }
-        
-        body::after {
-            content: '';
-            position: absolute;
-            bottom: -100px;
-            right: -100px;
-            width: 300px;
-            height: 300px;
-            background: oklch(0.7137 0.1434 254.624 / 0.08);
-            border-radius: 50%;
-            z-index: 0;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background-color: #f9fafb;
+            padding: 32px 16px;
         }
         
         .container {
-            max-width: 600px;
+            max-width: 672px;
             margin: 0 auto;
-            background-color: white;
-            border-radius: 20px;
+        }
+        
+        .email-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             overflow: hidden;
-            box-shadow: 0 8px 32px oklch(0.2077 0.0398 265.7549 / 0.12);
-            position: relative;
-            z-index: 1;
         }
         
         .header {
-            background: linear-gradient(135deg, 
-                oklch(0.6231 0.188 259.8145) 0%, 
-                oklch(0.5461 0.2152 262.8809) 100%);
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
             color: white;
-            padding: 40px 30px 30px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -20px;
-            right: -20px;
-            width: 100px;
-            height: 100px;
-            background: oklch(1 0 0 / 0.1);
-            border-radius: 50%;
-            z-index: 0;
+        .header-content h1 {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 4px;
         }
         
-        .header-icon {
-            font-size: 48px;
-            display: block;
-            margin-bottom: 15px;
-            opacity: 0.95;
-            position: relative;
-            z-index: 1;
+        .header-content p {
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 4px;
         }
         
-        .header h1 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-            line-height: 1.2;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .header .subtitle {
-            font-size: 16px;
-            font-weight: 400;
-            margin-top: 8px;
-            opacity: 0.9;
-            position: relative;
-            z-index: 1;
+        .rsvp-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .content {
-            padding: 40px 30px;
+            padding: 24px;
         }
         
         .greeting {
-            font-size: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .greeting h2 {
+            font-size: 20px;
             font-weight: 600;
-            color: oklch(0.2077 0.0398 265.7549);
-            margin-bottom: 15px;
-            text-align: center;
+            margin-bottom: 8px;
         }
         
-        .description {
-            font-size: 16px;
-            color: oklch(0.5544 0.0407 257.4166);
-            line-height: 1.6;
-            margin-bottom: 30px;
-            text-align: center;
+        .greeting p {
+            color: #6b7280;
         }
         
-        .event-card {
-            background: linear-gradient(135deg, 
-                oklch(0.9683 0.0069 247.8956) 0%, 
-                oklch(0.9132 0.0422 257.1315) 100%);
-            border-radius: 16px;
-            padding: 30px;
-            margin: 30px 0;
-            border: 1px solid oklch(0.869 0.0198 252.8943);
-            position: relative;
-            overflow: hidden;
+        .event-info-card {
+            background: linear-gradient(135deg, #ffffff 0%, rgba(59, 130, 246, 0.05) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
         }
         
-        .event-card::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            width: 60px;
-            height: 60px;
-            background: oklch(0.6231 0.188 259.8145 / 0.1);
-            border-radius: 50%;
-            z-index: 0;
+        .event-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
         }
         
-        .event-name {
-            font-size: 22px;
-            font-weight: 700;
-            color: oklch(0.2077 0.0398 265.7549);
-            margin-bottom: 20px;
-            text-align: center;
-            position: relative;
-            z-index: 1;
+        .event-description {
+            color: #6b7280;
+            margin-bottom: 24px;
         }
         
         .event-details {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 20px 0;
-            position: relative;
-            z-index: 1;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
         }
         
         .detail-item {
-            text-align: center;
-            padding: 15px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px oklch(0.2077 0.0398 265.7549 / 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
         
         .detail-icon {
-            font-size: 24px;
-            margin-bottom: 8px;
-            display: block;
-            color: oklch(0.6231 0.188 259.8145);
-        }
-        
-        .detail-label {
-            font-size: 12px;
-            color: oklch(0.5544 0.0407 257.4166);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        
-        .detail-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: oklch(0.2077 0.0398 265.7549);
-            line-height: 1.3;
-        }
-        
-        .custom-message {
-            background: oklch(0.9132 0.0422 257.1315);
-            padding: 25px;
-            border-radius: 12px;
-            margin: 25px 0;
-            border-left: 4px solid oklch(0.6231 0.188 259.8145);
-            position: relative;
-        }
-        
-        .custom-message::before {
-            content: '💬';
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 20px;
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            opacity: 0.7;
         }
         
-        .custom-message h3 {
-            margin-top: 0;
-            color: oklch(0.6231 0.188 259.8145);
-            font-size: 16px;
+        .detail-content p:first-child {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 2px;
+        }
+        
+        .detail-content p:last-child {
             font-weight: 600;
         }
         
-        .custom-message p {
-            margin-bottom: 0;
-            color: oklch(0.2077 0.0398 265.7549);
-            line-height: 1.5;
+        .invitation-details {
+            background: rgba(59, 130, 246, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 24px 0;
+        }
+        
+        .invitation-details h4 {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .invitation-details .detail-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .invitation-details .detail-list p {
+            font-size: 14px;
+            color: #6b7280;
         }
         
         .cta-section {
-            text-align: center;
-            margin: 40px 0;
-            padding: 30px 20px;
-            background: linear-gradient(135deg, 
-                oklch(0.9842 0.0034 247.8575) 0%, 
-                oklch(0.9683 0.0069 247.8956) 100%);
-            border-radius: 16px;
-            border: 1px solid oklch(0.869 0.0198 252.8943);
+            margin: 24px 0;
         }
         
-        .cta-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: oklch(0.2077 0.0398 265.7549);
-            margin-bottom: 20px;
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
         }
         
         .btn {
-            display: inline-block;
-            background: linear-gradient(135deg, 
-                oklch(0.6231 0.188 259.8145) 0%, 
-                oklch(0.5461 0.2152 262.8809) 100%);
-            color: white;
-            padding: 16px 32px;
+            padding: 12px 24px;
+            border-radius: 6px;
             text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px oklch(0.6231 0.188 259.8145 / 0.3);
-            border: none;
-            cursor: pointer;
+            font-weight: 500;
+            text-align: center;
+            display: inline-block;
+            transition: all 0.2s;
         }
         
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px oklch(0.6231 0.188 259.8145 / 0.4);
-        }
-        
-        .btn-secondary {
-            background: transparent;
-            color: oklch(0.6231 0.188 259.8145);
-            border: 2px solid oklch(0.6231 0.188 259.8145);
-            box-shadow: none;
-            margin-left: 15px;
-        }
-        
-        .btn-secondary:hover {
-            background: oklch(0.6231 0.188 259.8145);
+        .btn-primary {
+            background: #22c55e;
             color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #16a34a;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-outline:hover {
+            background: #f9fafb;
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            color: #3b82f6;
+            text-align: center;
+            display: block;
+            margin-top: 16px;
+        }
+        
+        .btn-ghost:hover {
+            color: #2563eb;
+        }
+        
+        .important-note {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 16px;
+            margin-top: 24px;
+        }
+        
+        .important-note p {
+            font-size: 14px;
+            color: #6b7280;
         }
         
         .footer {
-            background: oklch(0.9288 0.0126 255.5078);
-            padding: 30px;
+            background: rgba(0, 0, 0, 0.02);
+            padding: 16px 24px;
+            border-top: 1px solid #e5e7eb;
             text-align: center;
-            border-top: 1px solid oklch(0.869 0.0198 252.8943);
-        }
-        
-        .footer-links {
-            margin-bottom: 20px;
-        }
-        
-        .footer-links a {
-            color: oklch(0.6231 0.188 259.8145);
-            text-decoration: none;
-            margin: 0 15px;
-            font-size: 12px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         .footer p {
-            margin: 8px 0;
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        
+        .footer p:last-child {
             font-size: 12px;
-            color: oklch(0.5544 0.0407 257.4166);
-            line-height: 1.4;
+            margin-bottom: 0;
         }
         
-        .token-info {
-            background: oklch(0.9683 0.0069 247.8956);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border: 1px solid oklch(0.869 0.0198 252.8943);
-        }
-        
-        .token-info p {
-            margin: 0;
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
             font-size: 12px;
-            color: oklch(0.5544 0.0407 257.4166);
+            color: #6b7280;
+            margin-bottom: 8px;
         }
         
-        .token-code {
-            font-family: 'Monaco', 'Menlo', monospace;
-            background: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 11px;
-            color: oklch(0.2077 0.0398 265.7549);
-            border: 1px solid oklch(0.869 0.0198 252.8943);
-            margin-top: 8px;
-            word-break: break-all;
+        .footer-links a {
+            color: #3b82f6;
+            text-decoration: none;
         }
         
-        @media (max-width: 600px) {
-            .container {
-                margin: 10px;
-                border-radius: 16px;
+        .footer-links a:hover {
+            color: #2563eb;
+        }
+        
+        .meta-info {
+            text-align: center;
+            margin-top: 24px;
+        }
+        
+        .meta-info p {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        @media (max-width: 640px) {
+            body {
+                padding: 16px 8px;
             }
             
-            .content {
-                padding: 30px 20px;
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+            }
+            
+            .header-content h1 {
+                font-size: 24px;
+            }
+            
+            .event-title {
+                font-size: 24px;
             }
             
             .event-details {
                 grid-template-columns: 1fr;
-                gap: 15px;
             }
             
-            .btn {
-                display: block;
-                margin: 10px 0;
+            .button-grid {
+                grid-template-columns: 1fr;
             }
             
-            .btn-secondary {
-                margin-left: 0;
+            .footer-links {
+                flex-direction: column;
+                gap: 8px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <span class="header-icon">🎉</span>
-            <h1>¡Estás Invitado!</h1>
-            <p class="subtitle">Te esperamos en este increíble evento</p>
-        </div>
-        
-        <div class="content">
-            <div class="greeting">
-                ¡Hola ${userName}!
-            </div>
-            
-            <p class="description">
-                Nos complace invitarte a participar en <strong>${eventName}</strong>. 
-                Será una experiencia única que no querrás perderte.
-            </p>
-            
-            <div class="event-card">
-                <div class="event-name">${eventName}</div>
-                
-                <div class="event-details">
-                    <div class="detail-item">
-                        <span class="detail-icon">📅</span>
-                        <div class="detail-label">Fecha</div>
-                        <div class="detail-value">${eventDate}</div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <span class="detail-icon">⏰</span>
-                        <div class="detail-label">Hora</div>
-                        <div class="detail-value">${eventTime}</div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <span class="detail-icon">📍</span>
-                        <div class="detail-label">Ubicación</div>
-                        <div class="detail-value">${eventLocation}</div>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <span class="detail-icon">🎫</span>
-                        <div class="detail-label">Estado</div>
-                        <div class="detail-value">Invitación Pendiente</div>
-                    </div>
+        <div class="email-card">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-content">
+                    <h1>¡Estás Invitado!</h1>
+                    <p>Invitación al Evento</p>
+                </div>
+                <div class="rsvp-badge">
+                    Confirmación Requerida
                 </div>
             </div>
             
-            ${
-              customMessage
-                ? `
-            <div class="custom-message">
-                <h3>Mensaje Especial</h3>
-                <p>${customMessage}</p>
+            <!-- Content -->
+            <div class="content">
+                <!-- Greeting -->
+                <div class="greeting">
+                    <h2>¡Hola ${userName || 'estimado/a invitado/a'}!</h2>
+                    <p>
+                        Has sido personalmente invitado/a a asistir a <strong>${eventName}</strong>. 
+                        Sería un honor tenerte con nosotros en este evento exclusivo.
+                    </p>
+                </div>
+                
+                <!-- Event Information Card -->
+                <div class="event-info-card">
+                    <h3 class="event-title">${eventName}</h3>
+                    ${eventDescription ? `<p class="event-description">${eventDescription}</p>` : ''}
+                    
+                    <div class="event-details">
+                        <div class="detail-item">
+                            <div class="detail-icon">📅</div>
+                            <div class="detail-content">
+                                <p>Fecha</p>
+                                <p>${eventDate}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-icon">🕐</div>
+                            <div class="detail-content">
+                                <p>Hora</p>
+                                <p>${eventTime}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-icon">📍</div>
+                            <div class="detail-content">
+                                <p>Ubicación</p>
+                                <p>${eventLocation}</p>
+                            </div>
+                        </div>
+                        
+                        ${eventCapacity ? `
+                        <div class="detail-item">
+                            <div class="detail-icon">👥</div>
+                            <div class="detail-content">
+                                <p>Capacidad</p>
+                                <p>${eventCapacity} asistentes</p>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <!-- Invitation Details -->
+                ${userCompany ? `
+                <div class="invitation-details">
+                    <h4>Detalles de la Invitación</h4>
+                    <div class="detail-list">
+                        <p><strong>Invitado:</strong> ${userName}</p>
+                        <p><strong>Empresa:</strong> ${userCompany}</p>
+                        ${userTitle ? `<p><strong>Cargo:</strong> ${userTitle}</p>` : ''}
+                        <p><strong>Email:</strong> ${userEmail}</p>
+                        ${maxTickets ? `<p><strong>Máximo de Boletos:</strong> ${maxTickets}</p>` : ''}
+                    </div>
+                </div>
+                ` : ''}
+                
+                ${customMessage ? `
+                <div class="invitation-details">
+                    <h4>Mensaje Especial</h4>
+                    <p>${customMessage}</p>
+                </div>
+                ` : ''}
+                
+                <!-- Call to Action -->
+                <div class="cta-section">
+                    <div class="button-grid">
+                        <a href="${inviteUrl}" class="btn btn-primary">Aceptar Invitación</a>
+                        <a href="${inviteUrl}" class="btn btn-outline">Rechazar</a>
+                    </div>
+                    
+                    <a href="${eventDetailsUrl}" class="btn btn-ghost">
+                        Ver Detalles Completos del Evento →
+                    </a>
+                </div>
+                
+                <!-- Important Information -->
+                <div class="important-note">
+                    <p>
+                        <strong>Importante:</strong> Esta invitación es intransferible y requiere confirmación. 
+                        ${responseDeadline ? `Por favor responde antes del ${responseDeadline}.` : 'Por favor responde lo antes posible.'}
+                    </p>
+                </div>
             </div>
-            `
-                : ""
-            }
             
-            <div class="cta-section">
-                <div class="cta-title">¿Confirmas tu asistencia?</div>
-                <a href="${inviteUrl}" class="btn">Confirmar Asistencia</a>
-                <a href="${eventDetailsUrl}" class="btn btn-secondary">Ver Detalles</a>
-            </div>
-            
-            <div class="token-info">
-                <p><strong>Código de invitación:</strong></p>
-                <div class="token-code">${inviteToken}</div>
-                <p>Guarda este código para futuras referencias.</p>
+            <!-- Footer -->
+            <div class="footer">
+                <p><strong>Organizado por ${organizerName}</strong></p>
+                <p>¿Preguntas? Contáctanos en ${organizerEmail}</p>
+                <div class="footer-links">
+                    <a href="#">Política de Privacidad</a>
+                    <span>•</span>
+                    <a href="#">Términos de Servicio</a>
+                    <span>•</span>
+                    <a href="#">Cancelar Suscripción</a>
+                </div>
             </div>
         </div>
         
-        <div class="footer">
-            <div class="footer-links">
-                <a href="#">PROTECCIÓN DE DATOS</a>
-                <a href="#">SITIO WEB</a>
-                <a href="#">SOPORTE</a>
-            </div>
-            
-            <p>Todos los derechos reservados. Para más detalles, visita nuestro sitio web.</p>
-            <p>Este es un correo de invitación automático, por favor no respondas directamente.</p>
-            <p>Si tienes alguna pregunta, contáctanos en: ${supportEmail}</p>
-            <p>Si no deseas recibir más invitaciones, <a href="#" style="color: oklch(0.6231 0.188 259.8145);">haz clic aquí</a>.</p>
+        <!-- Meta Information -->
+        <div class="meta-info">
+            <p>Esta es una vista previa de la plantilla de invitación por email</p>
         </div>
     </div>
 </body>

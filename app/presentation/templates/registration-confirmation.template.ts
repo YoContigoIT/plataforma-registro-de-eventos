@@ -1,4 +1,22 @@
-<!DOCTYPE html>
+import type { RegistrationConfirmationEmailDto } from "~/domain/dtos/email-invitation.dto";
+
+export function generateRegistrationConfirmationTemplate(
+  data: RegistrationConfirmationEmailDto,
+): string {
+  const {
+    userName,
+    eventName,
+    eventDate,
+    eventTime,
+    eventLocation,
+    qrCode,
+    qrCodeUrl,
+    customMessage,
+    eventDetailsUrl,
+    supportEmail,
+  } = data;
+
+  return `<!DOCTYPE html>
 <html lang="es-MX">
 <head>
     <meta charset="UTF-8">
@@ -324,7 +342,7 @@
         
         <div class="content">
             <div class="greeting">
-                Hola {{userName}}
+                Hola ${userName}
             </div>
             
             <div class="description">
@@ -333,37 +351,37 @@
             
             <div class="ticket-section">
                 <div class="ticket-number">
-                    Tu número de boleto digital #{{qrCode}}
+                    Tu número de boleto digital #${qrCode}
                 </div>
                 
                 <div class="event-details">
                     <div class="detail-item">
                         <span class="detail-icon">📅</span>
                         <div class="detail-label">Fecha del Evento</div>
-                        <div class="detail-value">{{eventDate}}</div>
+                        <div class="detail-value">${eventDate}</div>
                     </div>
                     <div class="detail-item">
                         <span class="detail-icon">🕐</span>
                         <div class="detail-label">Hora del Evento</div>
-                        <div class="detail-value">{{eventTime}}</div>
+                        <div class="detail-value">${eventTime}</div>
                     </div>
                 </div>
             </div>
             
             <div class="event-info">
-                <div class="event-name">{{eventName}}</div>
+                <div class="event-name">${eventName}</div>
                 <div class="info-grid">
                     <div class="info-item">
                         <span class="info-label">Ubicación:</span>
-                        <span class="info-value">{{eventLocation}}</span>
+                        <span class="info-value">${eventLocation}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Fecha:</span>
-                        <span class="info-value">{{eventDate}}</span>
+                        <span class="info-value">${eventDate}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Hora:</span>
-                        <span class="info-value">{{eventTime}}</span>
+                        <span class="info-value">${eventTime}</span>
                     </div>
                 </div>
             </div>
@@ -371,13 +389,13 @@
             <div class="qr-section">
                 <div class="qr-title">Accede a tu boleto digitalmente usando el código QR</div>
                 <div class="qr-code">
-                    <img src="{{qrCodeUrl}}" alt="Código QR">
+                    <img src="${qrCodeUrl}" alt="Código QR">
                 </div>
             </div>
             
             <div class="message">
                 <h3>Información importante</h3>
-                <p>{{customMessage}}</p>
+                <p>${customMessage || 'Te esperamos en este increíble evento. ¡Será una experiencia inolvidable!'}</p>
                 <ul>
                     <li>Llega 15 minutos antes del evento</li>
                     <li>Trae una identificación válida</li>
@@ -387,7 +405,7 @@
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{{eventDetailsUrl}}" class="btn">Ver detalles del evento</a>
+                <a href="${eventDetailsUrl || '#'}" class="btn">Ver detalles del evento</a>
             </div>
         </div>
         
@@ -399,8 +417,9 @@
             
             <p>Todos los derechos reservados. Para más detalles, por favor visita nuestro sitio web</p>
             <p>Este es un correo de confirmación automático, por favor no respondas.</p>
-            <p>Si tienes alguna pregunta, contáctanos en: {{supportEmail}}</p>
+            <p>Si tienes alguna pregunta, contáctanos en: ${supportEmail || 'support@example.com'}</p>
         </div>
     </div>
 </body>
-</html>
+</html>`;
+}
