@@ -422,3 +422,56 @@ export function generateQRCode(userId: string, eventId: string): string {
     .update(`${userId}-${eventId}-${Date.now()}`)
     .digest("hex");
 }
+
+export function encodeInvitationData(userId: string, eventId: string): string {
+  const secret = process.env.INVITATION_SECRET || "default-secret-key";
+  const data = `${userId}:${eventId}`;
+  const timestamp = Date.now().toString();
+  
+  // Create hash with timestamp
+  const hash = crypto
+    .createHmac("sha256", secret)
+    .update(`${data}:${timestamp}`)
+    .digest("hex");
+  
+  // Encode data + timestamp + hash together
+  const payload = Buffer.from(`${data}:${timestamp}:${hash}`).toString("base64url");
+  return payload;
+}
+
+// Decode and verify invitation data
+export function decodeInvitationData(encodedData: string): { userId: string; eventId: string } | null {
+  try {
+    const secret = process.env.INVITATION_SECRET || "default-secret-key";
+    const decoded = Buffer.from(encodedData, "base64url").toString();
+    const [userId, eventId, timestamp, hash] = decoded.split(":");
+    
+    if (!userId || !eventId || !timestamp || !hash) {
+      return null;
+    }
+    
+    // Verify timestamp is not too old (30 days)
+    const inviteTime = parseInt(timestamp);
+    const now = Date.now();
+    const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
+    
+    if (inviteTime < thirtyDaysAgo) {
+      return null; // Invitation expired
+    }
+    
+    // Verify hash
+    const expectedHash = crypto
+      .createHmac("sha256", secret)
+      .update(`${userId}:${eventId}:${timestamp}`)
+      .digest("hex");
+    
+    if (expectedHash !== hash) {
+      return null; // Invalid hash
+    }
+    
+    return { userId, eventId };
+  } catch (error) {
+    console.error("Error decoding invitation:", error);
+    return null;
+  }
+}

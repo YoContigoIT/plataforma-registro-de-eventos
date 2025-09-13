@@ -1,4 +1,5 @@
 import type { RegistrationWithRelations } from "~/domain/entities/registration.entity";
+import { decodeInvitationData } from "~/shared/lib/utils";
 import type { LoaderData } from "~/shared/types";
 import type { Route } from "../routes/+types/invite-details";
 
@@ -20,9 +21,24 @@ export const loadInviteDetails = async ({
     };
   }
 
+  const decodedData = decodeInvitationData(inviteToken);
+
+  if (!decodedData) {
+    return {
+      success: false,
+      error: "Invitación no válida o expirada.",
+    };
+  }
+
   try {
+    const { userId, eventId } = decodedData;
+
+    // Find the exact invitation using the decoded IDs
     const invite =
-      await repositories.registrationRepository.findByInviteToken(inviteToken);
+      await repositories.registrationRepository.findExactInvitation(
+        eventId,
+        userId,
+      );
 
     if (!invite) {
       return {

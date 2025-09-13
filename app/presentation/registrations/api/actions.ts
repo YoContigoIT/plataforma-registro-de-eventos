@@ -5,7 +5,7 @@ import { sendInvitationsSchema } from "~/domain/dtos/invitation.dto";
 import type { CreateRegistrationDto } from "~/domain/dtos/registration.dto";
 import type { CreateUserDTO } from "~/domain/dtos/user.dto";
 import { runInTransaction } from "~/infrastructure/db/prisma";
-import { generateQRCode, simplifyZodErrors } from "~/shared/lib/utils";
+import { encodeInvitationData, generateQRCode, simplifyZodErrors } from "~/shared/lib/utils";
 import type { ActionData } from "~/shared/types";
 import type { Route } from "../routes/+types/send-invitations";
 
@@ -159,7 +159,7 @@ export const sendInvitationsAction = async ({
 
             // 5. Check if registration already exists
             const existingRegistration =
-              await repositories.registrationRepository.findExactInvitation(
+              await repositories.registrationRepository.registrationExists(
                 eventId,
                 user.id,
               );
@@ -206,6 +206,9 @@ export const sendInvitationsAction = async ({
               },
             );
 
+            // 7. Generate secure hash for invitation URL
+            const invitationHash = encodeInvitationData(user.id, eventId);
+
             // Prepare invitation email data
             const invitationData: InvitationEmailDto = {
               userName: user.name || email.split("@")[0],
@@ -219,9 +222,8 @@ export const sendInvitationsAction = async ({
               customMessage:
                 customMessage ||
                 "Te invitamos a participar en este increíble evento. ¡Esperamos verte allí!",
-              eventDetailsUrl: `${process.env.APP_URL || "http://localhost:3000"}/invitacion/${inviteToken}`,
               supportEmail: "soporte@eventos.com",
-              inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/invitacion/${inviteToken}`,
+              inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/invitacion/${invitationHash}`,
             };
 
             // Send invitation email using the existing email service

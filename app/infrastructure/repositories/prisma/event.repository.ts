@@ -13,8 +13,6 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
       const { page, limit } = params;
       const offset = (page - 1) * limit;
 
-      console.log("params", filters?.search);
-
       const where = buildWhereClause(filters?.search, {
         searchFields: [
           { field: "name" },

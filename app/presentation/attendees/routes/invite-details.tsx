@@ -160,7 +160,7 @@ export default function InviteDetailsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {event.agenda.split("\n").map((item, index) => (
+                    {event.agenda.split("\n").map((item) => (
                       <div
                         key={`agenda-item-${item}`}
                         className="flex items-center gap-4"
@@ -236,7 +236,7 @@ export default function InviteDetailsPage() {
                   </p>
                 )}
                 {status === "PENDING" ? (
-                  <Link to={`/join/${event.id}`}>
+                  <Link to={`/inscripcion/${event.id}`}>
                     <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                       Registrar asistencia
                     </Button>

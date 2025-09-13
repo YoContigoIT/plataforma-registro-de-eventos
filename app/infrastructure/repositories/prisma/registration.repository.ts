@@ -237,13 +237,32 @@ export const PrismaRegistrationRepository = (
         pagination,
       };
     },
-    findExactInvitation: async (eventId: string, userId: string) => {
+    findExactInvitation: async (
+      eventId: string,
+      userId: string,
+    ): Promise<RegistrationWithRelations | null> => {
       return await prisma.registration.findFirst({
         where: {
           eventId,
           userId,
         },
+        include: {
+          user: true,
+          event: true,
+        },
       });
+    },
+    registrationExists: async (
+      eventId: string,
+      userId: string,
+    ): Promise<boolean> => {
+      const count = await prisma.registration.count({
+        where: {
+          eventId,
+          userId,
+        },
+      });
+      return count > 0;
     },
     findOne: async (id: string) => {
       return await prisma.registration.findUnique({

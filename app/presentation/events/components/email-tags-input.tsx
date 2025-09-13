@@ -46,7 +46,6 @@ const EmailTagsInput = React.forwardRef<HTMLDivElement, EmailTagsInputProps>(
 
     // Convert value prop to tags
     React.useEffect(() => {
-      console.log("bruh");
       const newTags: EmailTag[] = value
         .map((email, index) => ({
           id: `tag-${index}-${email}`,
@@ -181,6 +180,8 @@ const EmailTagsInput = React.forwardRef<HTMLDivElement, EmailTagsInputProps>(
             {label}
           </Label>
         )}
+        {/** biome-ignore lint/a11y/noStaticElementInteractions: <it only works like this> */}
+        {/** biome-ignore lint/a11y/useKeyWithClickEvents: <it only works like this> */}
         <div
           ref={containerRef}
           className={cn(

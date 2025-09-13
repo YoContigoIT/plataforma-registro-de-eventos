@@ -362,19 +362,13 @@ export function generateInvitationEmailTemplate(
             <!-- Footer -->
             <div class="footer">
                 <div class="footer-links">
-                    <a href="#">Política de Privacidad</a>
+                    <a href="#">Política de privacidad</a>
                     <span>•</span>
-                    <a href="#">Términos de Servicio</a>
+                    <a href="#">Términos de servicio</a>
                     <span>•</span>
-                    <a href="#">Cancelar Suscripción</a>
                 </div>
                 <p>© 2024 Event Manager. Todos los derechos reservados.</p>
             </div>
-        </div>
-        
-        <!-- Meta Information -->
-        <div class="meta-info">
-            <p>Esta es una vista previa de la plantilla de invitación por email</p>
         </div>
     </div>
 </body>

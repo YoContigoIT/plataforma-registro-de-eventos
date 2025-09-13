@@ -75,7 +75,8 @@ export interface IRegistrationRepository {
   findOne(id: string): Promise<RegistrationEntity | null>;
   findByUserId(userId: string): Promise<RegistrationEntity[]>;
   findByEventId(eventId: string): Promise<RegistrationEntity[]>;
-  findExactInvitation(eventId: string, userId: string): Promise<RegistrationEntity | null>;
+  findExactInvitation(eventId: string, userId: string): Promise<RegistrationWithRelations | null>;
+  registrationExists(eventId: string, userId: string): Promise<boolean>;
   findByInviteToken(inviteToken: string): Promise<RegistrationWithRelations | null>;
   create(data: CreateRegistrationDto): Promise<RegistrationEntity>;
   update(data: UpdateRegistrationDto): Promise<RegistrationEntity>;
