@@ -1,4 +1,3 @@
-import type { RegistrationStatus } from "@prisma/client";
 import type { RegistrationFilters } from "~/domain/repositories/registration.repository";
 import type { Route } from "../routes/+types/registrations";
 
@@ -10,6 +9,11 @@ export const registrationsLoader = async ({
 
   const page = parseInt(url.searchParams.get("page") || "1", 10);
   const limit = parseInt(url.searchParams.get("limit") || "10", 10);
+  
+  // Add sorting parameters
+  const sortBy = url.searchParams.get("sortBy") || "invitedAt";
+  const sortDirection = (url.searchParams.get("sortOrder") as "asc" | "desc") || "desc";
+  
   const filters: RegistrationFilters = {};
 
   // i need to check a better way to extract this filters
@@ -24,19 +28,6 @@ export const registrationsLoader = async ({
     filters.eventId = eventId;
   }
 
-  // Status filter (single)
-  const status = url.searchParams.get("status");
-  if (status) {
-    filters.status = status as RegistrationStatus;
-  }
-
-  // Multiple statuses filter
-  const statuses = url.searchParams.get("statuses");
-  if (statuses) {
-    filters.statuses = statuses.split(",") as RegistrationStatus[];
-  }
-
-  // Search filter (searches across user name, email, event name, QR code)
   const search = url.searchParams.get("search");
   if (search) {
     filters.search = search;
@@ -177,9 +168,9 @@ export const registrationsLoader = async ({
     filters.expiredInvites = true;
   }
 
-  // Fetch registrations with pagination and filters
+  // Fetch registrations with pagination, filters, and sorting
   const { data, pagination } = await repositories.registrationRepository.findMany(
-    { page, limit },
+    { page, limit, sortBy, sortDirection },
     filters,
   );
 

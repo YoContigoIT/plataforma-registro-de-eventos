@@ -4,6 +4,8 @@ import { Pagination } from "@/ui/pagination";
 import { CalendarPlus, Grid, List } from "lucide-react";
 import { useState } from "react";
 import { Link, useLoaderData } from "react-router";
+import { SearchBar } from "~/shared/components/common/search-bar";
+import { Card, CardContent } from "~/shared/components/ui/card";
 import { eventsLoader } from "../api/loaders";
 import { EventGridView } from "../components/event-grid-view";
 import { EventListView } from "../components/event-list-view";
@@ -86,6 +88,16 @@ export default function Events() {
           </div>
         }
       />
+
+      <Card>
+        <CardContent>
+          <SearchBar
+            searchParamKey="search"
+            placeholder="Buscar eventos por nombre"
+            className="w-full"
+          />
+        </CardContent>
+      </Card>
 
       <div>
         {viewMode === "grid" ? (

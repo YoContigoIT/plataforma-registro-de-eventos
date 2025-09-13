@@ -64,8 +64,13 @@ export interface RegistrationFilters {
 
 export interface IRegistrationRepository {
   findMany(
-    params: { page: number; limit: number },
-    filters?: RegistrationFilters,
+    params: { 
+      page: number; 
+      limit: number; 
+      sortBy?: string; 
+      sortDirection?: "asc" | "desc" 
+    },
+    filters?: RegistrationFilters
   ): Promise<PaginatedResponse<RegistrationWithRelations>>;
   findOne(id: string): Promise<RegistrationEntity | null>;
   findByUserId(userId: string): Promise<RegistrationEntity[]>;

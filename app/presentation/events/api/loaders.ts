@@ -32,6 +32,11 @@ export const eventsLoader = async ({
     filters.organizerId = organizerId;
   }
 
+  const search = url.searchParams.get("search");
+  if (search) {
+    filters.search = search;
+  }
+
   // Date range filter
   const startDate = url.searchParams.get("startDate");
   const endDate = url.searchParams.get("endDate");

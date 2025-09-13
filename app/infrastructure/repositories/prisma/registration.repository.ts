@@ -8,15 +8,41 @@ import type {
   RegistrationFilters,
 } from "~/domain/repositories/registration.repository";
 
+const createOrderByClause = (
+  defaultSortBy: string,
+  sortBy?: string,
+  sortOrder?: "asc" | "desc" | null,
+  defaultSortOrder?: "asc" | "desc",
+) => {
+  if (!sortBy || !sortOrder) {
+    return { [defaultSortBy]: defaultSortOrder };
+  }
+
+  const keys = sortBy.split(".");
+
+  if (keys.length > 1) {
+    // This dynamically creates { worker: { fullName: 'asc' } }
+    return keys.reduceRight((obj, key) => ({ [key]: obj }), sortOrder as any);
+  }
+
+  // This handles top-level fields like "baseHireDate"
+  return { [sortBy]: sortOrder };
+};
+
 export const PrismaRegistrationRepository = (
   prisma: PrismaClient,
 ): IRegistrationRepository => {
   return {
     findMany: async (
-      params: { page: number; limit: number },
+      params: {
+        page: number;
+        limit: number;
+        sortBy?: string;
+        sortDirection?: "asc" | "desc";
+      },
       filters?: RegistrationFilters,
     ): Promise<PaginatedResponse<RegistrationWithRelations>> => {
-      const { page, limit } = params;
+      const { page, limit, sortBy, sortDirection } = params;
       const offset = (page - 1) * limit;
 
       const where = buildWhereClause(filters?.search, {
@@ -180,12 +206,19 @@ export const PrismaRegistrationRepository = (
         },
       });
 
+      const orderBy = createOrderByClause(
+        "invitedAt",
+        sortBy,
+        sortDirection,
+        "desc",
+      );
+
       const [registrations, total] = await Promise.all([
         prisma.registration.findMany({
           where,
           skip: offset,
           take: limit,
-          orderBy: { invitedAt: "desc" },
+          orderBy,
           include: {
             user: true,
             event: {

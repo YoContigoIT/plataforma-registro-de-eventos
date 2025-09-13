@@ -1,13 +1,18 @@
 import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/ui/button";
 import { Pagination } from "@/ui/pagination";
-import { Download, Filter, UserPlus } from "lucide-react";
-import { useState } from "react";
-import { Link, useLoaderData, useSearchParams } from "react-router";
+import { Download, Filter, RefreshCw, UserPlus } from "lucide-react";
+import { useCallback, useState } from "react";
+import { Link, useLoaderData } from "react-router";
+import { SearchBar } from "~/shared/components/common/search-bar";
+import { Card, CardContent } from "~/shared/components/ui/card";
+import { useSearchParamsManager } from "~/shared/hooks/use-search-params-manager";
+import { useTableSorting } from "~/shared/hooks/use-table-sorting";
 import { eventsLoader } from "../../events/api/loaders";
 import { registrationsLoader } from "../api/loaders";
 import { EventSelector } from "../components/event-selector";
 import { RegistrationTable } from "../components/registration-table";
+import { StatusCards } from "../components/status-cards";
 import type { Route } from "./+types/registrations";
 
 export const loader = async (args: Route.LoaderArgs) => {
@@ -28,18 +33,23 @@ export const loader = async (args: Route.LoaderArgs) => {
       },
       events: eventsData.events,
       selectedEvent: null,
+      statusCounts: {},
     };
   }
 
-  const registrationsData = await registrationsLoader(args);
-
-  const selectedEvent =
-    await context.repositories.eventRepository.findUnique(eventId);
+  const [registrationsData, selectedEvent, statusCounts] = await Promise.all([
+    registrationsLoader(args),
+    context.repositories.eventRepository.findUnique(eventId),
+    context.repositories.registrationRepository.countAllStatusesByEvent(
+      eventId
+    ),
+  ]);
 
   return {
     ...registrationsData,
     events: [],
     selectedEvent,
+    statusCounts,
   };
 };
 
@@ -78,42 +88,46 @@ const getStatusLabel = (status: string) => {
 };
 
 export default function Registrations() {
-  const { registrations, pagination, events, selectedEvent } =
+  const { registrations, pagination, events, selectedEvent, statusCounts } =
     useLoaderData<typeof loader>();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { updateMultipleParams, getParamValue, resetAllParams } =
+    useSearchParamsManager();
   const [selectedRegistrations, setSelectedRegistrations] = useState<string[]>(
     []
   );
 
-  const eventId = searchParams.get("eventId");
+  const { sort, handleSort } = useTableSorting("invitedAt", "desc");
 
-  const handleEventSelect = (eventId: string) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set("eventId", eventId);
-    newSearchParams.delete("page");
-    setSearchParams(newSearchParams);
-  };
+  const eventId = getParamValue("eventId");
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedRegistrations(registrations.map((r) => r.id));
-    } else {
-      setSelectedRegistrations([]);
-    }
-  };
+  const handleEventSelect = useCallback(
+    (eventId: string) => {
+      updateMultipleParams({ eventId });
+    },
+    [updateMultipleParams]
+  );
 
-  const handleSelectRegistration = (
-    registrationId: string,
-    checked: boolean
-  ) => {
-    if (checked) {
-      setSelectedRegistrations((prev) => [...prev, registrationId]);
-    } else {
+  const handleClearEvent = useCallback(() => {
+    resetAllParams();
+  }, [resetAllParams]);
+
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      setSelectedRegistrations(checked ? registrations.map((r) => r.id) : []);
+    },
+    [registrations]
+  );
+
+  const handleSelectRegistration = useCallback(
+    (registrationId: string, checked: boolean) => {
       setSelectedRegistrations((prev) =>
-        prev.filter((id) => id !== registrationId)
+        checked
+          ? [...prev, registrationId]
+          : prev.filter((id) => id !== registrationId)
       );
-    }
-  };
+    },
+    []
+  );
 
   if (!eventId || !selectedEvent) {
     return (
@@ -149,12 +163,16 @@ export default function Registrations() {
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title={`Registros - ${selectedEvent.name}`}
         description={`Gestiona los registros para el evento "${selectedEvent.name}"`}
         actions={
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleClearEvent}>
+              <RefreshCw className="size-4 mr-2" />
+              Cambiar evento
+            </Button>
             {selectedRegistrations.length > 0 && (
               <>
                 <Button variant="outline" size="sm">
@@ -177,6 +195,22 @@ export default function Registrations() {
         }
       />
 
+      <StatusCards
+        statusCounts={statusCounts}
+        getStatusLabel={getStatusLabel}
+        getStatusBadgeVariant={getStatusBadgeVariant}
+      />
+
+      <Card>
+        <CardContent>
+          <SearchBar
+            searchParamKey="search"
+            placeholder="Buscar registros por nombre usuario, correo"
+            className="w-full"
+          />
+        </CardContent>
+      </Card>
+
       <RegistrationTable
         registrations={registrations}
         selectedRegistrations={selectedRegistrations}
@@ -184,6 +218,8 @@ export default function Registrations() {
         onSelectRegistration={handleSelectRegistration}
         getStatusBadgeVariant={getStatusBadgeVariant}
         getStatusLabel={getStatusLabel}
+        currentSort={sort}
+        onSort={handleSort}
       />
 
       <Pagination

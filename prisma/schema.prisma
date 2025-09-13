@@ -77,19 +77,18 @@ model User {
     title   String?
     phone   String?
 
-    password String?
-
-    role UserRole @default(ATTENDEE)
-
+    password      String?
+    role          UserRole       @default(ATTENDEE)
     archived      Boolean        @default(false)
     registrations Registration[]
     sessions      Session[]
+    createdEvents Event[]        @relation("EventsByOrganizer")
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
 
-    createdEvents Event[] @relation("EventsByOrganizer")
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
+    // Add indexes for sorting
+    @@index([name])
+    @@index([email]) // Already has unique constraint, but explicit index helps
     @@schema("auth")
 }
 
@@ -141,6 +140,13 @@ model Registration {
     // Future: Link to custom form responses
     //formResponses FormResponse[]
 
+    @@index([invitedAt])
+    @@index([respondedAt])
+    @@index([registeredAt])
+    @@index([checkedInAt])
+    @@index([status])
+    @@index([eventId, invitedAt]) // Composite index for event-specific sorting
+    @@index([userId, invitedAt]) // Composite index for user-specific sorting
     @@schema("auth")
 }
 

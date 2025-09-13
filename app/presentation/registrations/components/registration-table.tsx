@@ -1,5 +1,4 @@
 import { Badge, type BadgeVariants } from "@/ui/badge";
-import { Button } from "@/ui/button";
 import {
   Table,
   TableBody,
@@ -10,15 +9,13 @@ import {
 } from "@/ui/table";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Eye, Mail, MoreHorizontal, QrCode } from "lucide-react";
+import { AtSign, Calendar, CalendarCheck, User } from "lucide-react";
+import { useState } from "react";
 import type { RegistrationWithRelations } from "~/domain/entities/registration.entity";
+import { SortableHeader } from "~/shared/components/common/sortable-header";
 import { Checkbox } from "~/shared/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/shared/components/ui/dropdown-menu";
+import type { SortState } from "~/shared/types";
+import { RegistrationDetailsSheet } from "./registration-details-sheet";
 
 interface RegistrationTableProps {
   registrations: RegistrationWithRelations[];
@@ -27,6 +24,8 @@ interface RegistrationTableProps {
   onSelectRegistration: (registrationId: string, checked: boolean) => void;
   getStatusBadgeVariant: (status: string) => string;
   getStatusLabel: (status: string) => string;
+  currentSort: SortState;
+  onSort: (column: string) => void;
 }
 
 export function RegistrationTable({
@@ -36,7 +35,29 @@ export function RegistrationTable({
   onSelectRegistration,
   getStatusBadgeVariant,
   getStatusLabel,
+  currentSort,
+  onSort,
 }: RegistrationTableProps) {
+  const [selectedRegistration, setSelectedRegistration] =
+    useState<RegistrationWithRelations | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const handleRowClick = (
+    registration: RegistrationWithRelations,
+    event: React.MouseEvent
+  ) => {
+    if ((event.target as HTMLElement).closest('input[type="checkbox"]')) {
+      return;
+    }
+    setSelectedRegistration(registration);
+    setIsSheetOpen(true);
+  };
+
+  const handleCloseSheet = () => {
+    setIsSheetOpen(false);
+    setSelectedRegistration(null);
+  };
+
   const allSelected =
     registrations.length > 0 &&
     selectedRegistrations.length === registrations.length;
@@ -56,133 +77,139 @@ export function RegistrationTable({
   }
 
   return (
-    <div className="bg-card rounded-xl border mt-6">
-      <div className="overflow-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-b bg-muted/50">
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={someSelected ? "indeterminate" : allSelected}
-                  onCheckedChange={(checked) => onSelectAll(!!checked)}
+    <>
+      <div className="bg-card rounded-xl border mt-6 overflow-hidden">
+        <div className="overflow-auto">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={someSelected ? "indeterminate" : allSelected}
+                    onCheckedChange={(checked) => onSelectAll(!!checked)}
+                  />
+                </TableHead>
+                <SortableHeader
+                  headerName="Usuario"
+                  propName="user.name"
+                  currentSort={currentSort}
+                  onSort={onSort}
+                  Icon={User}
                 />
-              </TableHead>
-              <TableHead>Usuario</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Fecha de invitación</TableHead>
-              <TableHead>Fecha de respuesta</TableHead>
-              <TableHead>QR Code</TableHead>
-              <TableHead className="w-12">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {registrations.map((registration) => {
-              const isSelected = selectedRegistrations.includes(
-                registration.id
-              );
+                <SortableHeader
+                  headerName="Contacto"
+                  propName="user.email"
+                  currentSort={currentSort}
+                  onSort={onSort}
+                  Icon={AtSign}
+                />
+                <SortableHeader
+                  headerName="Estado"
+                  propName="status"
+                  currentSort={currentSort}
+                  onSort={onSort}
+                  Icon={User}
+                />
+                <SortableHeader
+                  headerName="Invitado"
+                  propName="invitedAt"
+                  currentSort={currentSort}
+                  onSort={onSort}
+                  Icon={Calendar}
+                />
+                <SortableHeader
+                  headerName="Respondió"
+                  propName="respondedAt"
+                  currentSort={currentSort}
+                  onSort={onSort}
+                  Icon={CalendarCheck}
+                />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {registrations.map((registration) => {
+                const isSelected = selectedRegistrations.includes(
+                  registration.id
+                );
 
-              return (
-                <TableRow
-                  key={registration.id}
-                  className="hover:bg-muted/50 transition-colors"
-                >
-                  <TableCell>
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={(checked) =>
-                        onSelectRegistration(registration.id, !!checked)
-                      }
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">
-                      {registration.user.name || "Sin nombre"}
-                    </div>
-                    {registration.user.company && (
-                      <div className="text-sm text-muted-foreground">
-                        {registration.user.company}
+                return (
+                  <TableRow
+                    key={registration.id}
+                    className="hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={(event) => handleRowClick(registration, event)}
+                  >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(checked) =>
+                          onSelectRegistration(registration.id, !!checked)
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">
+                        {registration.user.name || "Sin nombre"}
                       </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">{registration.user.email}</div>
-                    {registration.user.phone && (
-                      <div className="text-xs text-muted-foreground">
-                        {registration.user.phone}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        getStatusBadgeVariant(
-                          registration.status
-                        ) as BadgeVariants
-                      }
-                    >
-                      {getStatusLabel(registration.status)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {format(new Date(registration.invitedAt), "PPp", {
-                        locale: es,
-                      })}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {registration.respondedAt ? (
+                      {registration.user.company && (
+                        <div className="text-sm text-muted-foreground">
+                          {registration.user.company}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">{registration.user.email}</div>
+                      {registration.user.phone && (
+                        <div className="text-xs text-muted-foreground">
+                          {registration.user.phone}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          getStatusBadgeVariant(
+                            registration.status
+                          ) as BadgeVariants
+                        }
+                      >
+                        {getStatusLabel(registration.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <div className="text-sm">
-                        {format(new Date(registration.respondedAt), "PPp", {
+                        {format(new Date(registration.invitedAt), "PPp", {
                           locale: es,
                         })}
                       </div>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">
-                        Sin respuesta
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <code className="text-xs bg-muted px-2 py-1 rounded">
-                        {registration.qrCode.slice(0, 8)}...
-                      </code>
-                      <Button variant="ghost" size="sm">
-                        <QrCode className="size-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="size-4 mr-2" />
-                          Ver detalles
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Mail className="size-4 mr-2" />
-                          Enviar recordatorio
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <QrCode className="size-4 mr-2" />
-                          Descargar QR
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+                    </TableCell>
+                    <TableCell>
+                      {registration.respondedAt ? (
+                        <div className="text-sm">
+                          {format(new Date(registration.respondedAt), "PPp", {
+                            locale: es,
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">
+                          Sin respuesta
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </div>
-    </div>
+
+      <RegistrationDetailsSheet
+        registration={selectedRegistration}
+        isOpen={isSheetOpen}
+        onClose={handleCloseSheet}
+        getStatusBadgeVariant={getStatusBadgeVariant}
+        getStatusLabel={getStatusLabel}
+      />
+    </>
   );
 }

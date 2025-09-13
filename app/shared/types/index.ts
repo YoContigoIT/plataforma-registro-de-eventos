@@ -22,3 +22,13 @@ export interface PaginatedResponse<T> {
     itemsPerPage: number;
   };
 }
+
+export interface SortState {
+  column: string | null;
+  direction: "asc" | "desc" | null;
+}
+
+export interface SortOptions {
+  sortBy: string;
+  sortDirection: "asc" | "desc";
+}

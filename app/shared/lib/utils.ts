@@ -251,11 +251,22 @@ export function buildWhereClause(
           },
         };
       } else if (searchField.field) {
-        // Para búsquedas directas
-        condition[searchField.field] = {
-          contains: searchTerm,
-          mode: searchField.mode || "insensitive",
-        };
+        // Check if field contains dot notation for nested fields
+        if (searchField.field.includes(".")) {
+          const [relationName, fieldName] = searchField.field.split(".");
+          condition[relationName] = {
+            [fieldName]: {
+              contains: searchTerm,
+              mode: searchField.mode || "insensitive",
+            },
+          };
+        } else {
+          // Para búsquedas directas
+          condition[searchField.field] = {
+            contains: searchTerm,
+            mode: searchField.mode || "insensitive",
+          };
+        }
       }
 
       return condition;
