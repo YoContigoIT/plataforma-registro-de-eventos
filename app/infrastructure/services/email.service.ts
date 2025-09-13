@@ -49,7 +49,7 @@ export const EmailService = (): IEmailService => ({
   sendLoginNotification: async (
     to: string,
     userName: string,
-    loginInfo: { ipAddress: string; userAgent: string; timestamp: Date },
+    loginInfo: { ipAddress: string; userAgent: string; timestamp: Date }
   ): Promise<void> => {
     const subject = "Nuevo inicio de sesión detectado";
     const formattedDate = loginInfo.timestamp.toLocaleString("es-ES", {

@@ -52,6 +52,10 @@ export const PrismaUserRepository = (
       where: {
         id,
       },
+      include: {
+        registrations: true,
+        createdEvents: true,
+      },
     });
   },
   findByEmail: async (email) => {
