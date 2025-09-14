@@ -119,7 +119,7 @@ export function RegistrationForm() {
 
       <div className="flex flex-col md:flex-row">
         {/* Sección de información del evento (lado izquierdo) */}
-        <div className="bg-gradient-to-br from-primary to-secondary text-white p-8 md:w-2/5 rounded-2xl shadow-lg">
+        <div className="bg-gradient-to-br from-primary to-secondary text-white p-8 md:w-2/5">
           <div className="mb-8">
             {/* Etiqueta invitación */}
             <div className="flex items-center mb-6">
