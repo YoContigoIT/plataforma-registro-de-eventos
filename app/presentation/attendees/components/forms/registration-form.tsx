@@ -377,6 +377,7 @@ export function RegistrationForm() {
                     name="phone"
                     type="tel"
                     inputMode="tel"
+                    defaultValue={user?.phone}
                     placeholder="Ej. +34 600 123 456"
                     icon={<Phone size={20} className="text-gray-400" />}
                     disabled={isSubmitting || isLoading}
