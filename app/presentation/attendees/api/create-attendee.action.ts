@@ -1,6 +1,10 @@
 import { UserRole } from "@prisma/client";
 import type { CreateRegistrationDto } from "~/domain/dtos/registration.dto";
-import { createUserSchema, type CreateUserDTO } from "~/domain/dtos/user.dto";
+import {
+  createUserSchema,
+  type CreateUserDTO,
+  type UpdateUserDTO,
+} from "~/domain/dtos/user.dto";
 import { generateQRCode, simplifyZodErrors } from "~/shared/lib/utils";
 import type { Route } from "../routes/+types/join";
 
@@ -15,7 +19,7 @@ export const createAttendeeAction = async ({
 
     const result = createUserSchema.safeParse({
       email: data.email,
-      name: data.name,
+      name: data.name || "",
       phone: data.phone || undefined,
       role: UserRole.ATTENDEE,
       password: data.password,
@@ -34,12 +38,31 @@ export const createAttendeeAction = async ({
     }
 
     let user = null;
+
     // Verificar si el email ya existe
     user = await repositories.userRepository.findByEmail(result.data.email);
     if (!user) {
       user = await repositories.userRepository.create(result.data);
+    } else {
+      const updateData: UpdateUserDTO = {};
+
+      // Actualizar nombre si se proporciona y es diferente
+      if (result.data.name && result.data.name !== user.name) {
+        updateData.name = result.data.name;
+      }
+
+      // Actualizar teléfono si se proporciona y es diferente
+      if (result.data.phone && result.data.phone !== user.phone) {
+        updateData.phone = result.data.phone;
+      }
+
+      // Solo actualizar si hay campos para actualizar
+      if (Object.keys(updateData).length > 0) {
+        user = await repositories.userRepository.update(user.id, updateData);
+      }
     }
-    // Obtener evento
+
+    //Obtener evento
     const eventId = params.eventId;
     const event = await repositories.eventRepository.findUnique(eventId);
     if (!event) {
