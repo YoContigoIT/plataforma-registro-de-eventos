@@ -266,11 +266,11 @@ export function RegistrationForm() {
             </div>
             <p className="text-gray-600">
               Completa tus datos para confirmar tu asistencia al evento.
-              {completionPercentage() > 0 && (
+              {/* {completionPercentage() > 0 && (
                 <span className="text-green-600 font-medium ml-2">
                   {Math.round(completionPercentage())}% completado
                 </span>
-              )}
+              )} */}
             </p>
           </div>
 
