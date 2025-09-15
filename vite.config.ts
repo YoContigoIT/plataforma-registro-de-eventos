@@ -11,5 +11,10 @@ export default defineConfig(({ isSsrBuild }) => ({
         }
       : undefined,
   },
+  resolve: {
+    alias: {
+      ".prisma/client/index-browser": "./node_modules/.prisma/client/index-browser.js",
+    },
+  },
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
 }));

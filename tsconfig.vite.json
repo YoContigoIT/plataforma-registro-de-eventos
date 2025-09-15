@@ -19,7 +19,14 @@
     "baseUrl": ".",
     "rootDirs": [".", "./.react-router/types"],
     "paths": {
-      "~/*": ["./app/*"]
+      "~/*": ["./app/*"],
+      "@/*": ["./app/*"],
+      "@/shared/*": ["./app/shared/*"],
+      "@/ui/*": ["./app/shared/components/ui/*"],
+      "@/components/*": ["./app/shared/components/*"],
+      "@/lib/*": ["./app/shared/lib/*"],
+      "@/utils/*": ["./app/shared/lib/utils/*"],
+      "@/hooks/*": ["./app/shared/hooks/*"]
     },
     "esModuleInterop": true,
     "resolveJsonModule": true
