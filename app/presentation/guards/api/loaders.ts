@@ -9,7 +9,7 @@ export const registrationByTokenLoader = async ({
     return null;
   }
   const registration =
-    await context.repositories.registrationRepository.findByToken(token);
+    await context.repositories.registrationRepository.findByEventId(token);
 
   return { registration };
 };

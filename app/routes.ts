@@ -39,6 +39,10 @@ const ROUTES_PATH = {
   panel: {
     dashboard: "presentation/panel/routes/panel.tsx",
   },
+  guard: {
+    verifyRegistration: "presentation/guards/routes/verify-registration.tsx",
+  },
+
 };
 
 export default [
@@ -47,6 +51,10 @@ export default [
   route("/cerrar-sesion", `${ROUTES_PATH.auth.logout}`),
   route("/inscripcion/:eventId", `${ROUTES_PATH.attendee.join}`),
   route("/invitacion/:inviteToken", `${ROUTES_PATH.attendee.inviteDetails}`),
+  route(
+    "/verificar-registro/:token",
+    `${ROUTES_PATH.guard.verifyRegistration}`
+  ),
   layout(`${ROUTES_PATH.layout}`, [
     route("/panel", `${ROUTES_PATH.panel.dashboard}`),
     route("/usuarios", `${ROUTES_PATH.users.list}`),
