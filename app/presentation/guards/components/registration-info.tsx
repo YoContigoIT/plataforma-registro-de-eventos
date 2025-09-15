@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { RegistrationStatus } from "@prisma/client";
 import {
   Briefcase,
   Building,
@@ -16,17 +17,153 @@ import {
   CheckCircle,
   ChevronRight,
   Clock,
+  HelpCircle,
   Mail,
   MapPin,
   Phone,
   QrCode,
   User,
+  UserCheck,
+  UserX,
+  XCircle,
 } from "lucide-react";
-import { useLoaderData } from "react-router";
+import { useEffect } from "react";
+import { useFetcher, useLoaderData } from "react-router";
+import { toast } from "sonner";
 
 export function RegistrationInfo() {
   const loaderData = useLoaderData();
   const { invite, event, user, qrCodeUrl } = loaderData?.data || {};
+  const fetcher = useFetcher();
+
+  const statusConfig: Record<
+    RegistrationStatus,
+    {
+      title: string;
+      message: string;
+      badge: string;
+      badgeVariant: "default" | "destructive" | "secondary";
+      icon: React.ElementType;
+      iconColor: string;
+      bgColor: string;
+      alert?: {
+        bg: string;
+        border: string;
+        title: string;
+        message: string;
+        titleColor: string;
+        messageColor: string;
+      };
+    }
+  > = {
+    PENDING: {
+      title: "INVITACIÓN PENDIENTE",
+      message: "Aún no se ha confirmado la asistencia.",
+      badge: "Pendiente",
+      badgeVariant: "secondary",
+      icon: Clock,
+      iconColor: "text-yellow-500",
+      bgColor: "bg-yellow-100",
+      alert: {
+        bg: "bg-yellow-50",
+        border: "border-yellow-200",
+        title: "Invitación pendiente",
+        message: "Aún no se puede confirmar el acceso al evento.",
+        titleColor: "text-yellow-800",
+        messageColor: "text-yellow-600",
+      },
+    },
+    REGISTERED: {
+      title: "INVITACIÓN VÁLIDA",
+      message: "Puede ingresar al evento.",
+      badge: "Confirmado",
+      badgeVariant: "default",
+      icon: CheckCircle,
+      iconColor: "text-green-600",
+      bgColor: "bg-green-100",
+    },
+    WAITLISTED: {
+      title: "EN LISTA DE ESPERA",
+      message: "Su lugar depende de disponibilidad.",
+      badge: "Lista de espera",
+      badgeVariant: "secondary",
+      icon: HelpCircle,
+      iconColor: "text-blue-500",
+      bgColor: "bg-blue-100",
+      alert: {
+        bg: "bg-blue-50",
+        border: "border-blue-200",
+        title: "Lista de espera",
+        message: "Debe esperar a que se libere un lugar para acceder.",
+        titleColor: "text-blue-800",
+        messageColor: "text-blue-600",
+      },
+    },
+    CHECKED_IN: {
+      title: "YA REGISTRADO EN EL EVENTO",
+      message: "El usuario ya hizo check-in.",
+      badge: "Asistencia confirmada",
+      badgeVariant: "default",
+      icon: UserCheck,
+      iconColor: "text-green-500",
+      bgColor: "bg-green-100",
+    },
+    CANCELLED: {
+      title: "REGISTRO CANCELADO",
+      message: "No puede ingresar al evento.",
+      badge: "Cancelado",
+      badgeVariant: "destructive",
+      icon: XCircle,
+      iconColor: "text-red-600",
+      bgColor: "bg-red-100",
+      alert: {
+        bg: "bg-red-50",
+        border: "border-red-200",
+        title: "Invitación no válida",
+        message: "No puede ingresar al evento con esta invitación.",
+        titleColor: "text-red-800",
+        messageColor: "text-red-600",
+      },
+    },
+    DECLINED: {
+      title: "INVITACIÓN RECHAZADA",
+      message: "El usuario declinó la invitación.",
+      badge: "Rechazado",
+      badgeVariant: "destructive",
+      icon: UserX,
+      iconColor: "text-red-500",
+      bgColor: "bg-red-100",
+      alert: {
+        bg: "bg-red-50",
+        border: "border-red-200",
+        title: "Invitación rechazada",
+        message: "El usuario declinó esta invitación y no puede ingresar.",
+        titleColor: "text-red-800",
+        messageColor: "text-red-600",
+      },
+    },
+  };
+
+  const {
+    title,
+    message,
+    badge,
+    badgeVariant,
+    icon: StatusIcon,
+    iconColor,
+    bgColor,
+    alert,
+  } = statusConfig[invite.status as RegistrationStatus];
+
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data) {
+      toast[fetcher.data.success ? "success" : "error"](
+        fetcher.data.success
+          ? fetcher.data.message || "Registro chequeado exitosamente"
+          : fetcher.data.error || "Error al chequear el registro"
+      );
+    }
+  }, [fetcher.state, fetcher.data]);
 
   // Formatear fecha y hora
   const formatDateTime = (dateString: string) => {
@@ -63,6 +200,12 @@ export function RegistrationInfo() {
       .slice(0, 2);
   };
 
+  const handleCheckIn = () => {
+    fetcher.submit(null, {
+      method: "post",
+      action: `/verificar-registro/${invite.qrCode}`,
+    });
+  };
   return (
     <div>
       <div className="w-full  bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-100">
@@ -91,37 +234,20 @@ export function RegistrationInfo() {
           <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-50 to-blue-50/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-center mb-4">
-                <div
-                  className={`rounded-full p-3 ${invite.status === "REGISTERED" ? "bg-green-100" : "bg-red-100"} shadow-inner`}
-                >
-                  <CheckCircle
-                    className={`h-10 w-10 ${invite.status === "REGISTERED" ? "text-green-600" : "text-red-600"}`}
-                  />
+                <div className={`rounded-full p-3 shadow-inner ${bgColor}`}>
+                  <StatusIcon className={`h-10 w-10 ${iconColor}`} />
                 </div>
               </div>
 
               <div className="text-center">
                 <h2 className="text-xl font-semibold text-slate-800 mb-2">
-                  {invite.status === "REGISTERED"
-                    ? "INVITACIÓN VÁLIDA"
-                    : "INVITACIÓN NO VÁLIDA"}
+                  {title}
                 </h2>
-                <p className="text-slate-600">
-                  {invite.status === "REGISTERED"
-                    ? "Puede ingresar al evento"
-                    : "No puede ingresar al evento"}
-                </p>
+                <p className="text-slate-600">{message}</p>
 
                 <div className="mt-4">
-                  <Badge
-                    variant={
-                      invite.status === "REGISTERED" ? "default" : "destructive"
-                    }
-                    className="text-sm px-3 py-1"
-                  >
-                    {invite.status === "REGISTERED"
-                      ? "Confirmado"
-                      : "Cancelado"}
+                  <Badge variant={badgeVariant} className="text-sm px-3 py-1">
+                    {badge}
                   </Badge>
                 </div>
               </div>
@@ -323,7 +449,10 @@ export function RegistrationInfo() {
 
               {invite.status === "REGISTERED" && !invite.checkedInAt && (
                 <CardFooter>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                  <Button
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    onClick={handleCheckIn}
+                  >
                     <CheckCircle className="h-5 w-5 mr-2" />
                     Realizar Check-in
                     <ChevronRight className="h-4 w-4 ml-2" />
@@ -334,12 +463,12 @@ export function RegistrationInfo() {
           </div>
 
           {/* Notificaciones de estado */}
-          {invite.status !== "REGISTERED" && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-              <p className="text-red-800 font-medium">Invitación no válida</p>
-              <p className="text-red-600">
-                No puede ingresar al evento con esta invitación
-              </p>
+          {alert && (
+            <div
+              className={`${alert.bg} ${alert.border} rounded-lg p-4 text-center`}
+            >
+              <p className={`${alert.titleColor} font-medium`}>{alert.title}</p>
+              <p className={alert.messageColor}>{alert.message}</p>
             </div>
           )}
         </div>

@@ -1,6 +1,8 @@
+import { createCheckInAction } from "../api/actions";
 import { registrationByTokenLoader } from "../api/loaders";
 import { RegistrationInfo } from "../components/registration-info";
 export const loader = registrationByTokenLoader;
+export { createCheckInAction as action };
 export default function VerifyRegistration() {
   return (
     <div className="bg-background flex min-h-svh bg-gradient-to-t from-primary/20 to-secondary/20 dark:from-primary/30 dark:to-secondary/30">
