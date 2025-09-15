@@ -53,16 +53,6 @@ export async function getEventByIdLoader({
       };
     }
 
-    const statusCounts =
-      await repositories.registrationRepository.countAllStatusesByEvent(
-        invite.event.id
-      );
-
-    // Calculate available spots based on your business logic
-    const registeredCount =
-      (statusCounts.REGISTERED || 0) + (statusCounts.CHECKED_IN || 0);
-    const availableSpots = Math.max(0, invite.event.capacity - registeredCount);
-
     return {
       success: true,
       data: {
