@@ -20,7 +20,7 @@ import {
 import { eventsLoader } from "../../events/api/loaders";
 import { EventDetailsSheet } from "../../events/components/event-details-sheet";
 import { registrationsLoader } from "../api/loaders";
-import { EventSelector } from "../components/event-selector";
+import { EventCombobox } from "../components/event-combobox";
 import { RegistrationTable } from "../components/registration-table";
 import { StatusCards } from "../components/status-cards";
 import type { Route } from "./+types/registrations";
@@ -114,6 +114,39 @@ export default function Registrations() {
     setIsEventSheetOpen(false);
   };
 
+  const getEventStatusMessage = (status: EventStatus) => {
+    switch (status) {
+      case EventStatus.DRAFT:
+        return {
+          title:
+            "No se pueden ver registros de este evento porque es un borrador",
+          description:
+            "Cambia el estado del evento a Próximo o En curso para ver sus registros.",
+        };
+      case EventStatus.CANCELLED:
+        return {
+          title: "Este evento ha sido cancelado",
+          description:
+            "No se pueden ver registros ni invitar asistentes a eventos cancelados.",
+        };
+      default:
+        return null;
+    }
+  };
+
+  const canViewRegistrations =
+    selectedEvent?.status === EventStatus.UPCOMING ||
+    selectedEvent?.status === EventStatus.ONGOING ||
+    selectedEvent?.status === EventStatus.ENDED; // Add ENDED status
+
+  const canSendInvitations =
+    selectedEvent?.status === EventStatus.UPCOMING ||
+    selectedEvent?.status === EventStatus.ONGOING;
+
+  const statusMessage = getEventStatusMessage(
+    selectedEvent?.status || EventStatus.DRAFT
+  );
+
   if (!eventId || !selectedEvent) {
     return (
       <div>
@@ -123,9 +156,11 @@ export default function Registrations() {
         />
 
         <div className="mt-8">
-          <EventSelector
+          <EventCombobox
             events={events}
-            handleEventSelect={handleEventSelect}
+            selectedEventId={eventId || undefined}
+            onEventSelect={handleEventSelect}
+            searchKey="eventSearch"
           />
         </div>
 
@@ -174,54 +209,94 @@ export default function Registrations() {
                 </Button>
               </>
             )}
-            {selectedEvent.status === EventStatus.UPCOMING ||
-              (EventStatus.ONGOING && ( //WE CAN only send invitations to upcoming or ongoing events
-                <Link to={`/registros/enviar-invitaciones/${selectedEvent.id}`}>
-                  <Button size="sm">
-                    <UserPlus className="size-4 mr-2" />
-                    Invitar asistentes
-                  </Button>
-                </Link>
-              ))}
+            {canSendInvitations && ( //WE CAN only send invitations to upcoming or ongoing events
+              <Link to={`/registros/enviar-invitaciones/${selectedEvent.id}`}>
+                <Button size="sm">
+                  <UserPlus className="size-4 mr-2" />
+                  Invitar asistentes
+                </Button>
+              </Link>
+            )}
           </div>
         }
       />
 
-      <StatusCards
-        statusCounts={statusCounts}
-        getStatusLabel={getStatusLabel}
-        getStatusBadgeVariant={getStatusBadgeVariant}
-        eventCapacity={selectedEvent.capacity}
-      />
+      {selectedEvent.status === EventStatus.ENDED && (
+        <div className="bg-muted/50 border border-muted rounded-lg p-4 mb-6">
+          <h4 className="font-medium text-sm mb-1">Evento finalizado</h4>
+          <p className="text-sm text-muted-foreground">
+            Este evento ha finalizado. Puedes ver los registros pero no enviar
+            nuevas invitaciones.
+          </p>
+        </div>
+      )}
 
-      <Card>
-        <CardContent>
-          <SearchBar
-            searchParamKey="search"
-            placeholder="Buscar registros por nombre usuario, correo"
-            className="w-full"
+      {statusMessage && (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium">{statusMessage.title}</h3>
+          <p className="text-muted-foreground mt-2">
+            {statusMessage.description}
+          </p>
+        </div>
+      )}
+
+      {canViewRegistrations && (
+        <>
+          <StatusCards
+            statusCounts={statusCounts}
+            getStatusLabel={getStatusLabel}
+            getStatusBadgeVariant={getStatusBadgeVariant}
+            eventCapacity={selectedEvent.capacity}
           />
-        </CardContent>
-      </Card>
 
-      <RegistrationTable
-        registrations={registrations}
-        selectedRegistrations={selectedRegistrations}
-        onSelectAll={handleSelectAll}
-        onSelectRegistration={handleSelectRegistration}
-        getStatusBadgeVariant={getStatusBadgeVariant}
-        getStatusLabel={getStatusLabel}
-        currentSort={sort}
-        onSort={handleSort}
-      />
+          <Card>
+            <CardContent>
+              <SearchBar
+                searchParamKey="search"
+                placeholder="Buscar registros por nombre usuario, correo"
+                className="w-full"
+              />
+            </CardContent>
+          </Card>
+        </>
+      )}
 
-      <Pagination
-        currentPage={pagination.currentPage}
-        totalPages={pagination.totalPages}
-        totalItems={pagination.totalItems}
-        itemsPerPage={pagination.itemsPerPage}
-        itemName={"registro"}
-      />
+      {canViewRegistrations && registrations.length === 0 && (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium">
+            No hay registros para este evento
+          </h3>
+          <p className="text-muted-foreground mt-2">
+            {selectedEvent.status === EventStatus.ENDED
+              ? "Este evento no tuvo registros."
+              : "Los registros aparecerán aquí"}
+          </p>
+        </div>
+      )}
+
+      {canViewRegistrations && (
+        <>
+          <RegistrationTable
+            registrations={registrations}
+            selectedRegistrations={selectedRegistrations}
+            onSelectAll={handleSelectAll}
+            onSelectRegistration={handleSelectRegistration}
+            getStatusBadgeVariant={getStatusBadgeVariant}
+            getStatusLabel={getStatusLabel}
+            currentSort={sort}
+            onSort={handleSort}
+            canSendInvite={canSendInvitations}
+          />
+
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            itemName={"registro"}
+          />
+        </>
+      )}
 
       <EventDetailsSheet
         event={selectedEvent}

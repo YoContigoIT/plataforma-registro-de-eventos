@@ -75,7 +75,7 @@ export default function Events() {
       <Card>
         <CardContent>
           <SearchBar
-            searchParamKey="search"
+            searchParamKey="eventSearch"
             placeholder="Buscar eventos por nombre"
             className="w-full"
           />

@@ -38,6 +38,7 @@ interface RegistrationDetailsSheetProps {
   onClose: () => void;
   getStatusBadgeVariant: (status: string) => string;
   getStatusLabel: (status: string) => string;
+  canSendInvite: boolean;
 }
 
 export function RegistrationDetailsSheet({
@@ -46,6 +47,7 @@ export function RegistrationDetailsSheet({
   onClose,
   getStatusBadgeVariant,
   getStatusLabel,
+  canSendInvite = false,
 }: RegistrationDetailsSheetProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [customMessage, setCustomMessage] = useState("");
@@ -82,9 +84,9 @@ export function RegistrationDetailsSheet({
 
   const handleConfirmDelete = () => {
     fetcher.submit(
-      { 
+      {
         registrationId: registration.id,
-        customMessage: customMessage
+        customMessage: customMessage,
       },
       {
         action: "/registros/delete-registration",
@@ -124,7 +126,7 @@ export function RegistrationDetailsSheet({
                 Información completa del registro y usuario
               </SheetDescription>
             </div>
-            {isPending && (
+            {canSendInvite && isPending && (
               <Button onClick={handleResendInvite} disabled={isResending}>
                 <Send className="h-3 w-3 mr-1" />
                 {isResending ? "Enviando..." : "Reenviar invitación"}
@@ -323,22 +325,24 @@ export function RegistrationDetailsSheet({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col gap-1 justify-end w-full mt-12">
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDeleteClick}
-                disabled={isDeleting}
-                className="self-start"
-              >
-                <Trash2 className="h-4 w-4" />
-                {isDeleting ? "Eliminando..." : "Revocar invitación"}
-              </Button>
-              <p className="text-xs text-muted-foreground mt-2 self-start">
-                Al revocar la invitación, se eliminará este registro y se
-                enviará una notificación al usuario.
-              </p>
-            </div>
+            {canSendInvite && (
+              <div className="flex flex-col gap-1 justify-end w-full mt-12">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteClick}
+                  disabled={isDeleting}
+                  className="self-start"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {isDeleting ? "Eliminando..." : "Revocar invitación"}
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2 self-start">
+                  Al revocar la invitación, se eliminará este registro y se
+                  enviará una notificación al usuario.
+                </p>
+              </div>
+            )}
           </div>
         </SheetContent>
       </Sheet>

@@ -26,6 +26,7 @@ interface RegistrationTableProps {
   getStatusLabel: (status: string) => string;
   currentSort: SortState;
   onSort: (column: string) => void;
+  canSendInvite: boolean;
 }
 
 export function RegistrationTable({
@@ -37,6 +38,7 @@ export function RegistrationTable({
   getStatusLabel,
   currentSort,
   onSort,
+  canSendInvite,
 }: RegistrationTableProps) {
   const [selectedRegistration, setSelectedRegistration] =
     useState<RegistrationWithRelations | null>(null);
@@ -66,14 +68,7 @@ export function RegistrationTable({
     selectedRegistrations.length < registrations.length;
 
   if (registrations.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-medium">No hay registros</h3>
-        <p className="text-muted-foreground mt-2">
-          Este evento aún no tiene registros.
-        </p>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -209,6 +204,7 @@ export function RegistrationTable({
         onClose={handleCloseSheet}
         getStatusBadgeVariant={getStatusBadgeVariant}
         getStatusLabel={getStatusLabel}
+        canSendInvite={canSendInvite}
       />
     </>
   );

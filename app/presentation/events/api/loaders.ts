@@ -2,6 +2,7 @@ import type { EventStatus } from "@prisma/client";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import type { EventFilters } from "~/domain/repositories/event.repository";
 import type { LoaderData } from "~/shared/types";
+import type { Route as DetailRoute } from "../routes/+types/detail";
 import type { Route } from "../routes/+types/events";
 
 export const eventsLoader = async ({
@@ -32,7 +33,7 @@ export const eventsLoader = async ({
     filters.organizerId = organizerId;
   }
 
-  const search = url.searchParams.get("search");
+  const search = url.searchParams.get("eventSearch");
   if (search) {
     filters.search = search;
   }
@@ -63,7 +64,7 @@ export const eventsLoader = async ({
 export const getEventByIdLoader = async ({
   params,
   context: { repositories },
-}: Route.LoaderArgs): Promise<LoaderData<EventEntity>> => {
+}: DetailRoute.LoaderArgs): Promise<LoaderData<EventEntity>> => {
   const id = params.id;
 
   if (!id) {

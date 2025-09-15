@@ -12,6 +12,7 @@ interface NumberInputProps
   value?: number | string;
   onChange?: (value: number | undefined) => void;
   allowDecimals?: boolean;
+  allowNegative?: boolean;
   min?: number;
   max?: number;
   placeholder?: string;
@@ -27,6 +28,7 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       value,
       onChange,
       allowDecimals = true,
+      allowNegative = true,
       min,
       max,
       placeholder,
@@ -57,10 +59,14 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         return;
       }
 
-      // Regex para validar números
+      // Regex para validar números - updated to respect allowNegative
       const numberRegex = allowDecimals
-        ? /^-?\d*\.?\d*$/ // Permite decimales
-        : /^-?\d*$/; // Solo enteros
+        ? allowNegative
+          ? /^-?\d*\.?\d*$/ // Permite decimales y negativos
+          : /^\d*\.?\d*$/ // Permite decimales, no negativos
+        : allowNegative
+          ? /^-?\d*$/ // Solo enteros, permite negativos
+          : /^\d*$/; // Solo enteros positivos
 
       // Validar formato
       if (!numberRegex.test(inputValue)) {
@@ -86,12 +92,12 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       if (
         displayValue === "0" &&
         inputValue.match(/^0\d/) &&
-        !inputValue.startsWith("0.")
+        !inputValue.startsWith(".")
       ) {
         const newValue = inputValue.substring(1); // Remover el 0 inicial
         setDisplayValue(newValue);
         const numericValue = parseFloat(newValue);
-        if (!isNaN(numericValue)) {
+        if (!Number.isNaN(numericValue)) {
           onChange?.(numericValue);
         }
         return;
@@ -103,12 +109,17 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       const numericValue = parseFloat(inputValue);
 
       // Validar si es un número válido
-      if (isNaN(numericValue)) {
+      if (Number.isNaN(numericValue)) {
         // Si termina en punto decimal, no llamar onChange aún
         if (allowDecimals && inputValue.endsWith(".")) {
           return;
         }
         onChange?.(undefined);
+        return;
+      }
+
+      // Validar si es negativo cuando no se permite
+      if (!allowNegative && numericValue < 0) {
         return;
       }
 
@@ -125,7 +136,7 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
       // Limpiar formato al perder el foco
-      if (displayValue && !isNaN(parseFloat(displayValue))) {
+      if (displayValue && !Number.isNaN(parseFloat(displayValue))) {
         const numericValue = parseFloat(displayValue);
         setDisplayValue(String(numericValue));
       }
