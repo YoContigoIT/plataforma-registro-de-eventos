@@ -121,22 +121,30 @@ export function RegistrationForm() {
         {/* Sección de información del evento (lado izquierdo) */}
         <div className="bg-gradient-to-br from-primary to-secondary text-white p-8 md:w-2/5">
           <div className="mb-8">
-            <div className="flex items-center mb-4">
-              <Ticket className="h-5 w-5 mr-2" />
-              <span className="text-sm font-medium bg-white/20 px-3 py-1.5 rounded-full">
+            {/* Etiqueta invitación */}
+            <div className="flex items-center mb-6">
+              <Ticket className="h-5 w-5 mr-2 text-white/80" />
+              <span className="text-xs font-semibold tracking-wide bg-white/20 px-3 py-1 rounded-full">
                 INVITACIÓN GRATUITA
               </span>
             </div>
 
-            <h2 className="text-2xl font-bold mb-4 leading-tight">
+            {/* Título */}
+            <h2 className="text-3xl font-extrabold mb-6 leading-snug">
               {event?.name || "Nombre del Evento"}
             </h2>
 
-            <div className="space-y-3">
+            {/* Detalles */}
+            <div className="space-y-6">
+              {/* Fecha y hora */}
               <div className="flex items-start">
-                <Calendar className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0" />
+                <div className="bg-white/20 p-2 rounded-lg mr-3">
+                  <Calendar className="h-5 w-5" />
+                </div>
                 <div>
-                  <p className="font-medium text-sm">Fecha y Hora</p>
+                  <p className="font-semibold text-sm uppercase tracking-wide">
+                    Fecha y Hora
+                  </p>
                   <p className="text-sm opacity-90">
                     {event?.start_date
                       ? new Date(event.start_date).toLocaleDateString("es-ES", {
@@ -148,8 +156,7 @@ export function RegistrationForm() {
                       : "Fecha del evento"}
                     {event?.start_date && (
                       <>
-                        {" "}
-                        •{" "}
+                        {" · "}
                         {new Date(event.start_date).toLocaleTimeString(
                           "es-ES",
                           {
@@ -161,9 +168,9 @@ export function RegistrationForm() {
                     )}
                   </p>
                   {event?.end_date && (
-                    <p className="text-xs opacity-80 mt-1">
-                      Hasta:{" "}
-                      {new Date(event.end_date).toLocaleDateString("es-ES")} •{" "}
+                    <p className="text-xs opacity-75 mt-1">
+                      Hasta{" "}
+                      {new Date(event.end_date).toLocaleDateString("es-ES")} ·{" "}
                       {new Date(event.end_date).toLocaleTimeString("es-ES", {
                         hour: "2-digit",
                         minute: "2-digit",
@@ -173,71 +180,37 @@ export function RegistrationForm() {
                 </div>
               </div>
 
+              {/* Ubicación */}
               <div className="flex items-start">
-                <MapPin className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0" />
+                <div className="bg-white/20 p-2 rounded-lg mr-3">
+                  <MapPin className="h-5 w-5" />
+                </div>
                 <div>
-                  <p className="font-medium text-sm">Ubicación</p>
+                  <p className="font-semibold text-sm uppercase tracking-wide">
+                    Ubicación
+                  </p>
                   <p className="text-sm opacity-90">
                     {event?.location || "Ubicación del evento"}
                   </p>
                 </div>
               </div>
 
+              {/* Capacidad */}
               <div className="flex items-start">
-                <Users className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0" />
+                <div className="bg-white/20 p-2 rounded-lg mr-3">
+                  <Users className="h-5 w-5" />
+                </div>
                 <div>
-                  <p className="font-medium text-sm">Capacidad</p>
+                  <p className="font-semibold text-sm uppercase tracking-wide">
+                    Capacidad
+                  </p>
                   <p className="text-sm opacity-90">
-                    {event?.capacity || "0"} personas •{" "}
+                    {event?.capacity || "0"} personas ·{" "}
                     {event?.maxTickets
-                      ? `${event.maxTickets} invitaciones máx. por persona`
+                      ? `${event.maxTickets} máx. por persona`
                       : "Invitaciones limitadas"}
                   </p>
                 </div>
-              </div>
-            </div>
-
-            {event?.description && (
-              <div className="mt-6 p-4 bg-white/10 rounded-lg">
-                <p className="text-sm font-medium mb-1">Descripción</p>
-                <p className="text-sm opacity-90">{event.description}</p>
-              </div>
-            )}
-
-            {event?.agenda && (
-              <div className="mt-4 p-4 bg-white/10 rounded-lg">
-                <p className="text-sm font-medium mb-1">Agenda</p>
-                <p className="text-sm opacity-90">{event.agenda}</p>
-              </div>
-            )}
-          </div>
-
-          <div className="border-t border-white/20 pt-6">
-            <h3 className="font-semibold mb-4 text-lg">
-              Detalles de la invitación
-            </h3>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm opacity-80">Estado del evento</p>
-                <p className="font-medium text-sm">
-                  {event?.status?.toLowerCase() === "upcoming"
-                    ? "Disponible"
-                    : "Cerrado"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm opacity-80">Duración</p>
-                <p className="font-medium text-sm">
-                  {event?.start_date && event?.end_date
-                    ? `${Math.round(
-                        (new Date(event.end_date).getTime() -
-                          new Date(event.start_date).getTime()) /
-                          (1000 * 60 * 60)
-                      )} horas`
-                    : "Por determinar"}
-                </p>
               </div>
             </div>
           </div>
@@ -293,57 +266,62 @@ export function RegistrationForm() {
             </div>
             <p className="text-gray-600">
               Completa tus datos para confirmar tu asistencia al evento.
-              {completionPercentage() > 0 && (
+              {/* {completionPercentage() > 0 && (
                 <span className="text-green-600 font-medium ml-2">
                   {Math.round(completionPercentage())}% completado
                 </span>
-              )}
+              )} */}
             </p>
           </div>
 
           <Form method="post" className="space-y-6" replace>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Nombre */}
-              <div className="space-y-2">
-                <FormField id="name" error={errors.name}>
-                  <TextInput
-                    label="Nombre completo"
-                    id="name"
-                    name="name"
-                    type="text"
-                    placeholder="Ej. Andrea Sánchez"
-                    required
-                    readOnly={user && user.name ? true : false}
-                    defaultValue={user?.name}
-                    icon={<UserCircle size={20} className="text-gray-400" />}
-                    disabled={isSubmitting || isLoading}
-                    onChange={(e) => {
-                      handleInputChange(e);
-                      if (!touchedFields.name) {
-                        setTouchedFields((prev) => ({ ...prev, name: true }));
+            {/* Nombre */}
+            {user && !user.name && (
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                <div className="space-y-2">
+                  <FormField id="name" error={errors.name}>
+                    <TextInput
+                      label="Nombre completo"
+                      id="name"
+                      name="name"
+                      type="text"
+                      placeholder="Ej. Andrea Sánchez"
+                      required
+                      readOnly={user && user.name ? true : false}
+                      defaultValue={user?.name}
+                      icon={<UserCircle size={20} className="text-gray-400" />}
+                      disabled={isSubmitting || isLoading}
+                      onChange={(e) => {
+                        handleInputChange(e);
+                        if (!touchedFields.name) {
+                          setTouchedFields((prev) => ({ ...prev, name: true }));
+                        }
+                        const hasValue = e.target.value.trim() !== "";
+                        setFormData((prev) => ({ ...prev, name: hasValue }));
+                      }}
+                      onBlur={() => handleFieldBlur("name")}
+                      aria-invalid={!!errors.name}
+                      aria-errormessage={errors.name ? "name-error" : undefined}
+                      className={
+                        touchedFields.name && !errors.name && formData.name
+                          ? "border-green-500 focus:ring-green-500 focus:border-green-500"
+                          : ""
                       }
-                      const hasValue = e.target.value.trim() !== "";
-                      setFormData((prev) => ({ ...prev, name: hasValue }));
-                    }}
-                    onBlur={() => handleFieldBlur("name")}
-                    aria-invalid={!!errors.name}
-                    aria-errormessage={errors.name ? "name-error" : undefined}
-                    className={
-                      touchedFields.name && !errors.name && formData.name
-                        ? "border-green-500 focus:ring-green-500 focus:border-green-500"
-                        : ""
-                    }
-                  />
-                </FormField>
-                {(user?.name ||
-                  (touchedFields.name && !errors.name && formData.name)) && (
-                  <p className="text-green-600 text-xs flex items-center">
-                    <CheckCircle size={14} className="mr-1" />
-                    {user?.name ? "Precargado desde tu cuenta" : "Campo válido"}
-                  </p>
-                )}
+                    />
+                  </FormField>
+                  {(user?.name ||
+                    (touchedFields.name && !errors.name && formData.name)) && (
+                    <p className="text-green-600 text-xs flex items-center">
+                      <CheckCircle size={14} className="mr-1" />
+                      {user?.name
+                        ? "Precargado desde tu cuenta"
+                        : "Campo válido"}
+                    </p>
+                  )}
+                </div>
               </div>
-
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Correo */}
               <div className="space-y-2">
                 <FormField id="email" error={errors.email}>
@@ -389,9 +367,7 @@ export function RegistrationForm() {
                   </p>
                 )}
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Teléfono */}
               <div className="space-y-2">
                 <FormField id="phone" error={errors.phone}>
@@ -401,6 +377,7 @@ export function RegistrationForm() {
                     name="phone"
                     type="tel"
                     inputMode="tel"
+                    defaultValue={user?.phone}
                     placeholder="Ej. +34 600 123 456"
                     icon={<Phone size={20} className="text-gray-400" />}
                     disabled={isSubmitting || isLoading}
@@ -413,7 +390,9 @@ export function RegistrationForm() {
                   />
                 </FormField>
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
               {/* Cantidad de Tickets a reservar */}
               <div className="space-y-2">
                 <FormField id="quantity" error={errors.quantity}>
