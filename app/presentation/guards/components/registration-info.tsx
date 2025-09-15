@@ -63,12 +63,6 @@ export function RegistrationInfo() {
       .slice(0, 2);
   };
 
-  // Simular descarga de QR
-  const handleDownloadQR = () => {
-    // Lógica para descargar QR
-    console.log("Descargando código QR...");
-  };
-
   return (
     <div>
       <div className="w-full  bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-100">
