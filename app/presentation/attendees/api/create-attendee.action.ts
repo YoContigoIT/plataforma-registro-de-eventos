@@ -1,4 +1,5 @@
 import { RegistrationStatus, UserRole } from "@prisma/client";
+import QRCode from "qrcode";
 import {
   createUserSchema,
   type CreateUserDTO,
@@ -168,6 +169,13 @@ export const createAttendeeAction = async ({
         success: false,
       };
     }
+
+    const qrCodeUrl = await QRCode.toDataURL(
+      `${process.env.DOMAIN}/verificar-registro/${finalRegistrations.qrCode}`
+    );
+
+    console.log(qrCodeUrl);
+
     await services.emailService.sendRegistrationConfirmation(user.email, {
       userName: user.name || "",
       eventName: event.name,
@@ -175,7 +183,7 @@ export const createAttendeeAction = async ({
       eventLocation: event.location,
       eventTime: event.start_date.toISOString().split("T")[1],
       qrCode: finalRegistrations.qrCode,
-      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent("http://localhost:3000/verificar-registro/" + finalRegistrations.qrCode)}`, //TODO: Cambiar cuando este implementado
+      qrCodeUrl,
       ticketsQuantity: finalRegistrations.purchasedTickets || 0,
     });
 

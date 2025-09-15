@@ -26,7 +26,7 @@ import { useLoaderData } from "react-router";
 
 export function RegistrationInfo() {
   const loaderData = useLoaderData();
-  const { invite, event, user } = loaderData?.data || {};
+  const { invite, event, user, qrCodeUrl } = loaderData?.data || {};
 
   // Formatear fecha y hora
   const formatDateTime = (dateString: string) => {
@@ -257,7 +257,7 @@ export function RegistrationInfo() {
                 <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
                   <div className="w-40 h-40 bg-white flex items-center justify-center rounded border overflow-hidden mx-auto">
                     <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent("http://localhost:3000/verificar-registro/" + invite.qrCode)}`}
+                      src={qrCodeUrl}
                       alt="QR Code"
                       className="w-full h-full object-contain"
                       width={150}

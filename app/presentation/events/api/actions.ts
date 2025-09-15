@@ -201,7 +201,7 @@ export const testEmailAction = async ({
 
     await services.emailService.sendRegistrationConfirmation(
       tempEmail,
-      registrationData,
+      registrationData
     );
 
     return {

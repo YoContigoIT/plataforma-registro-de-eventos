@@ -1,3 +1,4 @@
+import QRCode from "qrcode";
 import type { Route } from "../routes/+types/verify-registration";
 
 export const registrationByTokenLoader = async ({
@@ -21,6 +22,9 @@ export const registrationByTokenLoader = async ({
       error: "Invitación no válida o expirada.",
     };
   }
+  const qrCodeUrl = await QRCode.toDataURL(
+    `${process.env.DOMAIN}/verificar-registro/${invite.qrCode}`
+  );
 
   return {
     success: true,
@@ -28,6 +32,7 @@ export const registrationByTokenLoader = async ({
       invite,
       event: invite.event,
       user: invite.user,
+      qrCodeUrl,
     },
   };
 };
