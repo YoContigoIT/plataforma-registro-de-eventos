@@ -6,13 +6,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/card";
-import { Mail, Send } from "lucide-react";
+import { Loader2, Mail, Send } from "lucide-react";
 import { useId, useState } from "react";
 import { Form, Link } from "react-router";
 import { sendInvitationsSchema } from "~/domain/dtos/invitation.dto";
 import { FormField } from "~/shared/components/common/form-field";
 import { useFormAction } from "~/shared/hooks/use-form-action.hook";
-import { EmailTagsInput } from "./email-tags-input";
+import { EmailTagsInput } from "../../events/components/email-tags-input";
 
 interface InvitationFormProps {
   eventId: string;
@@ -89,7 +89,10 @@ export function InvitationForm({ eventId, eventName }: InvitationFormProps) {
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
-              "Enviando..."
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Enviando...
+              </>
             ) : (
               <>
                 <Send className="w-4 h-4 mr-2" />

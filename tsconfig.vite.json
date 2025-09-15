@@ -26,7 +26,8 @@
       "@/components/*": ["./app/shared/components/*"],
       "@/lib/*": ["./app/shared/lib/*"],
       "@/utils/*": ["./app/shared/lib/utils/*"],
-      "@/hooks/*": ["./app/shared/hooks/*"]
+      "@/hooks/*": ["./app/shared/hooks/*"],
+      "@/prisma/*": ["./prisma/*"]
     },
     "esModuleInterop": true,
     "resolveJsonModule": true

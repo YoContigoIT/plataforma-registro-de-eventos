@@ -19,6 +19,7 @@ import {
   List,
   Loader2,
   MapPin,
+  MoreHorizontal,
   Power,
   Trash2,
   User,
@@ -30,6 +31,13 @@ import { toast } from "sonner";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import { ConfirmationDialog } from "~/shared/components/common/confirmation-dialog";
 import { Card, CardContent } from "~/shared/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/shared/components/ui/dropdown-menu";
 
 interface EventDetailsSheetProps {
   event: EventEntity | null;
@@ -98,22 +106,12 @@ export function EventDetailsSheet({
     onClose();
   };
 
-  const handleTestEmail = () => {
-    const formData = new FormData();
-    formData.append("eventId", event.id);
-    emailFetcher.submit(formData, {
-      method: "post",
-      action: "/eventos/test-email",
-    });
-  };
-
   const isArchiving = fetcher.state === "submitting";
-  const isEmailSending = emailFetcher.state === "submitting";
 
   return (
     <>
       <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent className="min-w-2xl overflow-y-auto p-6">
+        <SheetContent className="w-full md:min-w-2xl overflow-y-auto p-6">
           <SheetHeader className="flex flex-row justify-between items-center px-0">
             <div>
               <SheetTitle className="flex items-center gap-2">
@@ -124,10 +122,12 @@ export function EventDetailsSheet({
                 Detalles del evento • {getStatusLabel(event.status)}
               </SheetDescription>
             </div>
-            <div className="flex gap-2">
+            
+            {/* Desktop buttons */}
+            <div className="hidden md:flex gap-2">
               <Link to={`/eventos/actualizar/${event.id}`}>
                 <Button variant="outline" size="sm">
-                  <Edit className="h-4 w-4 mr-2" />
+                  <Edit className="size-5 mr-2" />
                   Editar
                 </Button>
               </Link>
@@ -138,12 +138,45 @@ export function EventDetailsSheet({
                 disabled={isArchiving}
               >
                 {isArchiving ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="size-5 mr-2 animate-spin" />
                 ) : (
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Trash2 className="size-5 mr-2" />
                 )}
                 {isArchiving ? "Archivando..." : "Archivar"}
               </Button>
+            </div>
+
+            {/* Mobile dropdown */}
+            <div className="md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <MoreHorizontal className="size-4" />
+                    <span className="sr-only">Abrir menú de acciones</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link to={`/eventos/actualizar/${event.id}`}>
+                      <Edit className="size-4 mr-2" />
+                      Editar
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleArchiveClick}
+                    disabled={isArchiving}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    {isArchiving ? (
+                      <Loader2 className="size-4 mr-2 animate-spin" />
+                    ) : (
+                      <Trash2 className="size-4 mr-2" />
+                    )}
+                    {isArchiving ? "Archivando..." : "Archivar"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </SheetHeader>
 
@@ -273,49 +306,6 @@ export function EventDetailsSheet({
               </div>
             )}
 
-            {/* Quick Actions */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Acciones rápidas
-              </h3>
-              <Card>
-                <CardContent className="space-y-3">
-                  <Link
-                    to={`/eventos/actualizar/${event.id}`}
-                    className="block"
-                  >
-                    <Button variant="outline" className="w-full justify-start">
-                      <Edit className="w-4 h-4 mr-2" />
-                      Editar evento
-                    </Button>
-                  </Link>
-                  <Link to={`/registros?eventId=${event.id}`} className="block">
-                    <Button variant="outline" className="w-full justify-start">
-                      <Users className="w-4 h-4 mr-2" />
-                      Ver registros
-                    </Button>
-                  </Link>
-                  {process.env.NODE_ENV === "development" && (
-                    <Button
-                      variant="outline"
-                      onClick={handleTestEmail}
-                      disabled={isEmailSending}
-                      className="w-full justify-start"
-                    >
-                      {isEmailSending ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <FileText className="w-4 h-4 mr-2" />
-                      )}
-                      {isEmailSending ? "Enviando..." : "Test de correo"}
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Event Stats */}
             <div className="space-y-3">
               <h3 className="text-sm font-medium flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
@@ -357,6 +347,39 @@ export function EventDetailsSheet({
                       {format(new Date(event.createdAt), "PP", { locale: es })}
                     </span>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Acciones rápidas
+              </h3>
+              <Card>
+                <CardContent className="space-y-3">
+                  <Link
+                    to={`/eventos/actualizar/${event.id}`}
+                    className="block"
+                  >
+                    <Button
+                      variant="default"
+                      className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Editar evento
+                    </Button>
+                  </Link>
+                  <Link to={`/registros?eventId=${event.id}`} className="block">
+                    <Button
+                      variant="secondary"
+                      className="w-full justify-start"
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Ver registros
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             </div>

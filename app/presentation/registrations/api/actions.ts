@@ -1,5 +1,4 @@
 import { EventStatus, RegistrationStatus, UserRole } from "@prisma/client";
-import * as crypto from "crypto";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { InvitationEmailDto } from "~/domain/dtos/email-invitation.dto";
@@ -7,14 +6,15 @@ import { sendInvitationsSchema } from "~/domain/dtos/invitation.dto";
 import type { CreateRegistrationDto } from "~/domain/dtos/registration.dto";
 import type { CreateUserDTO } from "~/domain/dtos/user.dto";
 import { runInTransaction } from "~/infrastructure/db/prisma";
-import { encodeInvitationData, generateQRCode, simplifyZodErrors } from "~/shared/lib/utils";
+import { handleServiceError } from "~/shared/lib/error-handler";
+import {
+  encodeInvitationData,
+  generateQRCode,
+  simplifyZodErrors,
+} from "~/shared/lib/utils";
 import type { ActionData } from "~/shared/types";
 import { generateRevocationEmailTemplate } from "../../templates/revocation-email.template";
 import type { Route } from "../routes/+types/send-invitations";
-
-function generateInviteToken(): string {
-  return crypto.randomBytes(32).toString("hex");
-}
 
 function parseEmails(emailsString: string): string[] {
   return emailsString
@@ -25,6 +25,7 @@ function parseEmails(emailsString: string): string[] {
     )
     .filter((email, index, arr) => arr.indexOf(email) === index);
 }
+
 export const sendInvitationsAction = async ({
   request,
   context: { repositories, services, session },
@@ -69,7 +70,7 @@ export const sendInvitationsAction = async ({
     return await runInTransaction(
       async () => {
         const event = await repositories.eventRepository.findUnique(eventId);
-        
+
         if (!event) {
           return {
             success: false,
@@ -77,10 +78,14 @@ export const sendInvitationsAction = async ({
           };
         }
 
-        if (event.status !== EventStatus.UPCOMING && event.status !== EventStatus.ONGOING) {
+        if (
+          event.status !== EventStatus.UPCOMING &&
+          event.status !== EventStatus.ONGOING
+        ) {
           return {
             success: false,
-            error: "No se pueden enviar invitaciones a eventos que no están programados",
+            error:
+              "No se pueden enviar invitaciones a eventos que no están programados",
           };
         }
 
@@ -133,7 +138,7 @@ export const sendInvitationsAction = async ({
               continue;
             }
 
-            const inviteToken = generateInviteToken();
+            /* const inviteToken = generateInviteToken(); */
             const qrCode = generateQRCode(user.id, eventId);
 
             const registrationData: CreateRegistrationDto = {
@@ -141,7 +146,7 @@ export const sendInvitationsAction = async ({
               userId: user.id,
               eventId,
               status: RegistrationStatus.PENDING,
-              inviteToken,
+              /* inviteToken, */
               invitedAt: new Date(),
             };
 
@@ -169,7 +174,8 @@ export const sendInvitationsAction = async ({
               userName: user.name || email.split("@")[0],
               userEmail: user.email || email,
               eventName: event.name,
-              eventDescription: event.description || "Descripción por confirmar",
+              eventDescription:
+                event.description || "Descripción por confirmar",
               eventDate,
               eventLocation: event.location || "Ubicación por confirmar",
               eventTime,
@@ -178,13 +184,16 @@ export const sendInvitationsAction = async ({
                 customMessage ||
                 "Te invitamos a participar en este increíble evento. ¡Esperamos verte allí!",
               supportEmail: "soporte@eventos.com",
-              inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/invitacion/${invitationHash}`,
+              inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/inscripcion/${invitationHash}`,
             };
 
             // TODO: hmm this should work, i need to check it
             await runInTransaction(async () => {
-              const registration = await repositories.registrationRepository.create(registrationData);
-              
+              const registration =
+                await repositories.registrationRepository.create(
+                  registrationData,
+                );
+
               await services.emailService.sendInvitationEmail(
                 invitationData,
                 email,
@@ -274,8 +283,9 @@ export const deleteRegistrationAction = async ({
   }
 
   try {
-    const registration = await repositories.registrationRepository.findOne(registrationId);
-    
+    const registration =
+      await repositories.registrationRepository.findOne(registrationId);
+
     if (!registration) {
       return {
         success: false,
@@ -283,9 +293,13 @@ export const deleteRegistrationAction = async ({
       };
     }
 
-    const event = await repositories.eventRepository.findUnique(registration.eventId);
-    const user = await repositories.userRepository.findUnique(registration.userId);
-    
+    const event = await repositories.eventRepository.findUnique(
+      registration.eventId,
+    );
+    const user = await repositories.userRepository.findUnique(
+      registration.userId,
+    );
+
     if (!event) {
       return {
         success: false,
@@ -309,7 +323,9 @@ export const deleteRegistrationAction = async ({
         const emailTemplate = generateRevocationEmailTemplate({
           userName: user.name,
           eventName: event.name,
-          eventDate: format(new Date(event.start_date), "PPP 'a las' p", { locale: es }),
+          eventDate: format(new Date(event.start_date), "PPP 'a las' p", {
+            locale: es,
+          }),
           customMessage: customMessage || undefined,
         });
 
@@ -323,15 +339,13 @@ export const deleteRegistrationAction = async ({
 
     return {
       success: true,
-      message: "Registro eliminado exitosamente. Se ha enviado una notificación al usuario.",
+      message:
+        "Registro eliminado exitosamente. Se ha enviado una notificación al usuario.",
     };
   } catch (error) {
-    return {
-      success: false,
-      error: "Error interno del servidor al eliminar el registro",
-    };
+    return handleServiceError(error);
   }
-}
+};
 
 export const resendInviteAction = async ({
   request,
@@ -367,8 +381,9 @@ export const resendInviteAction = async ({
   }
 
   try {
-    const registration = await repositories.registrationRepository.findOne(registrationId);
-    
+    const registration =
+      await repositories.registrationRepository.findOne(registrationId);
+
     if (!registration) {
       return {
         success: false,
@@ -383,7 +398,7 @@ export const resendInviteAction = async ({
       };
     }
 
-    const newInviteToken = generateInviteToken();
+    /* const newInviteToken = generateInviteToken(); */
     const encodedToken = encodeInvitationData(
       registration.userId,
       registration.eventId,
@@ -391,7 +406,7 @@ export const resendInviteAction = async ({
 
     await repositories.registrationRepository.update({
       id: registrationId,
-      inviteToken: newInviteToken,
+      /* inviteToken: newInviteToken, */
       invitedAt: new Date(),
     });
 
@@ -405,7 +420,10 @@ export const resendInviteAction = async ({
       customMessage: "Se ha reenviado tu invitación al evento.",
     };
 
-    const emailResponse = await services.emailService.sendInvitationEmail(emailData, registration.user.email);
+    const emailResponse = await services.emailService.sendInvitationEmail(
+      emailData,
+      registration.user.email,
+    );
 
     if (emailResponse.success) {
       return {
@@ -419,9 +437,6 @@ export const resendInviteAction = async ({
       };
     }
   } catch (error) {
-    return {
-      success: false,
-      error: "Error interno del servidor al reenviar la invitación",
-    };
+    return handleServiceError(error);
   }
 };

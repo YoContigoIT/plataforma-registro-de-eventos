@@ -2,11 +2,25 @@ import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/ui/button";
 import { Pagination } from "@/ui/pagination";
 import { EventStatus } from "@prisma/client";
-import { Download, Eye, Filter, RefreshCw, UserPlus } from "lucide-react";
+import {
+  Download,
+  Eye,
+  Filter,
+  MoreHorizontal,
+  RefreshCw,
+  UserPlus,
+} from "lucide-react";
 import { useCallback, useState } from "react";
 import { Link, useLoaderData } from "react-router";
 import { SearchBar } from "~/shared/components/common/search-bar";
 import { Card, CardContent } from "~/shared/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/shared/components/ui/dropdown-menu";
 import { useSearchParamsManager } from "~/shared/hooks/use-search-params-manager";
 import { useTableSorting } from "~/shared/hooks/use-table-sorting";
 import {
@@ -188,36 +202,93 @@ export default function Registrations() {
         title={`Registros - ${selectedEvent.name}`}
         description={`${formatDate(selectedEvent.start_date)} de ${formatTime(selectedEvent.start_date)} a ${formatTime(selectedEvent.end_date)}`}
         actions={
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleOpenEventSheet}>
-              <Eye className="size-4 mr-2" />
-              Ver evento
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleClearEvent}>
-              <RefreshCw className="size-4 mr-2" />
-              Cambiar evento
-            </Button>
-            {selectedRegistrations.length > 0 && (
-              <>
-                <Button variant="outline" size="sm">
-                  <Download className="size-4 mr-2" />
-                  Exportar ({selectedRegistrations.length})
+          <>
+            {/* Desktop buttons */}
+            <div className="hidden md:flex flex-row gap-2">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleOpenEventSheet}
+                >
+                  <Eye className="size-5 mr-2" />
+                  Ver evento
                 </Button>
-                <Button variant="outline" size="sm">
-                  <Filter className="size-4 mr-2" />
-                  Acciones masivas
+                <Button variant="outline" size="sm" onClick={handleClearEvent}>
+                  <RefreshCw className="size-5 mr-2" />
+                  Cambiar evento
                 </Button>
-              </>
-            )}
-            {canSendInvitations && ( //WE CAN only send invitations to upcoming or ongoing events
-              <Link to={`/registros/enviar-invitaciones/${selectedEvent.id}`}>
-                <Button size="sm">
-                  <UserPlus className="size-4 mr-2" />
-                  Invitar asistentes
-                </Button>
-              </Link>
-            )}
-          </div>
+              </div>
+              {selectedRegistrations.length > 0 && (
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <Download className="size-5 mr-2" />
+                    Exportar ({selectedRegistrations.length})
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Filter className="size-5 mr-2" />
+                    Acciones masivas
+                  </Button>
+                </div>
+              )}
+              {canSendInvitations && (
+                <Link to={`/registros/enviar-invitaciones/${selectedEvent.id}`}>
+                  <Button size="sm">
+                    <UserPlus className="size-5 mr-2" />
+                    Invitar asistentes
+                  </Button>
+                </Link>
+              )}
+            </div>
+
+            {/* Mobile dropdown */}
+            <div className="md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <MoreHorizontal className="size-4" />
+                    <span className="sr-only">Abrir menú de acciones</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleOpenEventSheet}>
+                    <Eye className="size-4 mr-2" />
+                    Ver evento
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleClearEvent}>
+                    <RefreshCw className="size-4 mr-2" />
+                    Cambiar evento
+                  </DropdownMenuItem>
+                  {selectedRegistrations.length > 0 && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>
+                        <Download className="size-4 mr-2" />
+                        Exportar ({selectedRegistrations.length})
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Filter className="size-4 mr-2" />
+                        Acciones masivas
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {canSendInvitations && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link
+                          to={`/registros/enviar-invitaciones/${selectedEvent.id}`}
+                        >
+                          <UserPlus className="size-4 mr-2" />
+                          Invitar asistentes
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </>
         }
       />
 
