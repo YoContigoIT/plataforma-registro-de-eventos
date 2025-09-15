@@ -29,23 +29,9 @@ import { toast } from "sonner";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import { ConfirmationDialog } from "~/shared/components/common/confirmation-dialog";
 import type { LoaderData } from "~/shared/types";
-import { archiveEventAction, testEmailAction } from "../api/actions";
 import { getEventByIdLoader } from "../api/loaders";
 
 export const loader = getEventByIdLoader;
-export const action = async (args: any) => {
-  const formData = await args.request.formData();
-  const intent = formData.get("intent");
-
-  switch (intent) {
-    case "archive":
-      return archiveEventAction(args);
-    case "testEmail":
-      return testEmailAction(args);
-    default:
-      return archiveEventAction(args);
-  }
-};
 
 const getStatusBadgeVariant = (status: string) => {
   switch (status) {
@@ -339,10 +325,12 @@ export default function EventDetailPage() {
                   Editar evento
                 </Button>
               </Link>
-              <Button variant="outline" className="w-full justify-start">
-                <Users className="w-4 h-4 mr-2" />
-                Ver registros
-              </Button>
+              <Link to={`/registros?eventId=${event.id}`} className="block">
+                <Button variant="outline" className="w-full justify-start">
+                  <Users className="w-4 h-4 mr-2" />
+                  Ver registros
+                </Button>
+              </Link>
               <Button
                 variant="destructive"
                 className="w-full justify-start"

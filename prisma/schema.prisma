@@ -28,34 +28,27 @@ enum EventStatus {
 }
 
 enum RegistrationStatus {
-    REGISTERED
-    WAITLISTED
-    CHECKED_IN
-    CANCELLED
+    PENDING // New: Invite sent but not responded to
+    REGISTERED // Existing: User accepted and registered
+    WAITLISTED // Existing: On waiting list
+    CHECKED_IN // Existing: Attended the event
+    CANCELLED // Existing: Registration cancelled
+    DECLINED // New: User declined the invite
 
     @@schema("auth")
 }
 
-model User {
-    id      String  @id @default(uuid()) @db.Uuid
-    email   String  @unique
-    name    String
-    company String?
-    title   String?
-    phone   String?
-
-    password String?
-
-    role UserRole @default(ATTENDEE)
-
-    archived      Boolean        @default(false)
-    registrations Registration[]
-    sessions      Session[]
-
-    createdEvents Event[] @relation("EventsByOrganizer")
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+enum FormFieldType {
+    TEXT
+    EMAIL
+    PHONE
+    NUMBER
+    TEXTAREA
+    SELECT
+    RADIO
+    CHECKBOX
+    DATE
+    FILE
 
     @@schema("auth")
 }
@@ -76,6 +69,29 @@ model Session {
     @@schema("auth")
 }
 
+model User {
+    id      String  @id @default(uuid()) @db.Uuid
+    email   String  @unique
+    name    String?
+    company String?
+    title   String?
+    phone   String?
+
+    password      String?
+    role          UserRole       @default(ATTENDEE)
+    archived      Boolean        @default(false)
+    registrations Registration[]
+    sessions      Session[]
+    createdEvents Event[]        @relation("EventsByOrganizer")
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
+
+    // Add indexes for sorting
+    @@index([name])
+    @@index([email]) // Already has unique constraint, but explicit index helps
+    @@schema("auth")
+}
+
 model Event {
     id          String      @id @default(uuid()) @db.Uuid
     name        String
@@ -92,6 +108,7 @@ model Event {
     organizer   User   @relation("EventsByOrganizer", fields: [organizerId], references: [id])
 
     registrations Registration[]
+    //form          EventForm?
 
     archived Boolean? @default(false)
 
@@ -104,8 +121,13 @@ model Event {
 model Registration {
     id          String             @id @default(uuid()) @db.Uuid
     qrCode      String             @unique
-    status      RegistrationStatus @default(REGISTERED)
+    status      RegistrationStatus @default(PENDING) // Changed default
     checkedInAt DateTime?
+
+    // New fields for invite management
+    invitedAt   DateTime  @default(now())
+    respondedAt DateTime? // When user responded to invite
+    inviteToken String?   @unique // For invite links
 
     userId String @db.Uuid
     user   User   @relation(fields: [userId], references: [id])
@@ -113,7 +135,66 @@ model Registration {
     eventId String @db.Uuid
     event   Event  @relation(fields: [eventId], references: [id])
 
-    registeredAt DateTime @default(now())
+    registeredAt DateTime? // Make nullable since they might not be registered yet
 
+    // Future: Link to custom form responses
+    //formResponses FormResponse[]
+
+    @@index([invitedAt])
+    @@index([respondedAt])
+    @@index([registeredAt])
+    @@index([checkedInAt])
+    @@index([status])
+    @@index([eventId, invitedAt]) // Composite index for event-specific sorting
+    @@index([userId, invitedAt]) // Composite index for user-specific sorting
     @@schema("auth")
 }
+
+/**
+ * model EventForm {
+ * id      String @id @default(uuid()) @db.Uuid
+ * eventId String @unique @db.Uuid
+ * event   Event  @relation(fields: [eventId], references: [id])
+ * title       String
+ * description String?
+ * isActive    Boolean @default(true)
+ * fields FormField[]
+ * createdAt DateTime @default(now())
+ * updatedAt DateTime @updatedAt
+ * @@schema("auth")
+ * }
+ * // Individual form fields (questions)
+ * model FormField {
+ * id     String    @id @default(uuid()) @db.Uuid
+ * formId String    @db.Uuid
+ * form   EventForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+ * label       String
+ * type        FormFieldType
+ * required    Boolean       @default(false)
+ * placeholder String?
+ * options     Json? // For select, radio, checkbox options
+ * validation  Json? // Validation rules
+ * order       Int // Display order
+ * responses FormFieldResponse[]
+ * @@schema("auth")
+ * }
+ * // User's response to the entire form
+ * model FormResponse {
+ * id             String       @id @default(uuid()) @db.Uuid
+ * registrationId String       @db.Uuid
+ * registration   Registration @relation(fields: [registrationId], references: [id])
+ * fieldResponses FormFieldResponse[]
+ * submittedAt DateTime @default(now())
+ * @@schema("auth")
+ * }
+ * // Individual field responses
+ * model FormFieldResponse {
+ * id         String       @id @default(uuid()) @db.Uuid
+ * responseId String       @db.Uuid
+ * response   FormResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+ * fieldId String    @db.Uuid
+ * field   FormField @relation(fields: [fieldId], references: [id])
+ * value Json // Flexible storage for any type of response
+ * @@schema("auth")
+ * }
+ */

@@ -1,7 +1,13 @@
+import type { RegistrationConfirmationEmailDto } from "~/domain/dtos/email-invitation.dto";
+import { invitationEmailSchema } from "~/domain/dtos/email-invitation.dto";
 import type {
   EmailOptions,
+  EmailResponse,
   IEmailService,
 } from "~/domain/services/email.service";
+import { generateRegistrationConfirmationTemplate } from "~/presentation/templates/registration-confirmation.template";
+import type { InvitationEmailDto } from "../../domain/dtos/email-invitation.dto";
+import { generateInvitationEmailTemplate } from "../../presentation/templates/invitation-email.template";
 import { env } from "../config/env";
 import { transporter } from "../config/nodemailer";
 
@@ -15,10 +21,8 @@ export const EmailService = (): IEmailService => ({
         text: options.text,
         html: options.html,
       });
-      console.log(`Email sent successfully to: ${options.to}`);
     } catch (error) {
-      console.error("Error sending email:", error);
-      throw new Error("Failed to send email");
+      throw new Error(`Error sending email: ${error}`);
     }
   },
 
@@ -46,9 +50,10 @@ export const EmailService = (): IEmailService => ({
   sendLoginNotification: async (
     to: string,
     userName: string,
-    loginInfo: { ipAddress: string; userAgent: string; timestamp: Date }
-  ): Promise<void> => {
-    const subject = "Nuevo inicio de sesión detectado";
+    loginInfo: { ipAddress: string; userAgent: string; timestamp: Date },
+  ): Promise<EmailResponse> => {
+  try {
+      const subject = "Nuevo inicio de sesión detectado";
     const formattedDate = loginInfo.timestamp.toLocaleString("es-ES", {
       year: "numeric",
       month: "long",
@@ -84,32 +89,17 @@ export const EmailService = (): IEmailService => ({
       subject,
       html,
     });
-  },
-
-  sendEventInvitation: async (
-    to: string,
-    eventName: string,
-    eventDate: string
-  ): Promise<void> => {
-    const subject = `Invitación al evento: ${eventName}`;
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">¡Estás invitado!</h2>
-        <p>Te invitamos al evento <strong>${eventName}</strong></p>
-        <p><strong>Fecha:</strong> ${eventDate}</p>
-        <p>No te pierdas esta oportunidad única.</p>
-        <a href="#" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Confirmar Asistencia</a>
-        <hr style="margin: 20px 0;">
-        <p style="color: #666; font-size: 12px;">Este es un correo automático, por favor no responder.</p>
-      </div>
-    `;
-
-    await transporter.sendMail({
-      from: env.EMAIL_FROM,
-      to,
-      subject,
-      html,
-    });
+    return {
+      success: true,
+      message: "Login notification email sent successfully",
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      message: "Login notification email sent failed",
+    };
+  }
   },
 
   sendPasswordReset: async (to: string, resetCode: string): Promise<void> => {
@@ -139,92 +129,60 @@ export const EmailService = (): IEmailService => ({
 
   sendRegistrationConfirmation: async (
     to: string,
-    registrationData: {
-      userName: string;
-      eventName: string;
-      eventDate: string;
-      eventLocation: string;
-      eventTime: string;
-      qrCode: string;
-      qrCodeUrl: string;
-      customMessage?: string;
-      eventDetailsUrl?: string;
-      supportEmail?: string;
-      ticketQuantity: string;
-    }
-  ): Promise<void> => {
-    const subject = `Confirmación de registro - ${registrationData.eventName}`;
+    registrationData: RegistrationConfirmationEmailDto,
+  ): Promise<EmailResponse> => {
+    try {
+      const subject = `Confirmación de registro - ${registrationData.eventName}`;
 
-    // Read the HTML template
-    const fs = await import("node:fs/promises");
-    const path = await import("node:path");
+    const htmlTemplate =
+      generateRegistrationConfirmationTemplate(registrationData);
+
+    await transporter.sendMail({
+      from: env.EMAIL_FROM,
+      to,
+      subject,
+      html: htmlTemplate,
+    });
+    return {
+      success: true,
+      message: "Registration confirmation email sent successfully",
+    };
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+        message: "Registration confirmation email sent failed",
+      };
+    }
+  },
+
+  sendInvitationEmail: async (
+    emailData: InvitationEmailDto,
+    recipientEmail: string,
+  ): Promise<EmailResponse> => {
+    const { success, data, error } = invitationEmailSchema.safeParse(emailData);
+
+    if (!success) {
+      throw new Error("Invalid invitation email data");
+    }
+
+    const htmlContent = generateInvitationEmailTemplate(data);
 
     try {
-      const templatePath = path.join(
-        process.cwd(),
-        "app",
-        "presentation",
-        "templates",
-        "registration-confirmation.html"
-      );
-      let htmlTemplate = await fs.readFile(templatePath, "utf-8");
-
-      // Replace template variables
-      htmlTemplate = htmlTemplate
-        .replace(/{{userName}}/g, registrationData.userName)
-        .replace(/{{eventName}}/g, registrationData.eventName)
-        .replace(/{{eventDate}}/g, registrationData.eventDate)
-        .replace(/{{eventLocation}}/g, registrationData.eventLocation)
-        .replace(/{{eventTime}}/g, registrationData.eventTime)
-        .replace(/{{qrCode}}/g, registrationData.qrCode)
-        .replace(/{{qrCodeUrl}}/g, registrationData.qrCodeUrl)
-        .replace(/{{ticketsQuantity}}/g, registrationData.ticketQuantity)
-        .replace(
-          /{{customMessage}}/g,
-          registrationData.customMessage ||
-            "Te esperamos en este increíble evento. ¡Será una experiencia inolvidable!"
-        )
-        .replace(
-          /{{eventDetailsUrl}}/g,
-          registrationData.eventDetailsUrl || "#"
-        )
-        .replace(
-          /{{supportEmail}}/g,
-          registrationData.supportEmail || env.EMAIL_FROM
-        );
-
       await transporter.sendMail({
+        to: recipientEmail,
         from: env.EMAIL_FROM,
-        to,
-        subject,
-        html: htmlTemplate,
+        subject: `Invitación: ${emailData.eventName}`,
+        html: htmlContent,
       });
+
+      return {
+        success: true,
+        message: "Invitation email sent successfully",
+      };
     } catch (error) {
-      console.error("Error reading email template:", error);
-      // Fallback to inline HTML if template file is not found
-      const fallbackHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">¡Hola ${registrationData.userName}!</h2>
-          <p>Tu registro para <strong>${registrationData.eventName}</strong> ha sido confirmado.</p>
-          <div style="text-align: center; margin: 20px 0;">
-            <img src="${registrationData.qrCodeUrl}" alt="Código QR" style="width: 150px; height: 150px;">
-            <p>Código QR: ${registrationData.qrCode}</p>
-          </div>
-          <p><strong>Fecha:</strong> ${registrationData.eventDate}</p>
-          <p><strong>Ubicación:</strong> ${registrationData.eventLocation}</p>
-          <p><strong>Hora:</strong> ${registrationData.eventTime}</p>
-          <p>${registrationData.customMessage || "Te esperamos en este increíble evento."}</p>
-          <hr style="margin: 20px 0;">
-          <p style="color: #666; font-size: 12px;">Este es un correo automático, por favor no responder.</p>
-        </div>
-      `;
-
-      await transporter.sendMail({
-        from: env.EMAIL_FROM,
-        to,
-        subject,
-        html: fallbackHtml,
-      });
+      console.log(error);
+      throw new Error(`Invitation email sent failed: ${error}`);
     }
   },
 });

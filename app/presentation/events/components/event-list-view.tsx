@@ -2,19 +2,20 @@ import { Badge, type BadgeVariants } from "@/ui/badge";
 import { Card } from "@/ui/card";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Link } from "react-router";
 import type { EventEntity } from "~/domain/entities/event.entity";
 
 type EventListViewProps = {
   events: EventEntity[];
   getStatusBadgeVariant: (status: string) => string;
   getStatusLabel: (status: string) => string;
+  onSelectEvent: (event: EventEntity) => void;
 };
 
 export function EventListView({
   events,
   getStatusBadgeVariant,
   getStatusLabel,
+  onSelectEvent,
 }: EventListViewProps) {
   if (events.length === 0) {
     return (
@@ -30,8 +31,11 @@ export function EventListView({
   return (
     <div className="flex flex-col gap-4 mt-6">
       {events.map((event) => (
-        <Link key={event.id} to={`/eventos/detalle/${event.id}`}>
-          <Card className="hover:shadow-md transition-all hover:scale-[1.01]">
+        <Card 
+          key={event.id} 
+          className="hover:shadow-md transition-all hover:scale-[1.01] cursor-pointer"
+          onClick={() => onSelectEvent(event)}
+        >
             <div className="flex flex-col md:flex-row">
               <div className="flex-1 p-6">
                 <div className="flex justify-between items-start">
@@ -66,8 +70,7 @@ export function EventListView({
                 </div>
               </div>
             </div>
-          </Card>
-        </Link>
+        </Card>
       ))}
     </div>
   );

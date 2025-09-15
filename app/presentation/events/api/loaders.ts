@@ -2,6 +2,7 @@ import type { EventStatus } from "@prisma/client";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import type { EventFilters } from "~/domain/repositories/event.repository";
 import type { LoaderData } from "~/shared/types";
+import type { Route as DetailRoute } from "../routes/+types/detail";
 import type { Route } from "../routes/+types/events";
 
 export const eventsLoader = async ({
@@ -10,11 +11,8 @@ export const eventsLoader = async ({
 }: Route.LoaderArgs) => {
   const url = new URL(request.url);
 
-  // Extract pagination parameters
   const page = parseInt(url.searchParams.get("page") || "1", 10);
   const limit = parseInt(url.searchParams.get("limit") || "10", 10);
-
-  // Extract filter parameters
   const filters: EventFilters = {};
 
   // Status filter
@@ -35,6 +33,11 @@ export const eventsLoader = async ({
     filters.organizerId = organizerId;
   }
 
+  const search = url.searchParams.get("eventSearch");
+  if (search) {
+    filters.search = search;
+  }
+
   // Date range filter
   const startDate = url.searchParams.get("startDate");
   const endDate = url.searchParams.get("endDate");
@@ -47,23 +50,22 @@ export const eventsLoader = async ({
   }
 
   // Fetch events with pagination and filters
-  const result = await repositories.eventRepository.findMany(
+  const { data, pagination } = await repositories.eventRepository.findMany(
     { page, limit },
     filters,
   );
 
   return {
-    events: result.data,
-    pagination: result.pagination,
+    events: data,
+    pagination,
   };
 };
 
 export const getEventByIdLoader = async ({
-  request,
+  params,
   context: { repositories },
-}: Route.LoaderArgs): Promise<LoaderData<EventEntity>> => {
-  const url = new URL(request.url);
-  const id = url.pathname.split("/").pop();
+}: DetailRoute.LoaderArgs): Promise<LoaderData<EventEntity>> => {
+  const id = params.id;
 
   if (!id) {
     return {

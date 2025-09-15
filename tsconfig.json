@@ -20,6 +20,9 @@
       "@/hooks/*": ["./app/shared/hooks/*"],
       "@/infrastructure/*": ["./app/infrastructure/*"],
       "@/domain/*": ["./app/domain/*"],
+      "@/entities/*": ["./app/domain/entities/*"],
+      "@repositories/*": ["./app/domain/repositories/*"],
+      "@/dtos/*": ["./app/domain/dtos/*"],
       "@/presentation/*": ["./app/presentation/*"]
     }
   }
