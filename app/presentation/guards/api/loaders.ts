@@ -2,14 +2,32 @@ import type { Route } from "../routes/+types/verify-registration";
 
 export const registrationByTokenLoader = async ({
   params,
-  context,
+  context: { repositories },
 }: Route.LoaderArgs) => {
-  const token = params.token;
-  if (!token) {
-    return null;
-  }
-  const registration =
-    await context.repositories.registrationRepository.findByEventId(token);
+  const { qrCode } = params;
 
-  return { registration };
+  if (!qrCode) {
+    return {
+      success: false,
+      error: "No se encontró el codigo de invitación.",
+    };
+  }
+
+  const invite = await repositories.registrationRepository.findByQrCode(qrCode);
+
+  if (!invite) {
+    return {
+      success: false,
+      error: "Invitación no válida o expirada.",
+    };
+  }
+
+  return {
+    success: true,
+    data: {
+      invite,
+      event: invite.event,
+      user: invite.user,
+    },
+  };
 };
