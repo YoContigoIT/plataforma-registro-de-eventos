@@ -1,47 +1,20 @@
 import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/ui/button";
+import { Pagination } from "@/ui/pagination";
 import { CalendarPlus, Grid, List } from "lucide-react";
 import { useState } from "react";
 import { Link, useLoaderData } from "react-router";
-import { Pagination } from "~/shared/components/ui/pagination";
+import type { EventEntity } from "~/domain/entities/event.entity";
+import { SearchBar } from "~/shared/components/common/search-bar";
+import { Card, CardContent } from "~/shared/components/ui/card";
+import {
+  getEventStatusBadgeVariant,
+  getEventStatusLabel,
+} from "~/shared/lib/utils";
 import { eventsLoader } from "../api/loaders";
+import { EventDetailsSheet } from "../components/event-details-sheet";
 import { EventGridView } from "../components/event-grid-view";
 import { EventListView } from "../components/event-list-view";
-
-const getStatusBadgeVariant = (status: string) => {
-  switch (status) {
-    case "UPCOMING":
-      return "sky";
-    case "ONGOING":
-      return "emerald";
-    case "ENDED":
-      return "slate";
-    case "CANCELLED":
-      return "destructive";
-    case "DRAFT":
-      return "secondary";
-    default:
-      return "secondary";
-  }
-};
-
-// Función para traducir el estado del evento
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case "UPCOMING":
-      return "Próximo";
-    case "ONGOING":
-      return "En curso";
-    case "ENDED":
-      return "Finalizado";
-    case "CANCELLED":
-      return "Cancelado";
-    case "DRAFT":
-      return "Borrador";
-    default:
-      return status;
-  }
-};
 
 export const loader = eventsLoader;
 
@@ -49,6 +22,18 @@ export default function Events() {
   const { events, pagination } = useLoaderData<typeof loader>();
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [selectedEvent, setSelectedEvent] = useState<EventEntity | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const handleSelectEvent = (event: EventEntity) => {
+    setSelectedEvent(event);
+    setIsSheetOpen(true);
+  };
+
+  const handleCloseSheet = () => {
+    setIsSheetOpen(false);
+    setSelectedEvent(null);
+  };
 
   return (
     <div>
@@ -87,12 +72,23 @@ export default function Events() {
         }
       />
 
+      <Card>
+        <CardContent>
+          <SearchBar
+            searchParamKey="eventSearch"
+            placeholder="Buscar eventos por nombre"
+            className="w-full"
+          />
+        </CardContent>
+      </Card>
+
       <div>
         {viewMode === "grid" ? (
           <EventGridView
             events={events}
-            getStatusBadgeVariant={getStatusBadgeVariant}
-            getStatusLabel={getStatusLabel}
+            getStatusBadgeVariant={getEventStatusBadgeVariant}
+            getStatusLabel={getEventStatusLabel}
+            onSelectEvent={handleSelectEvent}
           />
         ) : (
           <>
@@ -100,16 +96,18 @@ export default function Events() {
             <div className="hidden md:block">
               <EventListView
                 events={events}
-                getStatusBadgeVariant={getStatusBadgeVariant}
-                getStatusLabel={getStatusLabel}
+                getStatusBadgeVariant={getEventStatusBadgeVariant}
+                getStatusLabel={getEventStatusLabel}
+                onSelectEvent={handleSelectEvent}
               />
             </div>
             {/* Fallback to grid on smaller screens */}
             <div className="block md:hidden">
               <EventGridView
                 events={events}
-                getStatusBadgeVariant={getStatusBadgeVariant}
-                getStatusLabel={getStatusLabel}
+                getStatusBadgeVariant={getEventStatusBadgeVariant}
+                getStatusLabel={getEventStatusLabel}
+                onSelectEvent={handleSelectEvent}
               />
             </div>
           </>
@@ -122,6 +120,14 @@ export default function Events() {
         totalItems={pagination.totalItems}
         itemsPerPage={pagination.itemsPerPage}
         itemName={"evento"}
+      />
+
+      <EventDetailsSheet
+        event={selectedEvent}
+        isOpen={isSheetOpen}
+        onClose={handleCloseSheet}
+        getStatusBadgeVariant={getEventStatusBadgeVariant}
+        getStatusLabel={getEventStatusLabel}
       />
     </div>
   );

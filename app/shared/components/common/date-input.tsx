@@ -17,6 +17,8 @@ interface DateInputProps {
   "aria-invalid"?: boolean;
   "aria-describedby"?: string;
   onInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  includeTime?: boolean;
+  timeFormat?: "12h" | "24h";
 }
 
 export function DateInput({
@@ -31,6 +33,8 @@ export function DateInput({
   required,
   className,
   onInputChange,
+  includeTime = false,
+  timeFormat = "24h",
 }: DateInputProps) {
   return (
     <div className="grid w-full items-center gap-1.5">
@@ -56,6 +60,8 @@ export function DateInput({
           name={name}
           onInputChange={onInputChange}
           className={className}
+          includeTime={includeTime}
+          timeFormat={timeFormat}
         />
       </div>
       {error && <span className="text-sm text-destructive">{error}</span>}

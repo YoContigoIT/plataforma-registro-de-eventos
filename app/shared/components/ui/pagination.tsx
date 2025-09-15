@@ -90,10 +90,10 @@ export function Pagination({
             type="button"
             className={cn(
               "min-w-[2rem] px-3 py-1 text-sm rounded-md transition-colors",
-              "hover:bg-[#6A1C32]/70  dark:hover:bg-[#BE9657]/90 hover:text-white",
+              "hover:bg-accent hover:text-accent-foreground",
               pageNum === currentPage
                 ? "bg-primary text-primary-foreground font-medium shadow-sm"
-                : "text-muted-foreground border  border-foreground/20"
+                : "text-muted-foreground border border-border hover:border-accent"
             )}
           >
             {pageNum}

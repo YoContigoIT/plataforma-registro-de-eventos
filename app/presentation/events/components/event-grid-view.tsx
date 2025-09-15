@@ -9,19 +9,20 @@ import {
 } from "@/ui/card";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Link } from "react-router";
 import type { EventEntity } from "~/domain/entities/event.entity";
 
 type EventGridViewProps = {
   events: EventEntity[];
   getStatusBadgeVariant: (status: string) => BadgeVariants;
   getStatusLabel: (status: string) => string;
+  onSelectEvent: (event: EventEntity) => void;
 };
 
 export function EventGridView({
   events,
   getStatusBadgeVariant,
   getStatusLabel,
+  onSelectEvent,
 }: EventGridViewProps) {
   if (events.length === 0) {
     return (
@@ -37,8 +38,11 @@ export function EventGridView({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
       {events.map((event) => (
-        <Link key={event.id} to={`/eventos/detalle/${event.id}`}>
-          <Card className="h-full hover:shadow-md transition-all hover:scale-[1.01]">
+        <Card 
+          key={event.id} 
+          className="h-full hover:shadow-md transition-all hover:scale-[1.01] cursor-pointer"
+          onClick={() => onSelectEvent(event)}
+        >
             <CardHeader>
               <div className="flex justify-between items-start">
                 <CardTitle className="text-xl">{event.name}</CardTitle>
@@ -65,8 +69,7 @@ export function EventGridView({
                 <span className="font-medium">Capacidad:</span> {event.capacity}
               </div>
             </CardFooter>
-          </Card>
-        </Link>
+        </Card>
       ))}
     </div>
   );

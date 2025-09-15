@@ -100,6 +100,29 @@ export function formatDateTime(date: string | Date): string {
   }
 }
 
+// Format time only (HH:MM format)
+export function formatTime(date: string | Date | null | undefined): string {
+  if (!date) {
+    return "Hora no disponible";
+  }
+
+  try {
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    
+    if (isNaN(dateObj.getTime())) {
+      return "Hora inválida";
+    }
+
+    return dateObj.toLocaleTimeString("es-MX", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false, // Use 24-hour format
+    });
+  } catch {
+    return "Hora inválida";
+  }
+}
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -116,7 +139,7 @@ export {
   getPayrollStatusBadge,
   getPurchaseOrderStatusBadge,
   getSessionStatusBadge,
-  getUserRoleBadge,
+  getUserRoleBadge
 } from "./badge-utils";
 
 // Legacy function for backward compatibility - deprecated
@@ -251,11 +274,22 @@ export function buildWhereClause(
           },
         };
       } else if (searchField.field) {
-        // Para búsquedas directas
-        condition[searchField.field] = {
-          contains: searchTerm,
-          mode: searchField.mode || "insensitive",
-        };
+        // Check if field contains dot notation for nested fields
+        if (searchField.field.includes(".")) {
+          const [relationName, fieldName] = searchField.field.split(".");
+          condition[relationName] = {
+            [fieldName]: {
+              contains: searchTerm,
+              mode: searchField.mode || "insensitive",
+            },
+          };
+        } else {
+          // Para búsquedas directas
+          condition[searchField.field] = {
+            contains: searchTerm,
+            mode: searchField.mode || "insensitive",
+          };
+        }
       }
 
       return condition;
@@ -411,3 +445,120 @@ export function generateQRCode(userId: string, eventId: string): string {
     .update(`${userId}-${eventId}-${Date.now()}`)
     .digest("hex");
 }
+
+export function encodeInvitationData(userId: string, eventId: string): string {
+  const secret = process.env.INVITATION_SECRET || "default-secret-key";
+  const data = `${userId}:${eventId}`;
+  const timestamp = Date.now().toString();
+  
+  // Create hash with timestamp
+  const hash = crypto
+    .createHmac("sha256", secret)
+    .update(`${data}:${timestamp}`)
+    .digest("hex");
+  
+  // Encode data + timestamp + hash together
+  const payload = Buffer.from(`${data}:${timestamp}:${hash}`).toString("base64url");
+  return payload;
+}
+
+// Decode and verify invitation data
+export function decodeInvitationData(encodedData: string): { userId: string; eventId: string } | null {
+  try {
+    const secret = process.env.INVITATION_SECRET || "default-secret-key";
+    const decoded = Buffer.from(encodedData, "base64url").toString();
+    const [userId, eventId, timestamp, hash] = decoded.split(":");
+    
+    if (!userId || !eventId || !timestamp || !hash) {
+      return null;
+    }
+    
+    // Verify timestamp is not too old (30 days)
+    const inviteTime = parseInt(timestamp);
+    const now = Date.now();
+    const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
+    
+    if (inviteTime < thirtyDaysAgo) {
+      return null; // Invitation expired
+    }
+    
+    // Verify hash
+    const expectedHash = crypto
+      .createHmac("sha256", secret)
+      .update(`${userId}:${eventId}:${timestamp}`)
+      .digest("hex");
+    
+    if (expectedHash !== hash) {
+      return null; // Invalid hash
+    }
+    
+    return { userId, eventId };
+  } catch (error) {
+    console.error("Error decoding invitation:", error);
+    return null;
+  }
+}
+
+export const getStatusBadgeVariant = (status: string) => {
+  switch (status) {
+    case "REGISTERED":
+      return "emerald";
+    case "PENDING":
+      return "amber";
+    case "WAITLISTED":
+      return "sky";
+    case "CANCELLED":
+      return "destructive";
+    case "DECLINED":
+      return "slate";
+    default:
+      return "secondary";
+  }
+};
+
+export const getStatusLabel = (status: string) => {
+  switch (status) {
+    case "REGISTERED":
+      return "Registrado";
+    case "PENDING":
+      return "Pendiente";
+    case "WAITLISTED":
+      return "En lista de espera";
+    case "CANCELLED":
+      return "Cancelado";
+    case "DECLINED":
+      return "Rechazado";
+    default:
+      return status;
+  }
+};
+
+export const getEventStatusBadgeVariant = (status: string) => {
+  switch (status) {
+    case "ACTIVE":
+      return "emerald";
+    case "DRAFT":
+      return "amber";
+    case "CANCELLED":
+      return "destructive";
+    case "COMPLETED":
+      return "slate";
+    default:
+      return "secondary";
+  }
+};
+
+export const getEventStatusLabel = (status: string) => {
+  switch (status) {
+    case "ACTIVE":
+      return "Activo";
+    case "DRAFT":
+      return "Borrador";
+    case "CANCELLED":
+      return "Cancelado";
+    case "COMPLETED":
+      return "Completado";
+    default:
+      return status;
+  }
+};

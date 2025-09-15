@@ -58,7 +58,7 @@ export function EventForm({
               defaultValue={eventData?.organizerId}
             />
           )}
-          
+
           {/* All form fields in a single grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Name and Location */}
@@ -81,13 +81,15 @@ export function EventForm({
               onChange={handleInputChange}
               defaultValue={eventData?.location || ""}
             />
-            
+
             {/* Dates */}
             <DateInput
-              label="Fecha de inicio"
+              label="Fecha y hora de inicio"
               name="start_date"
               placeholder="Selecciona la fecha de inicio"
               required
+              includeTime
+              timeFormat="24h"
               error={errors.start_date?.[0]}
               value={
                 eventData?.start_date
@@ -104,10 +106,12 @@ export function EventForm({
               }}
             />
             <DateInput
-              label="Fecha de fin"
+              label="Fecha y hora de fin"
               name="end_date"
               placeholder="Selecciona la fecha de fin"
               required
+              includeTime
+              timeFormat="24h"
               error={errors.end_date?.[0]}
               value={
                 eventData?.end_date ? new Date(eventData?.end_date) : undefined
@@ -121,7 +125,7 @@ export function EventForm({
                 } as React.ChangeEvent<HTMLInputElement>);
               }}
             />
-            
+
             {/* Capacity and Tickets */}
             <NumberInput
               label="Capacidad"
@@ -130,6 +134,7 @@ export function EventForm({
               icon={<Users className="h-4 w-4 text-muted-foreground" />}
               min={1}
               required
+              allowNegative={false}
               allowDecimals={false}
               error={errors.capacity?.[0]}
               value={eventData?.capacity}
@@ -147,6 +152,7 @@ export function EventForm({
               name="maxTickets"
               placeholder="Ingresa el máximo de tickets"
               min={1}
+              allowNegative={false}
               allowDecimals={false}
               error={errors.maxTickets?.[0]}
               value={eventData?.maxTickets?.toString()}
@@ -159,7 +165,7 @@ export function EventForm({
                 } as React.ChangeEvent<HTMLInputElement>);
               }}
             />
-            
+
             {/* Status */}
             <SelectInput
               label="Estado"
@@ -175,7 +181,7 @@ export function EventForm({
               }}
             />
           </div>
-          
+
           {/* Description and Agenda (full width) */}
           <div className="grid grid-cols-1 gap-6">
             <div className="space-y-1.5">

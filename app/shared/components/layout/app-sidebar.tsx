@@ -52,6 +52,12 @@ const navMenu: NavSection[] = [
         icon: Users,
         roles: [UserRole.ADMIN],
       },
+      {
+        title: "Registros",
+        url: "/registros",
+        icon: Users,
+        roles: [UserRole.ADMIN],
+      },
     ],
   },
   {

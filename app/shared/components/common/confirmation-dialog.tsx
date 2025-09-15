@@ -8,6 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { Textarea } from "../ui/textarea";
+import { Label } from "../ui/label";
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -19,6 +21,11 @@ interface ConfirmationDialogProps {
   cancelText?: string;
   icon?: ReactNode;
   variant?: "default" | "destructive";
+  showTextarea?: boolean;
+  textareaLabel?: string;
+  textareaPlaceholder?: string;
+  textareaValue?: string;
+  onTextareaChange?: (value: string) => void;
 }
 
 export function ConfirmationDialog({
@@ -31,10 +38,15 @@ export function ConfirmationDialog({
   cancelText = "Cancelar",
   icon,
   variant = "default",
+  showTextarea = false,
+  textareaLabel,
+  textareaPlaceholder,
+  textareaValue,
+  onTextareaChange,
 }: ConfirmationDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-md">
+      <DialogContent className={`w-full ${showTextarea ? 'max-w-lg' : 'max-w-md'}`}>
         <DialogHeader>
           <div className="flex items-center gap-3">
             {icon && <div className="flex-shrink-0">{icon}</div>}
@@ -46,6 +58,23 @@ export function ConfirmationDialog({
             {description}
           </DialogDescription>
         </DialogHeader>
+
+        {showTextarea && (
+          <div className="space-y-2">
+            {textareaLabel && (
+              <Label htmlFor="custom-message" className="text-sm font-medium">
+                {textareaLabel}
+              </Label>
+            )}
+            <Textarea
+              id="custom-message"
+              placeholder={textareaPlaceholder}
+              value={textareaValue}
+              onChange={(e) => onTextareaChange?.(e.target.value)}
+              className="min-h-[100px] resize-none"
+            />
+          </div>
+        )}
 
         <DialogFooter className="flex justify-end gap-3">
           <Button
