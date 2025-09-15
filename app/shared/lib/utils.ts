@@ -100,6 +100,29 @@ export function formatDateTime(date: string | Date): string {
   }
 }
 
+// Format time only (HH:MM format)
+export function formatTime(date: string | Date | null | undefined): string {
+  if (!date) {
+    return "Hora no disponible";
+  }
+
+  try {
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    
+    if (isNaN(dateObj.getTime())) {
+      return "Hora inválida";
+    }
+
+    return dateObj.toLocaleTimeString("es-MX", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false, // Use 24-hour format
+    });
+  } catch {
+    return "Hora inválida";
+  }
+}
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -475,3 +498,67 @@ export function decodeInvitationData(encodedData: string): { userId: string; eve
     return null;
   }
 }
+
+export const getStatusBadgeVariant = (status: string) => {
+  switch (status) {
+    case "REGISTERED":
+      return "emerald";
+    case "PENDING":
+      return "amber";
+    case "WAITLISTED":
+      return "sky";
+    case "CANCELLED":
+      return "destructive";
+    case "DECLINED":
+      return "slate";
+    default:
+      return "secondary";
+  }
+};
+
+export const getStatusLabel = (status: string) => {
+  switch (status) {
+    case "REGISTERED":
+      return "Registrado";
+    case "PENDING":
+      return "Pendiente";
+    case "WAITLISTED":
+      return "En lista de espera";
+    case "CANCELLED":
+      return "Cancelado";
+    case "DECLINED":
+      return "Rechazado";
+    default:
+      return status;
+  }
+};
+
+export const getEventStatusBadgeVariant = (status: string) => {
+  switch (status) {
+    case "ACTIVE":
+      return "emerald";
+    case "DRAFT":
+      return "amber";
+    case "CANCELLED":
+      return "destructive";
+    case "COMPLETED":
+      return "slate";
+    default:
+      return "secondary";
+  }
+};
+
+export const getEventStatusLabel = (status: string) => {
+  switch (status) {
+    case "ACTIVE":
+      return "Activo";
+    case "DRAFT":
+      return "Borrador";
+    case "CANCELLED":
+      return "Cancelado";
+    case "COMPLETED":
+      return "Completado";
+    default:
+      return status;
+  }
+};

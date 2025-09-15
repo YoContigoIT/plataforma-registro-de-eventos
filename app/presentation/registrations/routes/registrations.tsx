@@ -1,14 +1,24 @@
 import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/ui/button";
 import { Pagination } from "@/ui/pagination";
-import { Download, Filter, RefreshCw, UserPlus } from "lucide-react";
+import { EventStatus } from "@prisma/client";
+import { Download, Eye, Filter, RefreshCw, UserPlus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Link, useLoaderData } from "react-router";
 import { SearchBar } from "~/shared/components/common/search-bar";
 import { Card, CardContent } from "~/shared/components/ui/card";
 import { useSearchParamsManager } from "~/shared/hooks/use-search-params-manager";
 import { useTableSorting } from "~/shared/hooks/use-table-sorting";
+import {
+  formatDate,
+  formatTime,
+  getEventStatusBadgeVariant,
+  getEventStatusLabel,
+  getStatusBadgeVariant,
+  getStatusLabel,
+} from "~/shared/lib/utils";
 import { eventsLoader } from "../../events/api/loaders";
+import { EventDetailsSheet } from "../../events/components/event-details-sheet";
 import { registrationsLoader } from "../api/loaders";
 import { EventSelector } from "../components/event-selector";
 import { RegistrationTable } from "../components/registration-table";
@@ -53,40 +63,6 @@ export const loader = async (args: Route.LoaderArgs) => {
   };
 };
 
-const getStatusBadgeVariant = (status: string) => {
-  switch (status) {
-    case "REGISTERED":
-      return "emerald";
-    case "PENDING":
-      return "amber";
-    case "WAITLISTED":
-      return "sky";
-    case "CANCELLED":
-      return "destructive";
-    case "DECLINED":
-      return "slate";
-    default:
-      return "secondary";
-  }
-};
-
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case "REGISTERED":
-      return "Registrado";
-    case "PENDING":
-      return "Pendiente";
-    case "WAITLISTED":
-      return "En lista de espera";
-    case "CANCELLED":
-      return "Cancelado";
-    case "DECLINED":
-      return "Rechazado";
-    default:
-      return status;
-  }
-};
-
 export default function Registrations() {
   const { registrations, pagination, events, selectedEvent, statusCounts } =
     useLoaderData<typeof loader>();
@@ -95,6 +71,7 @@ export default function Registrations() {
   const [selectedRegistrations, setSelectedRegistrations] = useState<string[]>(
     []
   );
+  const [isEventSheetOpen, setIsEventSheetOpen] = useState(false);
 
   const { sort, handleSort } = useTableSorting("invitedAt", "desc");
 
@@ -128,6 +105,14 @@ export default function Registrations() {
     },
     []
   );
+
+  const handleOpenEventSheet = () => {
+    setIsEventSheetOpen(true);
+  };
+
+  const handleCloseEventSheet = () => {
+    setIsEventSheetOpen(false);
+  };
 
   if (!eventId || !selectedEvent) {
     return (
@@ -166,9 +151,13 @@ export default function Registrations() {
     <div className="space-y-6">
       <PageHeader
         title={`Registros - ${selectedEvent.name}`}
-        description={`Gestiona los registros para el evento "${selectedEvent.name}"`}
+        description={`${formatDate(selectedEvent.start_date)} de ${formatTime(selectedEvent.start_date)} a ${formatTime(selectedEvent.end_date)}`}
         actions={
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleOpenEventSheet}>
+              <Eye className="size-4 mr-2" />
+              Ver evento
+            </Button>
             <Button variant="outline" size="sm" onClick={handleClearEvent}>
               <RefreshCw className="size-4 mr-2" />
               Cambiar evento
@@ -185,12 +174,15 @@ export default function Registrations() {
                 </Button>
               </>
             )}
-            <Link to={`/registros/enviar-invitaciones/${selectedEvent.id}`}>
-              <Button size="sm">
-                <UserPlus className="size-4 mr-2" />
-                Invitar asistentes
-              </Button>
-            </Link>
+            {selectedEvent.status === EventStatus.UPCOMING ||
+              (EventStatus.ONGOING && ( //WE CAN only send invitations to upcoming or ongoing events
+                <Link to={`/registros/enviar-invitaciones/${selectedEvent.id}`}>
+                  <Button size="sm">
+                    <UserPlus className="size-4 mr-2" />
+                    Invitar asistentes
+                  </Button>
+                </Link>
+              ))}
           </div>
         }
       />
@@ -199,6 +191,7 @@ export default function Registrations() {
         statusCounts={statusCounts}
         getStatusLabel={getStatusLabel}
         getStatusBadgeVariant={getStatusBadgeVariant}
+        eventCapacity={selectedEvent.capacity}
       />
 
       <Card>
@@ -228,6 +221,14 @@ export default function Registrations() {
         totalItems={pagination.totalItems}
         itemsPerPage={pagination.itemsPerPage}
         itemName={"registro"}
+      />
+
+      <EventDetailsSheet
+        event={selectedEvent}
+        isOpen={isEventSheetOpen}
+        onClose={handleCloseEventSheet}
+        getStatusBadgeVariant={getEventStatusBadgeVariant}
+        getStatusLabel={getEventStatusLabel}
       />
     </div>
   );

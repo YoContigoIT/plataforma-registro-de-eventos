@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/shared/components/ui/card";
+import { Progress } from "@/shared/components/ui/progress";
 import type { RegistrationStatus } from "@prisma/client";
 import {
   AlertCircle,
@@ -13,6 +14,7 @@ interface StatusCardsProps {
   statusCounts: Record<RegistrationStatus, number>;
   getStatusLabel: (status: string) => string;
   getStatusBadgeVariant: (status: string) => string;
+  eventCapacity: number;
 }
 
 const statusConfig = {
@@ -51,6 +53,7 @@ const statusConfig = {
 export function StatusCards({
   statusCounts,
   getStatusLabel,
+  eventCapacity,
 }: StatusCardsProps) {
   const statuses = Object.keys(statusCounts) as RegistrationStatus[];
   const totalRegistrations = Object.values(statusCounts).reduce(
@@ -58,28 +61,38 @@ export function StatusCards({
     0
   );
 
+  // Calculate remaining spots (capacity - registered - checked_in)
+  const registeredCount = statusCounts.REGISTERED || 0;
+  const checkedInCount = statusCounts.CHECKED_IN || 0;
+  const occupiedSpots = registeredCount + checkedInCount;
+  const remainingSpots = Math.max(0, eventCapacity - occupiedSpots);
+  const occupancyPercentage = (occupiedSpots / eventCapacity) * 100;
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 md:gap-3">
-      {/* Total Registrations Card */}
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-2 md:gap-3">
+      {/* Remaining Spots Card with Progress Bar */}
       <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0">
         <CardContent className="p-2 px-4 md:p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <div className="space-y-1">
-                <p className="text-xs truncate">Total</p>
-                <p className="text-lg md:text-xl font-bold">
-                  {totalRegistrations}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Total de registros
-                </p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="space-y-1">
+                  <p className="text-xs truncate">Disponibles</p>
+                  <p className="text-lg md:text-xl font-bold">
+                    {remainingSpots}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    de {eventCapacity} lugares
+                  </p>
+                </div>
+              </div>
+              <div className="ml-2">
+                <div className="p-1.5 rounded-lg bg-green-50">
+                  <Users className="h-4 w-4 text-green-600" />
+                </div>
               </div>
             </div>
-            <div className="ml-2">
-              <div className="p-1.5 rounded-lg bg-blue-50">
-                <Users className="h-4 w-4 text-blue-600" />
-              </div>
-            </div>
+            <Progress value={occupancyPercentage} className="w-full h-2" />
           </div>
         </CardContent>
       </Card>
@@ -111,7 +124,9 @@ export function StatusCards({
                 </div>
                 <div className="ml-2">
                   <div
-                    className={`p-1.5 rounded-lg ${config?.bgColor || "bg-slate-50"}`}
+                    className={`p-1.5 rounded-lg ${
+                      config?.bgColor || "bg-slate-50"
+                    }`}
                   >
                     <Icon
                       className={`h-4 w-4 ${config?.color || "text-slate-600"}`}
@@ -123,6 +138,30 @@ export function StatusCards({
           </Card>
         );
       })}
+
+      {/* Total Registrations Card */}
+      <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0">
+        <CardContent className="p-2 px-4 md:p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="space-y-1">
+                <p className="text-xs truncate">Total</p>
+                <p className="text-lg md:text-xl font-bold">
+                  {totalRegistrations}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Total de registros
+                </p>
+              </div>
+            </div>
+            <div className="ml-2">
+              <div className="p-1.5 rounded-lg bg-blue-50">
+                <Users className="h-4 w-4 text-blue-600" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

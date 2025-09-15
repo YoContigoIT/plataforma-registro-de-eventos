@@ -72,7 +72,7 @@ export interface IRegistrationRepository {
     },
     filters?: RegistrationFilters
   ): Promise<PaginatedResponse<RegistrationWithRelations>>;
-  findOne(id: string): Promise<RegistrationEntity | null>;
+  findOne(id: string): Promise<RegistrationWithRelations | null>;
   findByUserId(userId: string): Promise<RegistrationEntity[]>;
   findByEventId(eventId: string): Promise<RegistrationEntity[]>;
   findExactInvitation(eventId: string, userId: string): Promise<RegistrationWithRelations | null>;

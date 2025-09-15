@@ -1,5 +1,7 @@
-import { RegistrationStatus, UserRole } from "@prisma/client";
+import { EventStatus, RegistrationStatus, UserRole } from "@prisma/client";
 import * as crypto from "crypto";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import type { InvitationEmailDto } from "~/domain/dtos/email-invitation.dto";
 import { sendInvitationsSchema } from "~/domain/dtos/invitation.dto";
 import type { CreateRegistrationDto } from "~/domain/dtos/registration.dto";
@@ -7,14 +9,13 @@ import type { CreateUserDTO } from "~/domain/dtos/user.dto";
 import { runInTransaction } from "~/infrastructure/db/prisma";
 import { encodeInvitationData, generateQRCode, simplifyZodErrors } from "~/shared/lib/utils";
 import type { ActionData } from "~/shared/types";
+import { generateRevocationEmailTemplate } from "../../templates/revocation-email.template";
 import type { Route } from "../routes/+types/send-invitations";
 
-// Generate unique invite token
 function generateInviteToken(): string {
   return crypto.randomBytes(32).toString("hex");
 }
 
-// Parse emails from comma-separated string
 function parseEmails(emailsString: string): string[] {
   return emailsString
     .split(/[,;\n\r]+/)
@@ -22,43 +23,8 @@ function parseEmails(emailsString: string): string[] {
     .filter(
       (email) => email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
     )
-    .filter((email, index, arr) => arr.indexOf(email) === index); // Remove duplicates
+    .filter((email, index, arr) => arr.indexOf(email) === index);
 }
-
-/* Steps in sendInvitationsAction:
-1. Validate authentication and authorization
-   - Check if user is logged in
-   - Verify user has ORGANIZER or ADMIN role
-
-2. Validate form data using schema
-   - Parse and validate input data
-   - Extract eventId, emails and custom message
-
-3. Verify event exists and user permissions
-   - Check if event exists in database
-
-4. Process email list
-   - Parse and validate email addresses
-   - Check for duplicates
-   - Enforce maximum limit of 100 emails
-
-5. For each email:
-   - Check if user exists, create if not
-   - Check for existing registration
-   - Generate invite token and QR code
-   - Create pending registration
-   - Send invitation email with event details
-
-6. Track results
-   - Count successful invites
-   - Track failed attempts
-   - Note already invited users
-
-7. Return summary
-   - Return success/failure status
-   - Include redirect URL on success
-   - Return error details on failure
-*/
 export const sendInvitationsAction = async ({
   request,
   context: { repositories, services, session },
@@ -67,7 +33,6 @@ export const sendInvitationsAction = async ({
   const userId = session.get("user")?.id;
   const userRole = session.get("user")?.role;
 
-  // Authentication check
   if (!userId) {
     return {
       success: false,
@@ -75,7 +40,6 @@ export const sendInvitationsAction = async ({
     };
   }
 
-  // Authorization check - only organizers and admins can send invitations
   if (
     !userRole ||
     (userRole !== UserRole.ORGANIZER && userRole !== UserRole.ADMIN)
@@ -86,7 +50,6 @@ export const sendInvitationsAction = async ({
     };
   }
 
-  // Validate form data
   const validated = sendInvitationsSchema.safeParse(formData);
 
   if (!validated.success) {
@@ -105,9 +68,8 @@ export const sendInvitationsAction = async ({
   try {
     return await runInTransaction(
       async () => {
-        // 1. Verify event exists and user has permission
         const event = await repositories.eventRepository.findUnique(eventId);
-
+        
         if (!event) {
           return {
             success: false,
@@ -115,7 +77,13 @@ export const sendInvitationsAction = async ({
           };
         }
 
-        // 2. Extract and validate emails
+        if (event.status !== EventStatus.UPCOMING && event.status !== EventStatus.ONGOING) {
+          return {
+            success: false,
+            error: "No se pueden enviar invitaciones a eventos que no están programados",
+          };
+        }
+
         const emailList = parseEmails(emailsString);
 
         if (emailList.length === 0) {
@@ -133,7 +101,6 @@ export const sendInvitationsAction = async ({
           };
         }
 
-        // 3. Process each email
         const results = {
           successful: 0,
           failed: 0,
@@ -143,21 +110,18 @@ export const sendInvitationsAction = async ({
 
         for (const email of emailList) {
           try {
-            // 4. Check if user exists, if not create one
             let user = await repositories.userRepository.findByEmail(email);
 
             if (!user) {
-              // Create new user with minimal data
               const newUserData: CreateUserDTO = {
                 email,
-                name: email.split("@")[0], // Use email prefix as default name
+                name: email.split("@")[0],
                 role: UserRole.ATTENDEE,
               };
 
               user = await repositories.userRepository.create(newUserData);
             }
 
-            // 5. Check if registration already exists
             const existingRegistration =
               await repositories.registrationRepository.registrationExists(
                 eventId,
@@ -169,7 +133,6 @@ export const sendInvitationsAction = async ({
               continue;
             }
 
-            // 6. Create registration with PENDING status and invite token
             const inviteToken = generateInviteToken();
             const qrCode = generateQRCode(user.id, eventId);
 
@@ -182,12 +145,6 @@ export const sendInvitationsAction = async ({
               invitedAt: new Date(),
             };
 
-            
-              await repositories.registrationRepository.create(
-                registrationData,
-              );
-
-            // 7. Send invitation email
             const eventDate = new Date(event.start_date).toLocaleDateString(
               "es-MX",
               {
@@ -206,10 +163,8 @@ export const sendInvitationsAction = async ({
               },
             );
 
-            // 7. Generate secure hash for invitation URL
             const invitationHash = encodeInvitationData(user.id, eventId);
 
-            // Prepare invitation email data
             const invitationData: InvitationEmailDto = {
               userName: user.name || email.split("@")[0],
               userEmail: user.email || email,
@@ -226,16 +181,18 @@ export const sendInvitationsAction = async ({
               inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/invitacion/${invitationHash}`,
             };
 
-            // Send invitation email using the existing email service
-            // Note: We'll use sendRegistrationConfirmation as a base, but ideally we'd create a sendInvitation method
-            await services.emailService.sendInvitationEmail(
-              invitationData,
-              email,
-            );
+            // TODO: hmm this should work, i need to check it
+            await runInTransaction(async () => {
+              const registration = await repositories.registrationRepository.create(registrationData);
+              
+              await services.emailService.sendInvitationEmail(
+                invitationData,
+                email,
+              );
+            });
 
             results.successful++;
           } catch (error) {
-            console.error(`Error processing email ${email}:`, error);
             results.failed++;
             results.errors.push(
               `Error al procesar ${email}: ${error instanceof Error ? error.message : "Error desconocido"}`,
@@ -243,7 +200,6 @@ export const sendInvitationsAction = async ({
           }
         }
 
-        // 8. Return results summary
         const totalProcessed =
           results.successful + results.failed + results.alreadyInvited;
         let message = `Procesados ${totalProcessed} correos: ${results.successful} invitaciones enviadas`;
@@ -275,7 +231,6 @@ export const sendInvitationsAction = async ({
       },
     );
   } catch (error) {
-    console.error("Error sending invitations:", error);
     return {
       success: false,
       error: "Error al enviar las invitaciones",
@@ -286,14 +241,14 @@ export const sendInvitationsAction = async ({
 
 export const deleteRegistrationAction = async ({
   request,
-  context: { repositories, session },
+  context: { repositories, session, services },
 }: Route.ActionArgs): Promise<ActionData> => {
   const formData = Object.fromEntries(await request.formData());
   const registrationId = formData.registrationId as string;
+  const customMessage = formData.customMessage as string;
   const userId = session.get("user")?.id;
   const userRole = session.get("user")?.role;
 
-  // Authentication check
   if (!userId) {
     return {
       success: false,
@@ -301,7 +256,6 @@ export const deleteRegistrationAction = async ({
     };
   }
 
-  // Authorization check - only organizers and admins can delete registrations
   if (
     !userRole ||
     (userRole !== UserRole.ORGANIZER && userRole !== UserRole.ADMIN)
@@ -320,7 +274,6 @@ export const deleteRegistrationAction = async ({
   }
 
   try {
-    // First, verify the registration exists and get event info for authorization
     const registration = await repositories.registrationRepository.findOne(registrationId);
     
     if (!registration) {
@@ -330,10 +283,18 @@ export const deleteRegistrationAction = async ({
       };
     }
 
-    // Additional authorization: organizers can only delete registrations from their own events
+    const event = await repositories.eventRepository.findUnique(registration.eventId);
+    const user = await repositories.userRepository.findUnique(registration.userId);
+    
+    if (!event) {
+      return {
+        success: false,
+        error: "Evento no encontrado",
+      };
+    }
+
     if (userRole === UserRole.ORGANIZER) {
-      const event = await repositories.eventRepository.findUnique(registration.eventId);
-      if (!event || event.organizerId !== userId) {
+      if (event.organizerId !== userId) {
         return {
           success: false,
           error: "No tienes permisos para eliminar este registro",
@@ -341,18 +302,126 @@ export const deleteRegistrationAction = async ({
       }
     }
 
-    // Delete the registration
-    await repositories.registrationRepository.delete(registrationId);
+    await runInTransaction(async () => {
+      await repositories.registrationRepository.delete(registrationId);
+
+      if (user && user.email) {
+        const emailTemplate = generateRevocationEmailTemplate({
+          userName: user.name,
+          eventName: event.name,
+          eventDate: format(new Date(event.start_date), "PPP 'a las' p", { locale: es }),
+          customMessage: customMessage || undefined,
+        });
+
+        await services.emailService.sendEmail({
+          to: user.email,
+          subject: `Invitación revocada - ${event.name}`,
+          html: emailTemplate,
+        });
+      }
+    });
 
     return {
       success: true,
-      message: "Registro eliminado exitosamente. Ahora se puede enviar una nueva invitación.",
+      message: "Registro eliminado exitosamente. Se ha enviado una notificación al usuario.",
     };
   } catch (error) {
-    console.error("Error deleting registration:", error);
     return {
       success: false,
       error: "Error interno del servidor al eliminar el registro",
+    };
+  }
+}
+
+export const resendInviteAction = async ({
+  request,
+  context: { repositories, services, session },
+}: Route.ActionArgs): Promise<ActionData> => {
+  const formData = Object.fromEntries(await request.formData());
+  const registrationId = formData.registrationId as string;
+  const userId = session.get("user")?.id;
+  const userRole = session.get("user")?.role;
+
+  if (!userId) {
+    return {
+      success: false,
+      error: "No se ha iniciado sesión",
+    };
+  }
+
+  if (
+    !userRole ||
+    (userRole !== UserRole.ORGANIZER && userRole !== UserRole.ADMIN)
+  ) {
+    return {
+      success: false,
+      error: "No tienes permisos para reenviar invitaciones",
+    };
+  }
+
+  if (!registrationId) {
+    return {
+      success: false,
+      error: "ID de registro requerido",
+    };
+  }
+
+  try {
+    const registration = await repositories.registrationRepository.findOne(registrationId);
+    
+    if (!registration) {
+      return {
+        success: false,
+        error: "Registro no encontrado",
+      };
+    }
+
+    if (registration.status !== RegistrationStatus.PENDING) {
+      return {
+        success: false,
+        error: "Solo se pueden reenviar invitaciones pendientes",
+      };
+    }
+
+    const newInviteToken = generateInviteToken();
+    const encodedToken = encodeInvitationData(
+      registration.userId,
+      registration.eventId,
+    );
+
+    await repositories.registrationRepository.update({
+      id: registrationId,
+      inviteToken: newInviteToken,
+      invitedAt: new Date(),
+    });
+
+    const emailData: InvitationEmailDto = {
+      userName: registration.user.name || registration.user.email,
+      eventName: registration.event.name,
+      eventTime: registration.event.start_date.toLocaleTimeString(),
+      eventDate: registration.event.start_date.toLocaleDateString(),
+      eventLocation: registration.event.location,
+      inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/invitacion/${encodedToken}`,
+      customMessage: "Se ha reenviado tu invitación al evento.",
+    };
+
+    const emailResponse = await services.emailService.sendInvitationEmail(emailData, registration.user.email);
+
+    if (emailResponse.success) {
+      return {
+        success: true,
+        message: "Invitación reenviada exitosamente",
+      };
+    } else {
+      return {
+        success: false,
+        error: "Error al reenviar la invitación",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: "Error interno del servidor al reenviar la invitación",
     };
   }
 };

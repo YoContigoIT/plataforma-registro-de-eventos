@@ -265,9 +265,13 @@ export const PrismaRegistrationRepository = (
       return count > 0;
     },
     findOne: async (id: string) => {
-      return await prisma.registration.findUnique({
+      return await prisma.registration.findFirst({
         where: {
           id,
+        },
+        include: {
+          user: true,
+          event: true,
         },
       });
     },

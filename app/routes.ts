@@ -24,6 +24,21 @@ const ROUTES_PATH = {
     join: "presentation/attendees/routes/join.tsx",
     inviteDetails: "presentation/attendees/routes/invite-details.tsx",
   },
+  users: {
+    list: "presentation/usuarios/routes/users.tsx",
+    detail: "presentation/usuarios/routes/user-by-id.tsx",
+    create: "presentation/usuarios/routes/create-user.tsx",
+    update: "presentation/usuarios/routes/update-user.tsx",
+  },
+  registrations: {
+    list: "presentation/registrations/routes/registrations.tsx",
+    sendInvitations: "presentation/registrations/routes/send-invitations.tsx",
+    deleteRegistration: "presentation/registrations/routes/delete-registration.tsx",
+    resendInvite: "presentation/registrations/routes/resend-invite.tsx",
+  },
+  panel: {
+    dashboard: "presentation/panel/routes/panel.tsx",
+  },
 };
 
 export default [
@@ -33,32 +48,20 @@ export default [
   route("/inscripcion/:eventId", `${ROUTES_PATH.attendee.join}`),
   route("/invitacion/:inviteToken", `${ROUTES_PATH.attendee.inviteDetails}`),
   layout(`${ROUTES_PATH.layout}`, [
-    route("/panel", "presentation/panel/routes/panel.tsx"),
-    route("/usuarios", "presentation/usuarios/routes/users.tsx"),
-    route(
-      "/usuarios/ver/:userId",
-      "presentation/usuarios/routes/user-by-id.tsx",
-    ),
-    route("/usuarios/crear", "presentation/usuarios/routes/create-user.tsx"),
-    route(
-      "/usuarios/editar/:userId",
-      "presentation/usuarios/routes/update-user.tsx",
-    ),
+    route("/panel", `${ROUTES_PATH.panel.dashboard}`),
+    route("/usuarios", `${ROUTES_PATH.users.list}`),
+    route("/usuarios/ver/:userId", `${ROUTES_PATH.users.detail}`),
+    route("/usuarios/crear", `${ROUTES_PATH.users.create}`),
+    route("/usuarios/editar/:userId", `${ROUTES_PATH.users.update}`),
     route("/eventos", `${ROUTES_PATH.events.list}`),
     route("/eventos/detalle/:id", `${ROUTES_PATH.events.detail}`),
     route("/eventos/crear", `${ROUTES_PATH.events.create}`),
     route("/eventos/actualizar/:id", `${ROUTES_PATH.events.update}`),
     route("/eventos/archivar/:id", `${ROUTES_PATH.events.archive}`),
     route("/eventos/test-email", `${ROUTES_PATH.events.testEmail}`),
-
-    route("/registros", "presentation/registrations/routes/registrations.tsx"),
-    route(
-      "/registros/enviar-invitaciones/:id",
-      "presentation/registrations/routes/send-invitations.tsx",
-    ),
-    route(
-      "/registros/delete-registration",
-      "presentation/registrations/routes/delete-registration.tsx",
-    ),
+    route("/registros", `${ROUTES_PATH.registrations.list}`),
+    route("/registros/enviar-invitaciones/:id", `${ROUTES_PATH.registrations.sendInvitations}`),
+    route("/registros/delete-registration", `${ROUTES_PATH.registrations.deleteRegistration}`),
+    route("/registros/resend-invite", `${ROUTES_PATH.registrations.resendInvite}`),
   ]),
 ] satisfies RouteConfig;

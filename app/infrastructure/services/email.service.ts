@@ -2,6 +2,7 @@ import type { RegistrationConfirmationEmailDto } from "~/domain/dtos/email-invit
 import { invitationEmailSchema } from "~/domain/dtos/email-invitation.dto";
 import type {
   EmailOptions,
+  EmailResponse,
   IEmailService,
 } from "~/domain/services/email.service";
 import { generateRegistrationConfirmationTemplate } from "~/presentation/templates/registration-confirmation.template";
@@ -49,9 +50,10 @@ export const EmailService = (): IEmailService => ({
   sendLoginNotification: async (
     to: string,
     userName: string,
-    loginInfo: { ipAddress: string; userAgent: string; timestamp: Date }
-  ): Promise<void> => {
-    const subject = "Nuevo inicio de sesión detectado";
+    loginInfo: { ipAddress: string; userAgent: string; timestamp: Date },
+  ): Promise<EmailResponse> => {
+  try {
+      const subject = "Nuevo inicio de sesión detectado";
     const formattedDate = loginInfo.timestamp.toLocaleString("es-ES", {
       year: "numeric",
       month: "long",
@@ -87,6 +89,17 @@ export const EmailService = (): IEmailService => ({
       subject,
       html,
     });
+    return {
+      success: true,
+      message: "Login notification email sent successfully",
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      message: "Login notification email sent failed",
+    };
+  }
   },
 
   sendPasswordReset: async (to: string, resetCode: string): Promise<void> => {
@@ -117,8 +130,9 @@ export const EmailService = (): IEmailService => ({
   sendRegistrationConfirmation: async (
     to: string,
     registrationData: RegistrationConfirmationEmailDto,
-  ): Promise<void> => {
-    const subject = `Confirmación de registro - ${registrationData.eventName}`;
+  ): Promise<EmailResponse> => {
+    try {
+      const subject = `Confirmación de registro - ${registrationData.eventName}`;
 
     const htmlTemplate =
       generateRegistrationConfirmationTemplate(registrationData);
@@ -129,13 +143,24 @@ export const EmailService = (): IEmailService => ({
       subject,
       html: htmlTemplate,
     });
+    return {
+      success: true,
+      message: "Registration confirmation email sent successfully",
+    };
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+        message: "Registration confirmation email sent failed",
+      };
+    }
   },
 
   sendInvitationEmail: async (
     emailData: InvitationEmailDto,
     recipientEmail: string,
-  ): Promise<void> => {
-    const { success, data } = invitationEmailSchema.safeParse(emailData);
+  ): Promise<EmailResponse> => {
+    const { success, data, error } = invitationEmailSchema.safeParse(emailData);
 
     if (!success) {
       throw new Error("Invalid invitation email data");
@@ -143,11 +168,21 @@ export const EmailService = (): IEmailService => ({
 
     const htmlContent = generateInvitationEmailTemplate(data);
 
-    await transporter.sendMail({
-      to: recipientEmail,
-      from: env.EMAIL_FROM,
-      subject: `Invitación: ${emailData.eventName}`,
-      html: htmlContent,
-    });
+    try {
+      await transporter.sendMail({
+        to: recipientEmail,
+        from: env.EMAIL_FROM,
+        subject: `Invitación: ${emailData.eventName}`,
+        html: htmlContent,
+      });
+
+      return {
+        success: true,
+        message: "Invitation email sent successfully",
+      };
+    } catch (error) {
+      console.log(error);
+      throw new Error(`Invitation email sent failed: ${error}`);
+    }
   },
 });
