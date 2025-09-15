@@ -1,11 +1,15 @@
-import { UserRole } from "@prisma/client";
+import { RegistrationStatus, UserRole } from "@prisma/client";
 import type { CreateRegistrationDto } from "~/domain/dtos/registration.dto";
 import {
   createUserSchema,
   type CreateUserDTO,
   type UpdateUserDTO,
 } from "~/domain/dtos/user.dto";
-import { generateQRCode, simplifyZodErrors } from "~/shared/lib/utils";
+import {
+  decodeInvitationData,
+  generateQRCode,
+  simplifyZodErrors,
+} from "~/shared/lib/utils";
 import type { Route } from "../routes/+types/join";
 
 export const createAttendeeAction = async ({
@@ -16,6 +20,17 @@ export const createAttendeeAction = async ({
   try {
     const formData = await request.formData();
     const data = Object.fromEntries(formData);
+    const { inviteToken } = params;
+
+    const decodedData = decodeInvitationData(inviteToken);
+    if (!decodedData) {
+      return {
+        success: false,
+        error: "Invitación no válida o expirada.",
+      };
+    }
+
+    const { userId, eventId } = decodedData;
 
     const result = createUserSchema.safeParse({
       email: data.email,
@@ -40,7 +55,7 @@ export const createAttendeeAction = async ({
     let user = null;
 
     // Verificar si el email ya existe
-    user = await repositories.userRepository.findByEmail(result.data.email);
+    user = await repositories.userRepository.findUnique(userId);
     if (!user) {
       user = await repositories.userRepository.create(result.data);
     } else {
@@ -63,7 +78,7 @@ export const createAttendeeAction = async ({
     }
 
     //Obtener evento
-    const eventId = params.eventId;
+
     const event = await repositories.eventRepository.findUnique(eventId);
     if (!event) {
       return {
@@ -77,8 +92,8 @@ export const createAttendeeAction = async ({
     // Contar cuántos tickets ya tiene el usuario en ese event
     const userTickets =
       await repositories.registrationRepository.countRegistrations({
-        userId: user.id,
-        eventId: eventId,
+        userId,
+        eventId,
       });
 
     if (userTickets + ticketsRequested > maxTickets) {
@@ -108,6 +123,7 @@ export const createAttendeeAction = async ({
       qrCode: generateQRCode(user.id, eventId),
       userId: user.id,
       eventId,
+      status: RegistrationStatus.REGISTERED,
     }));
 
     await Promise.all(
@@ -120,14 +136,14 @@ export const createAttendeeAction = async ({
         eventId: eventId,
       });
     await services.emailService.sendRegistrationConfirmation(user.email, {
-      userName: user.name,
+      userName: user.name || "",
       eventName: event.name,
       eventDate: event.start_date.toISOString().split("T")[0],
       eventLocation: event.location,
       eventTime: event.start_date.toISOString().split("T")[1],
       qrCode: registrations[0].qrCode,
       qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(registrations[0].qrCode)}`, //TODO: Cambiar cuando este implementado
-      ticketQuantity: ticketQuantity.toString(),
+      ticketsQuantity: ticketQuantity,
     });
 
     return {

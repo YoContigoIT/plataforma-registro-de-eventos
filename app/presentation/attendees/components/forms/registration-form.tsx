@@ -478,14 +478,14 @@ export function RegistrationForm() {
                     : "Fecha del evento"}
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-blue-200">
+              {/* <div className="mt-4 pt-3 border-t border-blue-200">
                 <div className="flex justify-between items-center">
                   <span className="text-blue-800 font-semibold">Total:</span>
                   <span className="text-green-600 font-bold text-lg">
                     GRATUITO
                   </span>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Botón */}

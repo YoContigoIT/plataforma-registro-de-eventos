@@ -1,7 +1,7 @@
 import type { RegistrationConfirmationEmailDto } from "~/domain/dtos/email-invitation.dto";
 
 export function generateRegistrationConfirmationTemplate(
-  data: RegistrationConfirmationEmailDto,
+  data: RegistrationConfirmationEmailDto
 ): string {
   const {
     userName,
@@ -14,6 +14,7 @@ export function generateRegistrationConfirmationTemplate(
     customMessage,
     eventDetailsUrl,
     supportEmail,
+    ticketsQuantity,
   } = data;
 
   return `<!DOCTYPE html>
@@ -23,92 +24,130 @@ export function generateRegistrationConfirmationTemplate(
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Confirmación de Registro</title>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Confirmación de tu registro</h1>
-        </div>
-        
-        <div class="content">
-            <div class="greeting">
-                Hola ${userName}
+<body style="margin:0; padding:0; background-color:#e3f2fd; font-family: 'Inter', sans-serif; color:#37474f;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="padding:20px;">
+      <!-- Container -->
+      <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.1);">
+        <!-- Header -->
+        <tr>
+          <td style="background-color:#1976d2; color:#ffffff; text-align:center; padding:40px 30px;">
+            <div style="font-size:48px; margin-bottom:10px;">🎫</div>
+            <h1 style="margin:0; font-size:22px; font-weight:600;">Confirmación de tu registro</h1>
+            <p style="margin-top:8px; font-size:16px; font-weight:400; opacity:0.9;">Tu acceso al evento está confirmado</p>
+          </td>
+        </tr>
+        <!-- Greeting -->
+        <tr>
+          <td style="padding:30px; text-align:center;">
+            <h2 style="margin:0; font-size:24px; font-weight:600; color:#263238;">Hola ${userName}</h2>
+            <p style="font-size:16px; color:#546e7a; line-height:1.5; margin:15px 0 30px;">Nos complace confirmar tu registro reciente. Gracias por confiar en nosotros y esperamos que disfrutes del evento.</p>
+          </td>
+        </tr>
+        <!-- Ticket Section -->
+        <tr>
+          <td style="padding:0 30px;">
+            <table width="100%" cellpadding="15" cellspacing="0" border="0" style="background-color:#f5f5f5; border-radius:12px; text-align:center;">
+              <tr>
+                <td style="font-size:18px; font-weight:600; color:#263238;">Tu boleto digital #${qrCode}</td>
+              </tr>
+
+              <!-- Boletos adquiridos -->
+<div style="padding:20px; margin:20px 0; background-color:#f1f8ff; border-radius:12px; text-align:center;">
+  <h3 style="font-size:18px; font-weight:600; color:#1976d2; margin-bottom:10px;">Tus boletos</h3>
+  <p style="font-size:16px; font-weight:600; color:#263238;">
+    Has adquirido <strong>${ticketsQuantity}</strong> boletos para este evento.
+  </p>
+</div>
+
+              <tr>
+                <td>
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td width="50%" style="text-align:center; padding:10px;">
+                        <div style="font-size:24px; margin-bottom:5px;">📅</div>
+                        <div style="font-size:12px; color:#78909c; text-transform:uppercase;">Fecha del Evento</div>
+                        <div style="font-size:14px; font-weight:600; color:#263238;">${eventDate}</div>
+                      </td>
+                      <td width="50%" style="text-align:center; padding:10px;">
+                        <div style="font-size:24px; margin-bottom:5px;">🕐</div>
+                        <div style="font-size:12px; color:#78909c; text-transform:uppercase;">Hora del Evento</div>
+                        <div style="font-size:14px; font-weight:600; color:#263238;">${eventTime}</div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Event Info -->
+        <tr>
+          <td style="padding:30px;">
+            <div style="background-color:#f8f9fa; border-radius:12px; padding:20px;">
+              <h3 style="font-size:20px; font-weight:600; text-align:center; color:#263238; margin-bottom:15px;">${eventName}</h3>
+              <table width="100%" cellpadding="5" cellspacing="0" border="0" style="font-size:14px; color:#263238;">
+                <tr>
+                  <td style="font-weight:500; color:#546e7a;">Ubicación:</td>
+                  <td style="font-weight:600;">${eventLocation}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:500; color:#546e7a;">Fecha:</td>
+                  <td style="font-weight:600;">${eventDate}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:500; color:#546e7a;">Hora:</td>
+                  <td style="font-weight:600;">${eventTime}</td>
+                </tr>
+              </table>
             </div>
-            
-            <div class="description">
-                Nos complace confirmar tu registro reciente. Agradecemos tu confianza y esperamos que tengas una experiencia agradable.
+          </td>
+        </tr>
+        <!-- QR Section -->
+        <tr>
+          <td style="padding:30px; text-align:center;">
+            <div style="background-color:#fafafa; border-radius:12px; padding:20px;">
+              <p style="font-size:18px; font-weight:600; color:#263238; margin-bottom:20px;">Presenta este código QR en el dia del evento</p>
+              <div style="display:inline-block; padding:15px; background-color:#ffffff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                <img src="${qrCodeUrl}" alt="Código QR" width="120" height="120" style="display:block;">
+              </div>
             </div>
-            
-            <div class="ticket-section">
-                <div class="ticket-number">
-                    Tu número de boleto digital #${qrCode}
-                </div>
-                
-                <div class="event-details">
-                    <div class="detail-item">
-                        <span class="detail-icon">📅</span>
-                        <div class="detail-label">Fecha del Evento</div>
-                        <div class="detail-value">${eventDate}</div>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-icon">🕐</span>
-                        <div class="detail-label">Hora del Evento</div>
-                        <div class="detail-value">${eventTime}</div>
-                    </div>
-                </div>
+          </td>
+        </tr>
+        <!-- Message -->
+        <tr>
+          <td style="padding:0 30px 30px;">
+            <div style="background-color:#e3f2fd; padding:20px; border-radius:12px; border-left:4px solid #1976d2;">
+              <h4 style="margin-top:0; color:#1565c0;">Información importante</h4>
+              <p>${customMessage}</p>
+              <ul style="margin:15px 0 0; padding-left:20px; color:#37474f;">
+                <li>Llega 15 minutos antes del evento</li>
+                <li>Trae una identificación válida</li>
+                <li>Guarda este correo para acceso rápido</li>
+                <li>Contáctanos si tienes preguntas</li>
+              </ul>
             </div>
-            
-            <div class="event-info">
-                <div class="event-name">${eventName}</div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Ubicación:</span>
-                        <span class="info-value">${eventLocation}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Fecha:</span>
-                        <span class="info-value">${eventDate}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Hora:</span>
-                        <span class="info-value">${eventTime}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="qr-section">
-                <div class="qr-title">Accede a tu boleto digitalmente usando el código QR</div>
-                <div class="qr-code">
-                    <img src="${qrCodeUrl}" alt="Código QR">
-                </div>
-            </div>
-            
-            <div class="message">
-                <h3>Información importante</h3>
-                <p>${customMessage || 'Te esperamos en este increíble evento. ¡Será una experiencia inolvidable!'}</p>
-                <ul>
-                    <li>Llega 15 minutos antes del evento</li>
-                    <li>Trae una identificación válida</li>
-                    <li>Guarda este correo para acceso rápido</li>
-                    <li>Contáctanos si tienes preguntas</li>
-                </ul>
-            </div>
-            
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="${eventDetailsUrl || '#'}" class="btn">Ver detalles del evento</a>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <div class="footer-links">
-                <a href="#">PROTECCIÓN DE DATOS</a>
-                <a href="#">SITIO WEB</a>
-            </div>
-            
-            <p>Todos los derechos reservados. Para más detalles, por favor visita nuestro sitio web</p>
-            <p>Este es un correo de confirmación automático, por favor no respondas.</p>
-            <p>Si tienes alguna pregunta, contáctanos en: ${supportEmail || 'support@example.com'}</p>
-        </div>
-    </div>
+          </td>
+        </tr>
+        <!-- Button -->
+        <tr>
+          <td align="center" style="padding:20px 30px;">
+            <a href="${eventDetailsUrl}" style="background-color:#1976d2; color:#ffffff; text-decoration:none; padding:14px 28px; border-radius:8px; font-weight:600; display:inline-block;">Ver detalles del evento</a>
+          </td>
+        </tr>
+        <!-- Footer -->
+        <tr>
+          <td style="background-color:#f5f5f5; padding:30px; text-align:center; font-size:12px; color:#78909c;">
+            <p><a href="#" style="color:#78909c; text-decoration:none; margin:0 10px;">PROTECCIÓN DE DATOS</a> | <a href="#" style="color:#78909c; text-decoration:none; margin:0 10px;">SITIO WEB</a></p>
+            <p>Todos los derechos reservados. Este es un correo de confirmación automático.</p>
+            <p>Si tienes preguntas, contáctanos en: ${supportEmail}</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 </body>
 </html>`;
 }

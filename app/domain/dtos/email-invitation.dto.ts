@@ -35,8 +35,11 @@ export const registrationConfirmationEmailSchema = z.object({
   customMessage: z.string().optional(),
   eventDetailsUrl: z.string().url("Invalid event details URL").optional(),
   supportEmail: z.string().email("Invalid support email").optional(),
+  ticketsQuantity: z.number().optional(),
 });
 
 // Type inference from schemas
 export type InvitationEmailDto = z.infer<typeof invitationEmailSchema>;
-export type RegistrationConfirmationEmailDto = z.infer<typeof registrationConfirmationEmailSchema>;
+export type RegistrationConfirmationEmailDto = z.infer<
+  typeof registrationConfirmationEmailSchema
+>;
