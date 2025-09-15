@@ -52,7 +52,7 @@ export default [
   route("/inscripcion/:inviteToken", `${ROUTES_PATH.attendee.join}`),
   route("/invitacion/:inviteToken", `${ROUTES_PATH.attendee.inviteDetails}`),
   route(
-    "/verificar-registro/:token",
+    "/verificar-registro/:qrCode",
     `${ROUTES_PATH.guard.verifyRegistration}`
   ),
   layout(`${ROUTES_PATH.layout}`, [
