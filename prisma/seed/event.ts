@@ -32,10 +32,11 @@ export async function seedEvents(prisma: PrismaClient) {
         description:
           "Annual technology conference featuring the latest innovations and industry trends.",
         maxTickets: 2,
+        remainingCapacity: 500,
         status: EventStatus.UPCOMING,
         organizerId: organizers[0].id,
       },
-    }),
+    })
   );
 
   events.push(
@@ -51,10 +52,11 @@ export async function seedEvents(prisma: PrismaClient) {
         description:
           "Intensive one-day workshop on modern product management methodologies.",
         maxTickets: 1,
+        remainingCapacity: 50,
         status: EventStatus.UPCOMING,
         organizerId: organizers[1].id,
       },
-    }),
+    })
   );
 
   // Ongoing event
@@ -71,10 +73,11 @@ export async function seedEvents(prisma: PrismaClient) {
         description:
           "72-hour hackathon for developers to build innovative solutions.",
         maxTickets: 1,
+        remainingCapacity: 100,
         status: EventStatus.ONGOING,
         organizerId: organizers[0].id,
       },
-    }),
+    })
   );
 
   // Ended event
@@ -91,10 +94,11 @@ export async function seedEvents(prisma: PrismaClient) {
         description:
           "Annual summit for marketing professionals to discuss industry trends and strategies.",
         maxTickets: 2,
+        remainingCapacity: 200,
         status: EventStatus.ENDED,
         organizerId: organizers[1].id,
       },
-    }),
+    })
   );
 
   // Draft event
@@ -110,10 +114,11 @@ export async function seedEvents(prisma: PrismaClient) {
         description:
           "Executive leadership retreat focused on strategy and team building.",
         maxTickets: 1,
+        remainingCapacity: 30,
         status: EventStatus.DRAFT,
         organizerId: organizers[0].id,
       },
-    }),
+    })
   );
 
   return events;
