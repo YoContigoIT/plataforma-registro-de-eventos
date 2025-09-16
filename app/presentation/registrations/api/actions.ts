@@ -21,7 +21,7 @@ function parseEmails(emailsString: string): string[] {
     .split(/[,;\n\r]+/)
     .map((email) => email.trim().toLowerCase())
     .filter(
-      (email) => email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+      (email) => email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     )
     .filter((email, index, arr) => arr.indexOf(email) === index);
 }
@@ -130,7 +130,7 @@ export const sendInvitationsAction = async ({
             const existingRegistration =
               await repositories.registrationRepository.registrationExists(
                 eventId,
-                user.id,
+                user.id
               );
 
             if (existingRegistration) {
@@ -157,7 +157,7 @@ export const sendInvitationsAction = async ({
                 year: "numeric",
                 month: "long",
                 day: "numeric",
-              },
+              }
             );
 
             const eventTime = new Date(event.start_date).toLocaleTimeString(
@@ -165,7 +165,7 @@ export const sendInvitationsAction = async ({
               {
                 hour: "2-digit",
                 minute: "2-digit",
-              },
+              }
             );
 
             const invitationHash = encodeInvitationData(user.id, eventId);
@@ -196,7 +196,7 @@ export const sendInvitationsAction = async ({
 
               await services.emailService.sendInvitationEmail(
                 invitationData,
-                email,
+                email
               );
             });
 
@@ -204,7 +204,7 @@ export const sendInvitationsAction = async ({
           } catch (error) {
             results.failed++;
             results.errors.push(
-              `Error al procesar ${email}: ${error instanceof Error ? error.message : "Error desconocido"}`,
+              `Error al procesar ${email}: ${error instanceof Error ? error.message : "Error desconocido"}`
             );
           }
         }
@@ -237,7 +237,7 @@ export const sendInvitationsAction = async ({
       },
       {
         timeout: 25000,
-      },
+      }
     );
   } catch (error) {
     return {
@@ -401,7 +401,7 @@ export const resendInviteAction = async ({
     /* const newInviteToken = generateInviteToken(); */
     const encodedToken = encodeInvitationData(
       registration.userId,
-      registration.eventId,
+      registration.eventId
     );
 
     await repositories.registrationRepository.update({

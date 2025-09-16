@@ -50,20 +50,20 @@ export const EmailService = (): IEmailService => ({
   sendLoginNotification: async (
     to: string,
     userName: string,
-    loginInfo: { ipAddress: string; userAgent: string; timestamp: Date },
+    loginInfo: { ipAddress: string; userAgent: string; timestamp: Date }
   ): Promise<EmailResponse> => {
-  try {
+    try {
       const subject = "Nuevo inicio de sesión detectado";
-    const formattedDate = loginInfo.timestamp.toLocaleString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "America/Mexico_City",
-    });
+      const formattedDate = loginInfo.timestamp.toLocaleString("es-ES", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "America/Mexico_City",
+      });
 
-    const html = `
+      const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #333;">¡Hola ${userName}!</h2>
         <p>Se ha detectado un nuevo inicio de sesión en tu cuenta.</p>
@@ -83,23 +83,23 @@ export const EmailService = (): IEmailService => ({
       </div>
     `;
 
-    await transporter.sendMail({
-      from: env.EMAIL_FROM,
-      to,
-      subject,
-      html,
-    });
-    return {
-      success: true,
-      message: "Login notification email sent successfully",
-    };
-  } catch (error) {
-    console.log(error);
-    return {
-      success: false,
-      message: "Login notification email sent failed",
-    };
-  }
+      await transporter.sendMail({
+        from: env.EMAIL_FROM,
+        to,
+        subject,
+        html,
+      });
+      return {
+        success: true,
+        message: "Login notification email sent successfully",
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+        message: "Login notification email sent failed",
+      };
+    }
   },
 
   sendPasswordReset: async (to: string, resetCode: string): Promise<void> => {
@@ -129,24 +129,27 @@ export const EmailService = (): IEmailService => ({
 
   sendRegistrationConfirmation: async (
     to: string,
-    registrationData: RegistrationConfirmationEmailDto,
+    registrationData: RegistrationConfirmationEmailDto
   ): Promise<EmailResponse> => {
     try {
+      console.log(registrationData);
+
       const subject = `Confirmación de registro - ${registrationData.eventName}`;
 
-    const htmlTemplate =
-      generateRegistrationConfirmationTemplate(registrationData);
+      const htmlTemplate =
+        generateRegistrationConfirmationTemplate(registrationData);
 
-    await transporter.sendMail({
-      from: env.EMAIL_FROM,
-      to,
-      subject,
-      html: htmlTemplate,
-    });
-    return {
-      success: true,
-      message: "Registration confirmation email sent successfully",
-    };
+      await transporter.sendMail({
+        from: env.EMAIL_FROM,
+        to,
+        subject,
+        html: htmlTemplate,
+        attachDataUrls: true,
+      });
+      return {
+        success: true,
+        message: "Registration confirmation email sent successfully",
+      };
     } catch (error) {
       console.log(error);
       return {
@@ -158,7 +161,7 @@ export const EmailService = (): IEmailService => ({
 
   sendInvitationEmail: async (
     emailData: InvitationEmailDto,
-    recipientEmail: string,
+    recipientEmail: string
   ): Promise<EmailResponse> => {
     const { success, data, error } = invitationEmailSchema.safeParse(emailData);
 

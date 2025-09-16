@@ -34,10 +34,15 @@ const ROUTES_PATH = {
     sendInvitations: "presentation/registrations/routes/send-invitations.tsx",
     deleteRegistration:
       "presentation/registrations/routes/delete-registration.tsx",
+    deleteRegistration:
+      "presentation/registrations/routes/delete-registration.tsx",
     resendInvite: "presentation/registrations/routes/resend-invite.tsx",
   },
   panel: {
     dashboard: "presentation/panel/routes/panel.tsx",
+  },
+  guard: {
+    verifyRegistration: "presentation/guards/routes/verify-registration.tsx",
   },
 };
 
@@ -45,8 +50,12 @@ export default [
   index(`${ROUTES_PATH.redirect_root}`),
   route("/iniciar-sesion", `${ROUTES_PATH.auth.login}`),
   route("/cerrar-sesion", `${ROUTES_PATH.auth.logout}`),
-  route("/inscripcion/:eventId", `${ROUTES_PATH.attendee.join}`),
-  /*  route("/invitacion/:inviteToken", `${ROUTES_PATH.attendee.inviteDetails}`), */
+  route("/inscripcion/:inviteToken", `${ROUTES_PATH.attendee.join}`),
+  route("/invitacion/:inviteToken", `${ROUTES_PATH.attendee.inviteDetails}`),
+  route(
+    "/verificar-registro/:qrCode",
+    `${ROUTES_PATH.guard.verifyRegistration}`,
+  ),
   layout(`${ROUTES_PATH.layout}`, [
     route("/panel", `${ROUTES_PATH.panel.dashboard}`),
     route("/usuarios", `${ROUTES_PATH.users.list}`),
