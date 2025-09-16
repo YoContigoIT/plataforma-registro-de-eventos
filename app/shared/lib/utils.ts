@@ -516,6 +516,7 @@ export const getStatusBadgeVariant = (status: string) => {
       return "destructive";
     case "DECLINED":
       return "slate";
+
     default:
       return "secondary";
   }
@@ -533,6 +534,8 @@ export const getStatusLabel = (status: string) => {
       return "Cancelado";
     case "DECLINED":
       return "Rechazado";
+    case "CHECKED_IN":
+      return "Entrada";
     default:
       return status;
   }
