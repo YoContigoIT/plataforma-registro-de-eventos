@@ -20,7 +20,8 @@ export const PrismaUserRepository = (
 
     const excludedRoles = [UserRole.ADMIN, ...(filters?.excludeRoles ?? [])];
 
-    const where = buildWhereClause(undefined, {
+    const where = buildWhereClause(filters?.search, {
+      searchFields: [{ field: "name" }],
       customFilters: {
         id: filters?.currentUserId ? { not: filters.currentUserId } : undefined,
         role: { notIn: excludedRoles },

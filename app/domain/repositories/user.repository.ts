@@ -6,6 +6,7 @@ import type { UserEntity } from "../entities/user.entity";
 export interface UserFilters {
   currentUserId?: string;
   excludeRoles?: User["role"][];
+  search?: string;
 }
 
 export interface IUserRepository {
