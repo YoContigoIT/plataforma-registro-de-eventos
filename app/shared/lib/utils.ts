@@ -559,6 +559,10 @@ export const getEventStatusLabel = (status: string) => {
       return "Cancelado";
     case "COMPLETED":
       return "Completado";
+    case "UPCOMING":
+      return "Próximo";
+    case "ONGOING":
+      return "En curso";
     default:
       return status;
   }

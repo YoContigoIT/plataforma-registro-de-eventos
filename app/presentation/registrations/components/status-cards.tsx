@@ -70,7 +70,6 @@ export function StatusCards({
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-2 md:gap-3">
-      {/* Remaining Spots Card with Progress Bar */}
       <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0">
         <CardContent className="p-2 px-4 md:p-3">
           <div className="space-y-2">
@@ -97,7 +96,6 @@ export function StatusCards({
         </CardContent>
       </Card>
 
-      {/* Status Cards */}
       {statuses.map((status) => {
         const count = statusCounts[status] || 0;
         const config = statusConfig[status];
@@ -139,7 +137,6 @@ export function StatusCards({
         );
       })}
 
-      {/* Total Registrations Card */}
       <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0">
         <CardContent className="p-2 px-4 md:p-3">
           <div className="flex items-center justify-between">
