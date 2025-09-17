@@ -20,10 +20,12 @@ COPY . /app/
 RUN npm run build
 
 FROM node:22-alpine
+ENV NODE_ENV=production
 COPY ./package.json server.js /app/
 COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/build /app/build
 COPY --from=build-env /app/prisma /app/prisma
 WORKDIR /app
 RUN npx prisma generate
+EXPOSE 3000
 CMD ["npm", "run", "start"]

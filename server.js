@@ -44,6 +44,8 @@ if (DEVELOPMENT) {
   app.use(await import(BUILD_PATH).then((mod) => mod.app));
 }
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+const HOST = DEVELOPMENT ? "localhost" : "0.0.0.0";
+
+app.listen(PORT, HOST, () => {
+  console.log(`Server is running on http://${HOST}:${PORT}`);
 });
