@@ -18,7 +18,6 @@ const ROUTES_PATH = {
     create: "presentation/events/routes/create.tsx",
     update: "presentation/events/routes/update.tsx",
     archive: "presentation/events/routes/archive.ts",
-    testEmail: "presentation/events/routes/test-email.ts",
   },
   attendee: {
     join: "presentation/attendees/routes/join.tsx",
@@ -53,7 +52,7 @@ export default [
   route("/invitacion/:inviteToken", `${ROUTES_PATH.attendee.inviteDetails}`),
   route(
     "/verificar-registro/:qrCode",
-    `${ROUTES_PATH.guard.verifyRegistration}`
+    `${ROUTES_PATH.guard.verifyRegistration}`,
   ),
   layout(`${ROUTES_PATH.layout}`, [
     route("/panel", `${ROUTES_PATH.panel.dashboard}`),
@@ -66,19 +65,18 @@ export default [
     route("/eventos/crear", `${ROUTES_PATH.events.create}`),
     route("/eventos/actualizar/:id", `${ROUTES_PATH.events.update}`),
     route("/eventos/archivar/:id", `${ROUTES_PATH.events.archive}`),
-    route("/eventos/test-email", `${ROUTES_PATH.events.testEmail}`),
     route("/registros", `${ROUTES_PATH.registrations.list}`),
     route(
       "/registros/enviar-invitaciones/:id",
-      `${ROUTES_PATH.registrations.sendInvitations}`
+      `${ROUTES_PATH.registrations.sendInvitations}`,
     ),
     route(
       "/registros/delete-registration",
-      `${ROUTES_PATH.registrations.deleteRegistration}`
+      `${ROUTES_PATH.registrations.deleteRegistration}`,
     ),
     route(
       "/registros/resend-invite",
-      `${ROUTES_PATH.registrations.resendInvite}`
+      `${ROUTES_PATH.registrations.resendInvite}`,
     ),
   ]),
 ] satisfies RouteConfig;

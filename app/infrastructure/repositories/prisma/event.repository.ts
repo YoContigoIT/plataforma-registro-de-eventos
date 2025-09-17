@@ -213,5 +213,86 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
         },
       });
     },
+
+    countByStatus: async (status, dateFilter) => {
+      return await prisma.event.count({
+        where: {
+          status,
+          ...(dateFilter && {
+            createdAt: {
+              ...(dateFilter.from && { gte: dateFilter.from }),
+              ...(dateFilter.to && { lte: dateFilter.to }),
+            },
+          }),
+        },
+      });
+    },
+
+    countAllStatuses: async (dateFilter) => {
+      const statusCounts = await prisma.event.groupBy({
+        by: ["status"],
+        where: {
+          ...(dateFilter && {
+            createdAt: {
+              ...(dateFilter.from && { gte: dateFilter.from }),
+              ...(dateFilter.to && { lte: dateFilter.to }),
+            },
+          }),
+        },
+        _count: {
+          status: true,
+        },
+      });
+
+      return statusCounts.reduce(
+        (acc, item) => {
+          acc[item.status] = item._count.status;
+          return acc;
+        },
+        {} as Record<EventStatus, number>,
+      );
+    },
+
+    findByStatusAndDateRange: async (status, dateRange, limit = 10) => {
+      return await prisma.event.findMany({
+        where: {
+          status,
+          ...(dateRange && {
+            AND: [
+              ...(dateRange.from
+                ? [{ start_date: { gte: dateRange.from } }]
+                : []),
+              ...(dateRange.to ? [{ start_date: { lte: dateRange.to } }] : []),
+            ],
+          }),
+        },
+        orderBy: { start_date: "asc" },
+        take: limit,
+      });
+    },
+
+    findUpcomingEvents: async (
+      daysAhead,
+      statuses = ["UPCOMING", "DRAFT"],
+      limit = 10,
+    ) => {
+      const today = new Date();
+      const futureDate = new Date();
+      futureDate.setDate(today.getDate() + daysAhead);
+
+      return await prisma.event.findMany({
+        where: {
+          start_date: {
+            gte: today,
+            lte: futureDate,
+          },
+          status: {
+            in: statuses,
+          },
+        },
+        orderBy: { start_date: "asc" },
+        take: limit,
+      });
+    },
   };
 }

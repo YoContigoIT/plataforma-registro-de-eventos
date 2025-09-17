@@ -1,5 +1,4 @@
 import { EventStatus, RegistrationStatus, UserRole } from "@prisma/client";
-import * as crypto from "crypto";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { InvitationEmailDto } from "~/domain/dtos/email-invitation.dto";
@@ -7,6 +6,7 @@ import { sendInvitationsSchema } from "~/domain/dtos/invitation.dto";
 import type { CreateRegistrationDto } from "~/domain/dtos/registration.dto";
 import type { CreateUserDTO } from "~/domain/dtos/user.dto";
 import { runInTransaction } from "~/infrastructure/db/prisma";
+import { handleServiceError } from "~/shared/lib/error-handler";
 import {
   encodeInvitationData,
   generateQRCode,
@@ -16,19 +16,16 @@ import type { ActionData } from "~/shared/types";
 import { generateRevocationEmailTemplate } from "../../templates/revocation-email.template";
 import type { Route } from "../routes/+types/send-invitations";
 
-function generateInviteToken(): string {
-  return crypto.randomBytes(32).toString("hex");
-}
-
 function parseEmails(emailsString: string): string[] {
   return emailsString
     .split(/[,;\n\r]+/)
     .map((email) => email.trim().toLowerCase())
     .filter(
-      (email) => email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      (email) => email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
     )
     .filter((email, index, arr) => arr.indexOf(email) === index);
 }
+
 export const sendInvitationsAction = async ({
   request,
   context: { repositories, services, session },
@@ -101,6 +98,16 @@ export const sendInvitationsAction = async ({
           };
         }
 
+        //check remaining capacity validation
+        const remainingCapacity = event.remainingCapacity || 0;
+
+        if (emailList.length > remainingCapacity) {
+          return {
+            success: false,
+            error: `No se pueden enviar ${emailList.length} invitaciones. Solo hay ${remainingCapacity} lugares disponibles`,
+          };
+        }
+
         if (emailList.length > 100) {
           return {
             success: false,
@@ -108,6 +115,18 @@ export const sendInvitationsAction = async ({
               "No se pueden procesar más de 100 correos electrónicos a la vez",
           };
         }
+
+        // Check remaining capacity validation by status
+        /* const statusCounts = await repositories.registrationRepository.countAllStatusesByEvent(eventId);
+        const registeredCount = (statusCounts.REGISTERED || 0) + (statusCounts.CHECKED_IN || 0);
+        const availableSpots = Math.max(0, event.capacity - registeredCount);
+
+        if (emailList.length > availableSpots) {
+          return {
+            success: false,
+            error: `No se pueden enviar ${emailList.length} invitaciones. Solo hay ${availableSpots} lugares disponibles (capacidad: ${event.capacity}, registrados: ${registeredCount})`,
+          };
+        } */
 
         const results = {
           successful: 0,
@@ -133,7 +152,7 @@ export const sendInvitationsAction = async ({
             const existingRegistration =
               await repositories.registrationRepository.registrationExists(
                 eventId,
-                user.id
+                user.id,
               );
 
             if (existingRegistration) {
@@ -141,7 +160,6 @@ export const sendInvitationsAction = async ({
               continue;
             }
 
-            const inviteToken = encodeInvitationData(user.id, eventId);
             const qrCode = generateQRCode(user.id, eventId);
 
             const registrationData: CreateRegistrationDto = {
@@ -149,7 +167,6 @@ export const sendInvitationsAction = async ({
               userId: user.id,
               eventId,
               status: RegistrationStatus.PENDING,
-              inviteToken,
               invitedAt: new Date(),
             };
 
@@ -160,7 +177,7 @@ export const sendInvitationsAction = async ({
                 year: "numeric",
                 month: "long",
                 day: "numeric",
-              }
+              },
             );
 
             const eventTime = new Date(event.start_date).toLocaleTimeString(
@@ -168,7 +185,7 @@ export const sendInvitationsAction = async ({
               {
                 hour: "2-digit",
                 minute: "2-digit",
-              }
+              },
             );
 
             const invitationHash = encodeInvitationData(user.id, eventId);
@@ -187,19 +204,18 @@ export const sendInvitationsAction = async ({
                 customMessage ||
                 "Te invitamos a participar en este increíble evento. ¡Esperamos verte allí!",
               supportEmail: "soporte@eventos.com",
-              inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/invitacion/${invitationHash}`,
+              inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/inscripcion/${invitationHash}`,
             };
 
             // TODO: hmm this should work, i need to check it
             await runInTransaction(async () => {
-              const registration =
-                await repositories.registrationRepository.create(
-                  registrationData
-                );
+              await repositories.registrationRepository.create(
+                registrationData,
+              );
 
               await services.emailService.sendInvitationEmail(
                 invitationData,
-                email
+                email,
               );
             });
 
@@ -207,7 +223,7 @@ export const sendInvitationsAction = async ({
           } catch (error) {
             results.failed++;
             results.errors.push(
-              `Error al procesar ${email}: ${error instanceof Error ? error.message : "Error desconocido"}`
+              `Error al procesar ${email}: ${error instanceof Error ? error.message : "Error desconocido"}`,
             );
           }
         }
@@ -240,7 +256,7 @@ export const sendInvitationsAction = async ({
       },
       {
         timeout: 25000,
-      }
+      },
     );
   } catch (error) {
     return {
@@ -296,14 +312,14 @@ export const deleteRegistrationAction = async ({
       };
     }
 
-    const event = await repositories.eventRepository.findUnique(
-      registration.eventId
+    const currentEvent = await repositories.eventRepository.findUnique(
+      registration.eventId,
     );
     const user = await repositories.userRepository.findUnique(
-      registration.userId
+      registration.userId,
     );
 
-    if (!event) {
+    if (!currentEvent) {
       return {
         success: false,
         error: "Evento no encontrado",
@@ -311,7 +327,7 @@ export const deleteRegistrationAction = async ({
     }
 
     if (userRole === UserRole.ORGANIZER) {
-      if (event.organizerId !== userId) {
+      if (currentEvent.organizerId !== userId) {
         return {
           success: false,
           error: "No tienes permisos para eliminar este registro",
@@ -322,19 +338,35 @@ export const deleteRegistrationAction = async ({
     await runInTransaction(async () => {
       await repositories.registrationRepository.delete(registrationId);
 
-      if (user && user.email) {
+      if (
+        registration.status === RegistrationStatus.REGISTERED ||
+        registration.status === RegistrationStatus.CHECKED_IN
+      ) {
+        await repositories.eventRepository.update({
+          id: currentEvent.id,
+          remainingCapacity: currentEvent.remainingCapacity
+            ? currentEvent.remainingCapacity + 1
+            : 1, //should check this
+        });
+      }
+
+      if (user?.email) {
         const emailTemplate = generateRevocationEmailTemplate({
-          userName: user.name,
-          eventName: event.name,
-          eventDate: format(new Date(event.start_date), "PPP 'a las' p", {
-            locale: es,
-          }),
+          userName: user.name || user.email.split("@")[0],
+          eventName: currentEvent.name,
+          eventDate: format(
+            new Date(currentEvent.start_date),
+            "PPP 'a las' p",
+            {
+              locale: es,
+            },
+          ),
           customMessage: customMessage || undefined,
         });
 
         await services.emailService.sendEmail({
           to: user.email,
-          subject: `Invitación revocada - ${event.name}`,
+          subject: `Invitación revocada - ${currentEvent.name}`,
           html: emailTemplate,
         });
       }
@@ -346,10 +378,7 @@ export const deleteRegistrationAction = async ({
         "Registro eliminado exitosamente. Se ha enviado una notificación al usuario.",
     };
   } catch (error) {
-    return {
-      success: false,
-      error: "Error interno del servidor al eliminar el registro",
-    };
+    return handleServiceError(error);
   }
 };
 
@@ -404,15 +433,15 @@ export const resendInviteAction = async ({
       };
     }
 
-    const newInviteToken = generateInviteToken();
+    /* const newInviteToken = generateInviteToken(); */
     const encodedToken = encodeInvitationData(
       registration.userId,
-      registration.eventId
+      registration.eventId,
     );
 
     await repositories.registrationRepository.update({
       id: registrationId,
-      inviteToken: encodedToken,
+      /* inviteToken: newInviteToken, */
       invitedAt: new Date(),
     });
 
@@ -428,7 +457,7 @@ export const resendInviteAction = async ({
 
     const emailResponse = await services.emailService.sendInvitationEmail(
       emailData,
-      registration.user.email
+      registration.user.email,
     );
 
     if (emailResponse.success) {
@@ -443,9 +472,6 @@ export const resendInviteAction = async ({
       };
     }
   } catch (error) {
-    return {
-      success: false,
-      error: "Error interno del servidor al reenviar la invitación",
-    };
+    return handleServiceError(error);
   }
 };

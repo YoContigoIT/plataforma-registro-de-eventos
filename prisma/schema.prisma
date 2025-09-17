@@ -103,7 +103,7 @@ model Event {
     description       String?
     maxTickets        Int?
     status            EventStatus @default(DRAFT)
-    remainingCapacity Int
+    remainingCapacity Int?
     organizerId       String      @db.Uuid
     organizer         User        @relation("EventsByOrganizer", fields: [organizerId], references: [id])
 

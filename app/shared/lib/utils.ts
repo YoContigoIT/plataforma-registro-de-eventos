@@ -3,6 +3,7 @@ import { type ClassValue, clsx } from "clsx";
 import * as crypto from "crypto";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 import type { ZodError } from "zod";
 import type { UserEntity } from "~/domain/entities/user.entity";
@@ -139,7 +140,7 @@ export {
   getPayrollStatusBadge,
   getPurchaseOrderStatusBadge,
   getSessionStatusBadge,
-  getUserRoleBadge,
+  getUserRoleBadge
 } from "./badge-utils";
 
 // Legacy function for backward compatibility - deprecated
@@ -565,7 +566,20 @@ export const getEventStatusLabel = (status: string) => {
       return "Cancelado";
     case "COMPLETED":
       return "Completado";
+    case "UPCOMING":
+      return "Próximo";
+    case "ONGOING":
+      return "En curso";
     default:
       return status;
   }
 };
+
+export const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${label} copiado al portapapeles`);
+    } catch {
+      toast.error(`Error al copiar ${label.toLowerCase()}`);
+    }
+  };

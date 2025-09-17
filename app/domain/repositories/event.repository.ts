@@ -62,4 +62,18 @@ export interface IEventRepository {
   update(data: UpdateEventDTO): Promise<EventEntity>;
   delete(id: string): Promise<void>;
   softDelete(id: string): Promise<void>;
+  countByStatus(status: EventStatus, dateFilter?: { from?: Date; to?: Date }): Promise<number>;
+  countAllStatuses(dateFilter?: { from?: Date; to?: Date }): Promise<{
+    [key in EventStatus]: number;
+  }>;
+  findByStatusAndDateRange(
+    status: EventStatus,
+    dateRange?: { from?: Date; to?: Date },
+    limit?: number
+  ): Promise<EventEntity[]>;
+  findUpcomingEvents(
+    daysAhead: number,
+    statuses?: EventStatus[],
+    limit?: number
+  ): Promise<EventEntity[]>;
 }

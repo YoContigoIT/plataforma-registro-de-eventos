@@ -1,8 +1,8 @@
 import { RegistrationStatus, UserRole } from "@prisma/client";
 import QRCode from "qrcode";
 import {
-  createUserSchema,
   type CreateUserDTO,
+  createUserSchema,
   type UpdateUserDTO,
 } from "~/domain/dtos/user.dto";
 import {
@@ -87,13 +87,12 @@ export const createAttendeeAction = async ({
     }
 
     const maxTickets = event.maxTickets || 0;
-    const capacity = event.capacity;
 
     // Contar cuántos tickets ya tiene el usuario en ese event
     const userEventRegister =
       await repositories.registrationRepository.findTickesPurchased(
         eventId,
-        userId
+        userId,
       );
 
     if (!userEventRegister) {
@@ -112,7 +111,7 @@ export const createAttendeeAction = async ({
       };
     }
     // Tickets totales del evento
-    const remainingTickets = event.remainingCapacity;
+    const remainingTickets = event.remainingCapacity || 0; //force to fail.
 
     // Validación contra capacidad
     if (ticketsRequested > remainingTickets) {
@@ -134,7 +133,7 @@ export const createAttendeeAction = async ({
         purchasedTickets:
           (userEventRegister?.purchasedTickets || 0) + ticketsRequested,
         registeredAt: new Date(),
-      }
+      },
     );
 
     //Actualizar evento
@@ -160,7 +159,7 @@ export const createAttendeeAction = async ({
     const finalRegistrations =
       await repositories.registrationRepository.findTickesPurchased(
         eventId,
-        userId
+        userId,
       );
 
     if (!finalRegistrations) {
@@ -171,7 +170,7 @@ export const createAttendeeAction = async ({
     }
 
     const qrCodeUrl = await QRCode.toDataURL(
-      `${process.env.DOMAIN}/verificar-registro/${finalRegistrations.qrCode}`
+      `${process.env.DOMAIN}/verificar-registro/${finalRegistrations.qrCode}`,
     );
 
     console.log(qrCodeUrl);

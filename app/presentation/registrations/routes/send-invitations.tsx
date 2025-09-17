@@ -1,10 +1,10 @@
 import { useLoaderData } from "react-router";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import { getEventByIdLoader } from "~/presentation/events/api/loaders";
-import { InvitationForm } from "~/presentation/events/components/invitation-form";
 import { PageHeader } from "~/shared/components/common/page-header";
 import type { LoaderData } from "~/shared/types";
 import { sendInvitationsAction } from "../api/actions";
+import { InvitationForm } from "../components/invitation-form";
 
 export const loader = getEventByIdLoader;
 export const action = sendInvitationsAction;
