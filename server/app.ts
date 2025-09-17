@@ -61,3 +61,23 @@ app.use(
     },
   }),
 );
+
+app.get("/debug-email", async (req, res) => {
+  try {
+    const { services } = createDependenciesContainer(prisma);
+
+    await services.emailService.sendEmail({
+      to: "jesustrujillor23@gmail.com",
+      subject: "Railway Test",
+      text: "Test from Railway",
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown",
+      details: error,
+    });
+  }
+});
