@@ -41,7 +41,16 @@ if (DEVELOPMENT) {
   );
   app.use(morgan("tiny"));
   app.use(express.static("build/client", { maxAge: "1h" }));
-  app.use(await import(BUILD_PATH).then((mod) => mod.app));
+  
+  try {
+    const buildModule = await import(BUILD_PATH);
+    app.use(buildModule.app);
+  } catch (error) {
+    console.error("Failed to import build module:", error);
+    app.use((req, res) => {
+      res.status(500).send("Server configuration error");
+    });
+  }
 }
 
 const HOST = DEVELOPMENT ? "localhost" : "0.0.0.0";
