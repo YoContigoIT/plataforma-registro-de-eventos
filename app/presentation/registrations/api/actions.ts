@@ -451,7 +451,7 @@ export const resendInviteAction = async ({
       eventTime: registration.event.start_date.toLocaleTimeString(),
       eventDate: registration.event.start_date.toLocaleDateString(),
       eventLocation: registration.event.location,
-      inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/invitacion/${encodedToken}`,
+      inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/inscripcion/${encodedToken}`,
       customMessage: "Se ha reenviado tu invitación al evento.",
     };
 

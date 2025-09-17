@@ -163,7 +163,7 @@ export const EmailService = (): IEmailService => ({
     emailData: InvitationEmailDto,
     recipientEmail: string
   ): Promise<EmailResponse> => {
-    const { success, data, error } = invitationEmailSchema.safeParse(emailData);
+    const { success, data } = invitationEmailSchema.safeParse(emailData);
 
     if (!success) {
       throw new Error("Invalid invitation email data");

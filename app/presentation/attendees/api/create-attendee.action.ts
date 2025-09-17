@@ -170,7 +170,7 @@ export const createAttendeeAction = async ({
     }
 
     const qrCodeUrl = await QRCode.toDataURL(
-      `${process.env.DOMAIN}/verificar-registro/${finalRegistrations.qrCode}`,
+      `${process.env.APP_URL}/verificar-registro/${finalRegistrations.qrCode}`,
     );
 
     console.log(qrCodeUrl);
