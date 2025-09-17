@@ -1,11 +1,15 @@
-import { UserRole } from "@prisma/client";
-import type { CreateRegistrationDto } from "~/domain/dtos/registration.dto";
+import { RegistrationStatus, UserRole } from "@prisma/client";
+import QRCode from "qrcode";
 import {
-  createUserSchema,
   type CreateUserDTO,
+  createUserSchema,
   type UpdateUserDTO,
 } from "~/domain/dtos/user.dto";
-import { generateQRCode, simplifyZodErrors } from "~/shared/lib/utils";
+import {
+  decodeInvitationData,
+  generateQRCode,
+  simplifyZodErrors,
+} from "~/shared/lib/utils";
 import type { Route } from "../routes/+types/join";
 
 export const createAttendeeAction = async ({
@@ -16,6 +20,17 @@ export const createAttendeeAction = async ({
   try {
     const formData = await request.formData();
     const data = Object.fromEntries(formData);
+    const { inviteToken } = params;
+
+    const decodedData = decodeInvitationData(inviteToken);
+    if (!decodedData) {
+      return {
+        success: false,
+        error: "Invitación no válida o expirada.",
+      };
+    }
+
+    const { userId, eventId } = decodedData;
 
     const result = createUserSchema.safeParse({
       email: data.email,
@@ -40,7 +55,7 @@ export const createAttendeeAction = async ({
     let user = null;
 
     // Verificar si el email ya existe
-    user = await repositories.userRepository.findByEmail(result.data.email);
+    user = await repositories.userRepository.findUnique(userId);
     if (!user) {
       user = await repositories.userRepository.create(result.data);
     } else {
@@ -63,7 +78,7 @@ export const createAttendeeAction = async ({
     }
 
     //Obtener evento
-    const eventId = params.eventId;
+
     const event = await repositories.eventRepository.findUnique(eventId);
     if (!event) {
       return {
@@ -72,15 +87,22 @@ export const createAttendeeAction = async ({
     }
 
     const maxTickets = event.maxTickets || 0;
-    const capacity = event.capacity;
 
     // Contar cuántos tickets ya tiene el usuario en ese event
-    const userTickets =
-      await repositories.registrationRepository.countRegistrations({
-        userId: user.id,
-        eventId: eventId,
-      });
+    const userEventRegister =
+      await repositories.registrationRepository.findTickesPurchased(
+        eventId,
+        userId,
+      );
 
+    if (!userEventRegister) {
+      return {
+        success: false,
+        error: "No tienes un registro para este evento.",
+      };
+    }
+
+    const userTickets = userEventRegister.purchasedTickets || 0;
     if (userTickets + ticketsRequested > maxTickets) {
       return {
         error: `Solo puedes comprar ${maxTickets} tickets como máximo. 
@@ -89,45 +111,79 @@ export const createAttendeeAction = async ({
       };
     }
     // Tickets totales del evento
-    const totalTickets =
-      await repositories.registrationRepository.countRegistrations({
-        eventId: eventId,
-      });
+    const remainingTickets = event.remainingCapacity || 0; //force to fail.
 
     // Validación contra capacidad
-    if (totalTickets + ticketsRequested > capacity) {
+    if (ticketsRequested > remainingTickets) {
       return {
-        error: `El evento alcanzó su capacidad máxima de ${capacity} tickets. 
-                Actualmente hay ${totalTickets} registrados.`,
+        error: `No hay suficientes tickets disponibles. 
+            Quedan ${remainingTickets} tickets, 
+            intentaste comprar ${ticketsRequested}.`,
       };
     }
 
-    const registrations: CreateRegistrationDto[] = Array.from({
-      length: ticketsRequested,
-    }).map(() => ({
-      qrCode: generateQRCode(user.id, eventId),
-      userId: user.id,
-      eventId,
-    }));
-
-    await Promise.all(
-      registrations.map((r) => repositories.registrationRepository.create(r))
+    //Actualizar registro
+    const updateRegistration = await repositories.registrationRepository.update(
+      {
+        id: userEventRegister.id,
+        userId: user.id,
+        eventId,
+        status: RegistrationStatus.REGISTERED,
+        qrCode: generateQRCode(user.id, eventId),
+        purchasedTickets:
+          (userEventRegister?.purchasedTickets || 0) + ticketsRequested,
+        registeredAt: new Date(),
+      },
     );
 
-    const ticketQuantity =
-      await repositories.registrationRepository.countRegistrations({
-        userId: user.id,
-        eventId: eventId,
-      });
+    //Actualizar evento
+    await repositories.eventRepository.update({
+      id: event.id,
+      remainingCapacity: remainingTickets - ticketsRequested,
+    });
+
+    // const qrCode = generateQRCode(user.id, eventId);
+    // const registrations: CreateRegistrationDto[] = Array.from({
+    //   length: ticketsRequested,
+    // }).map(() => ({
+    //   qrCode,
+    //   userId: user.id,
+    //   eventId,
+    //   status: RegistrationStatus.REGISTERED,
+    // }));
+
+    // await Promise.all(
+    //   registrations.map((r) => repositories.registrationRepository.create(r))
+    // );
+
+    const finalRegistrations =
+      await repositories.registrationRepository.findTickesPurchased(
+        eventId,
+        userId,
+      );
+
+    if (!finalRegistrations) {
+      return {
+        error: "Error al registrar el asistente.",
+        success: false,
+      };
+    }
+
+    const qrCodeUrl = await QRCode.toDataURL(
+      `${process.env.DOMAIN}/verificar-registro/${finalRegistrations.qrCode}`,
+    );
+
+    console.log(qrCodeUrl);
+
     await services.emailService.sendRegistrationConfirmation(user.email, {
-      userName: user.name,
+      userName: user.name || "",
       eventName: event.name,
       eventDate: event.start_date.toISOString().split("T")[0],
       eventLocation: event.location,
       eventTime: event.start_date.toISOString().split("T")[1],
-      qrCode: registrations[0].qrCode,
-      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(registrations[0].qrCode)}`, //TODO: Cambiar cuando este implementado
-      ticketQuantity: ticketQuantity.toString(),
+      qrCode: finalRegistrations.qrCode,
+      qrCodeUrl,
+      ticketsQuantity: finalRegistrations.purchasedTickets || 0,
     });
 
     return {

@@ -93,19 +93,19 @@ model User {
 }
 
 model Event {
-    id          String      @id @default(uuid()) @db.Uuid
-    name        String
-    start_date  DateTime
-    end_date    DateTime
-    location    String
-    agenda      String?
-    capacity    Int
-    description String?
-    maxTickets  Int?
-    status      EventStatus @default(DRAFT)
-
-    organizerId String @db.Uuid
-    organizer   User   @relation("EventsByOrganizer", fields: [organizerId], references: [id])
+    id                String      @id @default(uuid()) @db.Uuid
+    name              String
+    start_date        DateTime
+    end_date          DateTime
+    location          String
+    agenda            String?
+    capacity          Int
+    description       String?
+    maxTickets        Int?
+    status            EventStatus @default(DRAFT)
+    remainingCapacity Int?
+    organizerId       String      @db.Uuid
+    organizer         User        @relation("EventsByOrganizer", fields: [organizerId], references: [id])
 
     registrations Registration[]
     //form          EventForm?
@@ -125,12 +125,12 @@ model Registration {
     checkedInAt DateTime?
 
     // New fields for invite management
-    invitedAt   DateTime  @default(now())
-    respondedAt DateTime? // When user responded to invite
-    inviteToken String?   @unique // For invite links
-
-    userId String @db.Uuid
-    user   User   @relation(fields: [userId], references: [id])
+    invitedAt        DateTime  @default(now())
+    respondedAt      DateTime? // When user responded to invite
+    inviteToken      String?   @unique // For invite links
+    purchasedTickets Int? //Cantidad de tickets adquiridos
+    userId           String    @db.Uuid
+    user             User      @relation(fields: [userId], references: [id])
 
     eventId String @db.Uuid
     event   Event  @relation(fields: [eventId], references: [id])

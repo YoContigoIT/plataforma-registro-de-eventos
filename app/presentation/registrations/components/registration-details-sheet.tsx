@@ -14,6 +14,7 @@ import {
   Building2,
   Calendar,
   CalendarCheck,
+  Copy,
   Mail,
   Phone,
   QrCode,
@@ -29,8 +30,7 @@ import { toast } from "sonner";
 import type { RegistrationWithRelations } from "~/domain/entities/registration.entity";
 import { ConfirmationDialog } from "~/shared/components/common/confirmation-dialog";
 import { Card, CardContent } from "~/shared/components/ui/card";
-
-/* import { Separator } from "~/shared/components/ui/separator"; */
+import { copyToClipboard } from "~/shared/lib/utils";
 
 interface RegistrationDetailsSheetProps {
   registration: RegistrationWithRelations | null;
@@ -94,7 +94,7 @@ export function RegistrationDetailsSheet({
       }
     );
     setIsDeleteDialogOpen(false);
-    setCustomMessage(""); // Reset the message
+    setCustomMessage("");
     onClose();
   };
 
@@ -115,7 +115,7 @@ export function RegistrationDetailsSheet({
   return (
     <>
       <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent className="min-w-2xl overflow-y-auto p-6">
+        <SheetContent className="w-full md:min-w-2xl overflow-y-auto p-6">
           <SheetHeader className="flex flex-row justify-between items-center px-0">
             <div>
               <SheetTitle className="flex items-center gap-2">
@@ -126,12 +126,6 @@ export function RegistrationDetailsSheet({
                 Información completa del registro y usuario
               </SheetDescription>
             </div>
-            {canSendInvite && isPending && (
-              <Button onClick={handleResendInvite} disabled={isResending}>
-                <Send className="h-3 w-3 mr-1" />
-                {isResending ? "Enviando..." : "Reenviar invitación"}
-              </Button>
-            )}
           </SheetHeader>
 
           <div className="mt-6 space-y-6">
@@ -143,12 +137,25 @@ export function RegistrationDetailsSheet({
               <Card>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 gap-3">
-                    <div className="flex items-center gap-3">
-                      <QrCode className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium font-mono">
-                          {registration.qrCode}
-                        </p>
+                    <div className="flex items-start gap-3">
+                      <QrCode className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium font-mono break-all">
+                            {registration.qrCode}
+                          </p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 hover:bg-muted"
+                            onClick={() =>
+                              copyToClipboard(registration.qrCode, "Código QR")
+                            }
+                          >
+                            <Copy className="h-3 w-3" />
+                            <span className="sr-only">Copiar código QR</span>
+                          </Button>
+                        </div>
                         <p className="text-xs text-muted-foreground">
                           Código QR
                         </p>
@@ -239,19 +246,31 @@ export function RegistrationDetailsSheet({
                       </div>
                     )}
 
-                    {registration.inviteToken && (
+                    {/*  {registration.inviteToken && (
                       <div className="flex items-start gap-3">
                         <QrCode className="h-4 w-4 text-muted-foreground mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium font-mono break-all">
-                            {registration.inviteToken}
-                          </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium font-mono break-all">
+                              {registration.inviteToken}
+                            </p>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 hover:bg-muted"
+                            >
+                              <Copy className="h-3 w-3" />
+                              <span className="sr-only">
+                                Copiar token de invitación
+                              </span>
+                            </Button>
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             Token de invitación
                           </p>
                         </div>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </CardContent>
               </Card>
@@ -324,23 +343,41 @@ export function RegistrationDetailsSheet({
               </Card>
             </div>
 
-            {/* Action Buttons */}
+            {/* Actions Card */}
             {canSendInvite && (
-              <div className="flex flex-col gap-1 justify-end w-full mt-12">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDeleteClick}
-                  disabled={isDeleting}
-                  className="self-start"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  {isDeleting ? "Eliminando..." : "Revocar invitación"}
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2 self-start">
-                  Al revocar la invitación, se eliminará este registro y se
-                  enviará una notificación al usuario.
-                </p>
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium flex items-center gap-2">
+                  <Send className="h-4 w-4" />
+                  Acciones de invitación
+                </h3>
+                <Card>
+                  <CardContent className="space-y-3">
+                    {isPending && (
+                      <Button
+                        onClick={handleResendInvite}
+                        disabled={isResending}
+                        variant="default"
+                        className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        {isResending ? "Reenviando..." : "Reenviar invitación"}
+                      </Button>
+                    )}
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteClick}
+                      disabled={isDeleting}
+                      className="w-full justify-start"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {isDeleting ? "Revocando..." : "Revocar invitación"}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Al revocar la invitación, se eliminará este registro y se
+                      enviará una notificación al usuario.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             )}
           </div>

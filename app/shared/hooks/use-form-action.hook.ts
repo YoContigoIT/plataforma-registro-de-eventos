@@ -22,7 +22,11 @@ export function useFormAction({
   });
 
   useEffect(() => {
-    if (actionData?.errors) {
+    if (!actionData?.success && (actionData?.error || actionData?.message)) {
+      toast.error(actionData?.error || actionData?.message)
+    }
+
+    if (!actionData?.success && actionData?.errors) {
       Object.entries(actionData.errors).forEach(([field, messages]) => {
         if (messages && messages.length > 0) {
           messages.forEach(message => {
@@ -31,7 +35,7 @@ export function useFormAction({
         }
       });
     }
-    if (actionData?.message) {
+    if (actionData?.success && actionData?.message) {
       toast.success(actionData.message);
     }
     if (actionData?.redirectTo) {

@@ -12,6 +12,7 @@
     "noEmit": true,
     "paths": {
       "@/*": ["./app/*"],
+      "@/prisma/*": ["./prisma/*"],
       "@/shared/*": ["./app/shared/*"],
       "@/ui/*": ["./app/shared/components/ui/*"],
       "@/components/*": ["./app/shared/components/*"],

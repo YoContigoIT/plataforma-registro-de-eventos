@@ -2,7 +2,9 @@ import { Grid, List, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { Link, useLoaderData } from "react-router";
 import { PageHeader } from "~/shared/components/common/page-header";
+import { SearchBar } from "~/shared/components/common/search-bar";
 import { Button } from "~/shared/components/ui/button";
+import { Card, CardContent } from "~/shared/components/ui/card";
 import { Pagination } from "~/shared/components/ui/pagination";
 import { getUserRoleBadge } from "~/shared/lib/badge-utils";
 import { getAllUsersPagination } from "../api/get-all-users.loader";
@@ -61,6 +63,16 @@ export default function UsersPage() {
           </div>
         }
       />
+
+      <Card>
+        <CardContent>
+          <SearchBar
+            searchParamKey="userSearch"
+            placeholder="Buscar usuarios por nombre"
+            className="w-full"
+          />
+        </CardContent>
+      </Card>
       <div>
         {viewMode === "grid" ? (
           <UserGridView

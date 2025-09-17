@@ -12,7 +12,7 @@ const createOrderByClause = (
   defaultSortBy: string,
   sortBy?: string,
   sortOrder?: "asc" | "desc" | null,
-  defaultSortOrder?: "asc" | "desc",
+  defaultSortOrder?: "asc" | "desc"
 ) => {
   if (!sortBy || !sortOrder) {
     return { [defaultSortBy]: defaultSortOrder };
@@ -30,7 +30,7 @@ const createOrderByClause = (
 };
 
 export const PrismaRegistrationRepository = (
-  prisma: PrismaClient,
+  prisma: PrismaClient
 ): IRegistrationRepository => {
   return {
     findMany: async (
@@ -40,7 +40,7 @@ export const PrismaRegistrationRepository = (
         sortBy?: string;
         sortDirection?: "asc" | "desc";
       },
-      filters?: RegistrationFilters,
+      filters?: RegistrationFilters
     ): Promise<PaginatedResponse<RegistrationWithRelations>> => {
       const { page, limit, sortBy, sortDirection } = params;
       const offset = (page - 1) * limit;
@@ -176,12 +176,12 @@ export const PrismaRegistrationRepository = (
                   gte: filters.respondedWithin.days
                     ? new Date(
                         Date.now() -
-                          filters.respondedWithin.days * 24 * 60 * 60 * 1000,
+                          filters.respondedWithin.days * 24 * 60 * 60 * 1000
                       )
                     : filters.respondedWithin.hours
                       ? new Date(
                           Date.now() -
-                            filters.respondedWithin.hours * 60 * 60 * 1000,
+                            filters.respondedWithin.hours * 60 * 60 * 1000
                         )
                       : new Date(),
                 },
@@ -210,7 +210,7 @@ export const PrismaRegistrationRepository = (
         "invitedAt",
         sortBy,
         sortDirection,
-        "desc",
+        "desc"
       );
 
       const [registrations, total] = await Promise.all([
@@ -239,7 +239,7 @@ export const PrismaRegistrationRepository = (
     },
     findExactInvitation: async (
       eventId: string,
-      userId: string,
+      userId: string
     ): Promise<RegistrationWithRelations | null> => {
       return await prisma.registration.findFirst({
         where: {
@@ -254,7 +254,7 @@ export const PrismaRegistrationRepository = (
     },
     registrationExists: async (
       eventId: string,
-      userId: string,
+      userId: string
     ): Promise<boolean> => {
       const count = await prisma.registration.count({
         where: {
@@ -320,20 +320,7 @@ export const PrismaRegistrationRepository = (
         data,
       });
     },
-    countRegistrations: async ({
-      userId,
-      eventId,
-    }: {
-      userId?: string;
-      eventId?: string;
-    }) => {
-      return await prisma.registration.count({
-        where: {
-          ...(userId && { userId }),
-          ...(eventId && { eventId }),
-        },
-      });
-    },
+
     countByStatus: async (eventId, status) => {
       return await prisma.registration.count({
         where: {
@@ -358,8 +345,28 @@ export const PrismaRegistrationRepository = (
           acc[item.status] = item._count.status;
           return acc;
         },
-        {} as Record<RegistrationStatus, number>,
+        {} as Record<RegistrationStatus, number>
       );
+    },
+
+    findByQrCode: async (qrCode: string) => {
+      return await prisma.registration.findFirst({
+        where: {
+          qrCode,
+        },
+        include: {
+          user: true,
+          event: true,
+        },
+      });
+    },
+    findTickesPurchased: async (eventId: string, userId: string) => {
+      return await prisma.registration.findFirst({
+        where: {
+          eventId,
+          userId,
+        },
+      });
     },
   };
 };
