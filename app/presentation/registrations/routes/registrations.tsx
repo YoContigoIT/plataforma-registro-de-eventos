@@ -318,6 +318,7 @@ export default function Registrations() {
             getStatusLabel={getStatusLabel}
             getStatusBadgeVariant={getStatusBadgeVariant}
             eventCapacity={selectedEvent.capacity}
+            remainingCapacity={selectedEvent.remainingCapacity || 0}
           />
 
           <Card>

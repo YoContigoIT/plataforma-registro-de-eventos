@@ -34,8 +34,6 @@ const ROUTES_PATH = {
     sendInvitations: "presentation/registrations/routes/send-invitations.tsx",
     deleteRegistration:
       "presentation/registrations/routes/delete-registration.tsx",
-    deleteRegistration:
-      "presentation/registrations/routes/delete-registration.tsx",
     resendInvite: "presentation/registrations/routes/resend-invite.tsx",
   },
   panel: {

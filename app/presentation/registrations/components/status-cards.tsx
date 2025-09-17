@@ -15,6 +15,7 @@ interface StatusCardsProps {
   getStatusLabel: (status: string) => string;
   getStatusBadgeVariant: (status: string) => string;
   eventCapacity: number;
+  remainingCapacity: number;
 }
 
 const statusConfig = {
@@ -54,6 +55,7 @@ export function StatusCards({
   statusCounts,
   getStatusLabel,
   eventCapacity,
+  remainingCapacity,
 }: StatusCardsProps) {
   const statuses = Object.keys(statusCounts) as RegistrationStatus[];
   const totalRegistrations = Object.values(statusCounts).reduce(
@@ -61,11 +63,8 @@ export function StatusCards({
     0
   );
 
-  // Calculate remaining spots (capacity - registered - checked_in)
-  const registeredCount = statusCounts.REGISTERED || 0;
-  const checkedInCount = statusCounts.CHECKED_IN || 0;
-  const occupiedSpots = registeredCount + checkedInCount;
-  const remainingSpots = Math.max(0, eventCapacity - occupiedSpots);
+  // Calculate occupancy percentage using the remaining capacity
+  const occupiedSpots = eventCapacity - remainingCapacity;
   const occupancyPercentage = (occupiedSpots / eventCapacity) * 100;
 
   return (
@@ -78,7 +77,7 @@ export function StatusCards({
                 <div className="space-y-1">
                   <p className="text-xs truncate">Disponibles</p>
                   <p className="text-lg md:text-xl font-bold">
-                    {remainingSpots}
+                    {remainingCapacity}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     de {eventCapacity} lugares

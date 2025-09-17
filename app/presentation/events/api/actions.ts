@@ -24,6 +24,9 @@ export const createEventAction = async ({
     maxTickets: formData.maxTickets ? Number(formData.maxTickets) : undefined,
     status: formData.status || EventStatus.DRAFT,
     organizerId: userId,
+    remainingCapacity: formData.capacity
+      ? Number(formData.capacity)
+      : undefined,
   };
 
   const { data, success, error } = createEventSchema.safeParse(parsedData);
@@ -84,7 +87,36 @@ export const updateEventAction = async ({
   }
 
   try {
-    await repositories.eventRepository.update(data);
+    //edge case: when we update the event capacity, we preserve the updated capacity
+    //even if the event is full, we allow the update to keep the capacity
+    const statusCounts =
+      await repositories.registrationRepository.countAllStatusesByEvent(
+        data.id,
+      );
+
+    const registeredCount =
+      (statusCounts.REGISTERED || 0) + (statusCounts.CHECKED_IN || 0);
+
+    const eventCapacity = Number(data.capacity);
+
+    //validate that new capacity is not smaller than current registered attendees
+    if (eventCapacity < registeredCount) {
+      return {
+        success: false,
+        error: `No se puede reducir la capacidad a ${eventCapacity} porque ya hay ${registeredCount} personas registradas. 
+        La capacidad mínima debe ser ${registeredCount}.`,
+      };
+    }
+
+    const calculatedRemainingCapacity = Math.max(
+      0,
+      eventCapacity - registeredCount,
+    );
+
+    await repositories.eventRepository.update({
+      ...data,
+      remainingCapacity: calculatedRemainingCapacity,
+    });
 
     return {
       success: true,

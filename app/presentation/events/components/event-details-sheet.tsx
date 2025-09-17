@@ -122,7 +122,7 @@ export function EventDetailsSheet({
                 Detalles del evento • {getStatusLabel(event.status)}
               </SheetDescription>
             </div>
-            
+
             {/* Desktop buttons */}
             <div className="hidden md:flex gap-2">
               <Link to={`/eventos/actualizar/${event.id}`}>
@@ -264,6 +264,18 @@ export function EventDetailsSheet({
                         </p>
                         <p className="text-xs text-muted-foreground">
                           Capacidad
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          {event.remainingCapacity || 0} lugares disponibles
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Disponibilidad
                         </p>
                       </div>
                     </div>

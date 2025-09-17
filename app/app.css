@@ -80,27 +80,27 @@ body {
   --gradient-sidebar:
     radial-gradient(
       circle at 65% 15%,
-      oklch(0.6231 0.188 259.8145 / 0.15) 0%,
+      oklch(0.6231 0.15 225.8145 / 0.075) 0%,
       transparent 45%
     ),
     radial-gradient(
       circle at 75% 45%,
-      oklch(0.7137 0.1434 254.624 / 0.2) 0%,
+      oklch(0.7137 0.12 230.624 / 0.1) 0%,
       transparent 40%
     ),
     radial-gradient(
       circle at 55% 75%,
-      oklch(0.8091 0.0956 251.8128 / 0.18) 0%,
+      oklch(0.8091 0.08 235.8128 / 0.09) 0%,
       transparent 35%
     ),
     radial-gradient(
       circle at 85% 85%,
-      oklch(0.6231 0.188 259.8145 / 0.5) 0%,
+      oklch(0.6231 0.15 225.8145 / 0.25) 0%,
       transparent 30%
     ), /* Subtle highlight */
     radial-gradient(
       circle at 35% 60%,
-      oklch(0.8823 0.0571 254.1284 / 0.12) 0%,
+      oklch(0.8823 0.05 240.1284 / 0.06) 0%,
       transparent 55%
     ),
     linear-gradient(

@@ -205,7 +205,7 @@ export default function Panel() {
             <CardContent>
               <div className="grid gap-3">
                 <Link
-                  to="/events/new"
+                  to="/eventos/crear"
                   className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/20 transition-colors"
                 >
                   <Plus className="h-4 w-4" />
@@ -219,7 +219,7 @@ export default function Panel() {
                   <span>Agregar nuevo usuario</span>
                 </Link>
                 <Link
-                  to="/events"
+                  to="/eventos"
                   className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/20 transition-colors"
                 >
                   <Calendar className="h-4 w-4" />
