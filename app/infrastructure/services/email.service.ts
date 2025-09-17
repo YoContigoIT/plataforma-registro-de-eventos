@@ -184,18 +184,8 @@ export const EmailService = (): IEmailService => ({
         message: "Invitation email sent successfully",
       };
     } catch (error) {
-      console.error('❌ Invitation email failed:', {
-        error,
-        recipientEmail,
-        emailData,
-        errorMessage: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
-      });
-      return {
-        success: false,
-        message: `Invitation email failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      };
-
+      console.log(error);
+      throw new Error(`Invitation email sent failed: ${error}`);
     }
   },
 });

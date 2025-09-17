@@ -49,7 +49,7 @@ export default [
   route("/iniciar-sesion", `${ROUTES_PATH.auth.login}`),
   route("/cerrar-sesion", `${ROUTES_PATH.auth.logout}`),
   route("/inscripcion/:inviteToken", `${ROUTES_PATH.attendee.join}`),
-  route("/invitacion/:inviteToken", `${ROUTES_PATH.attendee.inviteDetails}`),
+  /* route("/invitacion/:inviteToken", `${ROUTES_PATH.attendee.inviteDetails}`), */
   route(
     "/verificar-registro/:qrCode",
     `${ROUTES_PATH.guard.verifyRegistration}`,
