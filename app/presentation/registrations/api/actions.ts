@@ -391,15 +391,7 @@ export const resendInviteAction = async ({
   const userId = session.get("user")?.id;
   const userRole = session.get("user")?.role;
 
-  console.log('🔄 Resend invite action started:', {
-    registrationId,
-    userId,
-    userRole,
-    timestamp: new Date().toISOString()
-  });
-
   if (!userId) {
-    console.log('❌ No user session found');
     return {
       success: false,
       error: "No se ha iniciado sesión",
@@ -410,7 +402,6 @@ export const resendInviteAction = async ({
     !userRole ||
     (userRole !== UserRole.ORGANIZER && userRole !== UserRole.ADMIN)
   ) {
-    console.log('❌ Insufficient permissions:', { userRole });
     return {
       success: false,
       error: "No tienes permisos para reenviar invitaciones",
@@ -418,7 +409,6 @@ export const resendInviteAction = async ({
   }
 
   if (!registrationId) {
-    console.log('❌ Missing registration ID');
     return {
       success: false,
       error: "ID de registro requerido",
@@ -426,99 +416,62 @@ export const resendInviteAction = async ({
   }
 
   try {
-    console.log('🔍 Finding registration:', registrationId);
     const registration =
       await repositories.registrationRepository.findOne(registrationId);
 
     if (!registration) {
-      console.log('❌ Registration not found:', registrationId);
       return {
         success: false,
         error: "Registro no encontrado",
       };
     }
 
-    console.log('✅ Registration found:', {
-      id: registration.id,
-      status: registration.status,
-      userEmail: registration.user.email,
-      eventName: registration.event.name
-    });
-
     if (registration.status !== RegistrationStatus.PENDING) {
-      console.log('❌ Invalid registration status:', registration.status);
       return {
         success: false,
         error: "Solo se pueden reenviar invitaciones pendientes",
       };
     }
 
-    console.log('🔐 Generating invitation token...');
+    /* const newInviteToken = generateInviteToken(); */
     const encodedToken = encodeInvitationData(
       registration.userId,
       registration.eventId,
     );
 
-    console.log('💾 Updating registration with new invite timestamp...');
     await repositories.registrationRepository.update({
       id: registrationId,
+      /* inviteToken: newInviteToken, */
       invitedAt: new Date(),
     });
 
-    const appUrl = process.env.APP_URL || "http://localhost:3000";
-    const inviteUrl = `${appUrl}/invitacion/${encodedToken}`;
-    
     const emailData: InvitationEmailDto = {
       userName: registration.user.name || registration.user.email,
       eventName: registration.event.name,
       eventTime: registration.event.start_date.toLocaleTimeString(),
       eventDate: registration.event.start_date.toLocaleDateString(),
       eventLocation: registration.event.location,
-      inviteUrl,
+      inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/inscripcion/${encodedToken}`,
       customMessage: "Se ha reenviado tu invitación al evento.",
     };
-
-    console.log('📧 Preparing to send invitation email:', {
-      recipientEmail: registration.user.email,
-      eventName: emailData.eventName,
-      inviteUrl: emailData.inviteUrl,
-      appUrl
-    });
 
     const emailResponse = await services.emailService.sendInvitationEmail(
       emailData,
       registration.user.email,
     );
 
-    console.log('📧 Email service response:', emailResponse);
-
     if (emailResponse.success) {
-      console.log('✅ Invitation resent successfully');
       return {
         success: true,
         message: "Invitación reenviada exitosamente",
       };
     } else {
-      console.error('❌ Email service failed:', emailResponse.message);
       return {
         success: false,
-        error: `Error al reenviar la invitación: ${emailResponse.message}`,
+        error: "Error al reenviar la invitación",
       };
     }
   } catch (error) {
-    console.error('❌ Resend invite action failed:', {
-      error,
-      errorMessage: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      registrationId,
-      userId,
-      timestamp: new Date().toISOString()
-    });
-    
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return {
-      success: false,
-      error: `Error interno del servidor: ${errorMessage}`,
-    };
+    return handleServiceError(error);
   }
 };
