@@ -41,7 +41,7 @@ if (DEVELOPMENT) {
   );
   app.use(morgan("tiny"));
   app.use(express.static("build/client", { maxAge: "1h" }));
-  
+
   try {
     const buildModule = await import(BUILD_PATH);
     app.use(buildModule.app);
