@@ -14,56 +14,15 @@ import { transporter } from "../config/nodemailer";
 export const EmailService = (): IEmailService => ({
   sendEmail: async (options: EmailOptions): Promise<void> => {
     try {
-      // Add detailed logging
-      console.log('🔧 Email Debug Info:', {
-        rawEnvVars: {
-          EMAIL_HOST: process.env.EMAIL_HOST,
-          EMAIL_PORT: process.env.EMAIL_PORT,
-          EMAIL_SECURE: process.env.EMAIL_SECURE,
-          EMAIL_USER: process.env.EMAIL_USER,
-          EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ? 'SET' : 'MISSING'
-        },
-        parsedEnvVars: {
-          EMAIL_HOST: env.EMAIL_HOST,
-          EMAIL_PORT: env.EMAIL_PORT,
-          EMAIL_SECURE: env.EMAIL_SECURE,
-          EMAIL_USER: env.EMAIL_USER,
-          EMAIL_PASSWORD: env.EMAIL_PASSWORD ? 'SET' : 'MISSING'
-        },
-        transporterConfig: {
-          host: env.EMAIL_HOST,
-          port: env.EMAIL_PORT,
-          secure: env.EMAIL_SECURE,
-          auth: {
-            user: env.EMAIL_USER,
-            pass: env.EMAIL_PASSWORD ? 'SET' : 'MISSING'
-          }
-        }
-      });
-      
-      // Test connection first
-      console.log('🔍 Testing SMTP connection...');
-      await transporter.verify();
-      console.log('✅ SMTP connection verified');
-      
-      const result = await transporter.sendMail({
+      await transporter.sendMail({
         from: options.from || env.EMAIL_FROM,
         to: Array.isArray(options.to) ? options.to.join(", ") : options.to,
         subject: options.subject,
         text: options.text,
         html: options.html,
       });
-      
-      console.log('✅ Email sent successfully:', result);
     } catch (error) {
-      console.error('❌ Email Error:', {
-        error: error,
-        message: error instanceof Error ? error.message : 'Unknown',
-        code: (error as any).code,
-        command: (error as any).command,
-        response: (error as any).response
-      });
-      throw error;
+      throw new Error(`Error sending email: ${error}`);
     }
   },
 
@@ -204,7 +163,7 @@ export const EmailService = (): IEmailService => ({
     emailData: InvitationEmailDto,
     recipientEmail: string
   ): Promise<EmailResponse> => {
-    const { success, data, error } = invitationEmailSchema.safeParse(emailData);
+    const { success, data } = invitationEmailSchema.safeParse(emailData);
 
     if (!success) {
       throw new Error("Invalid invitation email data");
@@ -225,8 +184,18 @@ export const EmailService = (): IEmailService => ({
         message: "Invitation email sent successfully",
       };
     } catch (error) {
-      console.log(error);
-      throw new Error(`Invitation email sent failed: ${error}`);
+      console.error('❌ Invitation email failed:', {
+        error,
+        recipientEmail,
+        emailData,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      return {
+        success: false,
+        message: `Invitation email failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      };
+
     }
   },
 });
