@@ -51,6 +51,7 @@ const ROLE_PROTECTED_ROUTES: Record<UserRole, string[]> = {
     "/perfil/actualizar",
     "/perfil/cambiar-contrasenia",
     "/perfil/cerrar-sesion",
+    "/registro-invitado",
   ],
 };
 
