@@ -58,12 +58,6 @@ const navMenu: NavSection[] = [
         icon: Users,
         roles: [UserRole.ADMIN],
       },
-      {
-        title: "Invitados",
-        url: "/registro-invitado",
-        icon: Users,
-        roles: [UserRole.GUARD],
-      },
     ],
   },
   {
