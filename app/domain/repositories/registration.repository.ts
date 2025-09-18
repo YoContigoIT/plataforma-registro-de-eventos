@@ -15,22 +15,14 @@ export interface RegistrationFilters {
   status?: RegistrationStatus;
   search?: string;
   statuses?: RegistrationStatus[];
-  invitedAt?: {
-    from?: Date;
-    to?: Date;
-  };
-  respondedAt?: {
-    from?: Date;
-    to?: Date;
-  };
-  registeredAt?: {
-    from?: Date;
-    to?: Date;
-  };
-  checkedInAt?: {
-    from?: Date;
-    to?: Date;
-  };
+
+  // Date filters - simplified to match event repository pattern
+  invitedAt?: Date;
+  respondedAt?: Date;
+  registeredAt?: Date;
+  checkedInAt?: Date;
+
+  // System date filters
   createdAt?: {
     from?: Date;
     to?: Date;
@@ -39,6 +31,36 @@ export interface RegistrationFilters {
     from?: Date;
     to?: Date;
   };
+
+  // Time-based filters
+  respondedWithin?: {
+    hours?: number;
+    days?: number;
+  };
+  
+  // Invite management filters
+  pendingInvites?: boolean;
+  expiredInvites?: boolean;
+
+  // Boolean filters
+  hasResponded?: boolean;
+  isCheckedIn?: boolean;
+  
+  // Status convenience filters
+  isPending?: boolean;
+  isRegistered?: boolean;
+  isWaitlisted?: boolean;
+  isCancelled?: boolean;
+  isDeclined?: boolean;
+
+  /* Event-related filters - commented out as we don't filter by events right now
+  eventStatus?: string;
+  eventOrganizerId?: string;
+  isUpcomingEvent?: boolean;
+  isPastEvent?: boolean;
+  isActiveEvent?: boolean; */
+
+  /* Event date filters - commented out as we don't filter by events right now
   eventStartDate?: {
     from?: Date;
     to?: Date;
@@ -46,26 +68,7 @@ export interface RegistrationFilters {
   eventEndDate?: {
     from?: Date;
     to?: Date;
-  };
-  hasResponded?: boolean;
-  isCheckedIn?: boolean;
-  hasInviteToken?: boolean;
-  isPending?: boolean;
-  isRegistered?: boolean;
-  isWaitlisted?: boolean;
-  isCancelled?: boolean;
-  isDeclined?: boolean;
-  eventStatus?: string;
-  eventOrganizerId?: string;
-  isUpcomingEvent?: boolean;
-  isPastEvent?: boolean;
-  isActiveEvent?: boolean;
-  respondedWithin?: {
-    hours?: number;
-    days?: number;
-  };
-  pendingInvites?: boolean;
-  expiredInvites?: boolean;
+  }; */
 }
 
 export interface IRegistrationRepository {
@@ -87,9 +90,6 @@ export interface IRegistrationRepository {
     userId: string
   ): Promise<RegistrationWithRelations | null>;
   registrationExists(eventId: string, userId: string): Promise<boolean>;
-  findByInviteToken(
-    inviteToken: string
-  ): Promise<RegistrationWithRelations | null>;
   create(data: CreateRegistrationDto): Promise<RegistrationEntity>;
   update(data: UpdateRegistrationDto): Promise<RegistrationEntity>;
   delete(id: string): Promise<void>;

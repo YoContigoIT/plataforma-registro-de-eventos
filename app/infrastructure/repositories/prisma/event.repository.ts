@@ -44,7 +44,7 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
             end_date: { lte: new Date(filters.endDate) },
           }),
 
-          /*  // Date range filter (alternative approach - keep for backward compatibility)
+          /*  //Date range filter (alternative approach - kept in case we add fine-tuned filters)
           ...(filters?.dateRange?.startDate && {
             start_date: { gte: filters.dateRange.startDate },
           }),
