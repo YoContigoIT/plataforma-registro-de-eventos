@@ -2,28 +2,31 @@ import { EventStatus } from "@prisma/client";
 import type { Route } from "../routes/+types/panel";
 
 export const dashboardLoader = async ({
-  context: { repositories },
+  context: { repositories, session },
 }: Route.LoaderArgs) => {
+  const userRole = session.get("user")?.role;
   // Last 30 days filter
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const dateFilter = { from: thirtyDaysAgo };
 
   // Get event statistics for last 30 days
-  const eventStats = await repositories.eventRepository.countAllStatuses(dateFilter);
+  const eventStats =
+    await repositories.eventRepository.countAllStatuses(dateFilter);
 
   // Get ongoing events
-  const ongoingEvents = await repositories.eventRepository.findByStatusAndDateRange(
-    EventStatus.ONGOING,
-    undefined,
-    5,
-  );
+  const ongoingEvents =
+    await repositories.eventRepository.findByStatusAndDateRange(
+      EventStatus.ONGOING,
+      undefined,
+      5
+    );
 
   // Get upcoming events in next 30 days
   const upcomingEvents = await repositories.eventRepository.findUpcomingEvents(
     30,
     [EventStatus.UPCOMING, EventStatus.DRAFT],
-    10,
+    10
   );
 
   return {
@@ -35,5 +38,6 @@ export const dashboardLoader = async ({
     },
     ongoingEvents,
     upcomingEvents,
+    userRole,
   };
 };

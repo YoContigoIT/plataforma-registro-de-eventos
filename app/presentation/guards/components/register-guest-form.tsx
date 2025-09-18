@@ -103,7 +103,7 @@ export function RegisterGuestForm() {
             </div>
 
             {/* Información personal */}
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 pt-2">
               <div className="bg-primary/10 p-3 rounded-lg">
                 <UserCircle className="h-6 w-6 text-primary" />
               </div>
@@ -158,7 +158,7 @@ export function RegisterGuestForm() {
               </div>
             </div>
 
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 pt-2">
               <div className="bg-primary/10 p-3 rounded-lg">
                 <Briefcase className="h-6 w-6 text-primary" />
               </div>
