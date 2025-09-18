@@ -41,6 +41,7 @@ const ROUTES_PATH = {
   },
   guard: {
     verifyRegistration: "presentation/guards/routes/verify-registration.tsx",
+    registerGuest: "presentation/guards/routes/register-guest.tsx",
   },
 };
 
@@ -52,7 +53,7 @@ export default [
   /* route("/invitacion/:inviteToken", `${ROUTES_PATH.attendee.inviteDetails}`), */
   route(
     "/verificar-registro/:qrCode",
-    `${ROUTES_PATH.guard.verifyRegistration}`,
+    `${ROUTES_PATH.guard.verifyRegistration}`
   ),
   layout(`${ROUTES_PATH.layout}`, [
     route("/panel", `${ROUTES_PATH.panel.dashboard}`),
@@ -68,15 +69,17 @@ export default [
     route("/registros", `${ROUTES_PATH.registrations.list}`),
     route(
       "/registros/enviar-invitaciones/:id",
-      `${ROUTES_PATH.registrations.sendInvitations}`,
+      `${ROUTES_PATH.registrations.sendInvitations}`
     ),
     route(
       "/registros/delete-registration",
-      `${ROUTES_PATH.registrations.deleteRegistration}`,
+      `${ROUTES_PATH.registrations.deleteRegistration}`
     ),
     route(
       "/registros/resend-invite",
-      `${ROUTES_PATH.registrations.resendInvite}`,
+      `${ROUTES_PATH.registrations.resendInvite}`
     ),
+
+    route("/registro-invitado", `${ROUTES_PATH.guard.registerGuest}`),
   ]),
 ] satisfies RouteConfig;
