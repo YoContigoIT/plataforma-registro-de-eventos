@@ -13,6 +13,7 @@ import {
 } from "~/shared/lib/utils";
 import { eventsLoader } from "../api/loaders";
 import { EventDetailsSheet } from "../components/event-details-sheet";
+import { EventFilters } from "../components/event-filters";
 import { EventGridView } from "../components/event-grid-view";
 import { EventListView } from "../components/event-list-view";
 
@@ -74,11 +75,14 @@ export default function Events() {
 
       <Card>
         <CardContent>
-          <SearchBar
-            searchParamKey="eventSearch"
-            placeholder="Buscar eventos por nombre"
-            className="w-full"
-          />
+          <div className="flex gap-2 items-center">
+            <SearchBar
+              searchParamKey="eventSearch"
+              placeholder="Buscar eventos por nombre"
+              className="flex-1"
+            />
+            <EventFilters />
+          </div>
         </CardContent>
       </Card>
 

@@ -86,9 +86,8 @@ model User {
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @updatedAt
 
-    // Add indexes for sorting
     @@index([name])
-    @@index([email]) // Already has unique constraint, but explicit index helps
+    @@index([email])
     @@schema("auth")
 }
 
@@ -145,8 +144,8 @@ model Registration {
     @@index([registeredAt])
     @@index([checkedInAt])
     @@index([status])
-    @@index([eventId, invitedAt]) // Composite index for event-specific sorting
-    @@index([userId, invitedAt]) // Composite index for user-specific sorting
+    @@index([eventId, invitedAt])
+    @@index([userId, invitedAt])
     @@schema("auth")
 }
 

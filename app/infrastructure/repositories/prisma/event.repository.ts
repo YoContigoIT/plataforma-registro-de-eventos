@@ -23,23 +23,9 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
           ...(filters?.organizerId && { organizerId: filters.organizerId }),
           ...(filters?.status && { status: filters.status }),
           ...(filters?.location && { location: filters.location }),
-          ...(filters?.archived !== undefined && {
-            archived: filters.archived,
-          }),
+          archived: filters?.archived === true,
         },
         customFilters: {
-          // Individual field searches (if not using general search)
-          ...(filters?.name && {
-            name: { contains: filters.name, mode: "insensitive" },
-          }),
-          ...(filters?.description && {
-            description: { contains: filters.description, mode: "insensitive" },
-          }),
-          ...(filters?.agenda && {
-            agenda: { contains: filters.agenda, mode: "insensitive" },
-          }),
-
-          // Capacity range filter
           ...(filters?.capacity && {
             capacity: {
               ...(filters.capacity.min !== undefined && {
@@ -51,43 +37,21 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
             },
           }),
 
-          // Max tickets range filter
-          ...(filters?.maxTickets && {
-            maxTickets: {
-              ...(filters.maxTickets.min !== undefined && {
-                gte: filters.maxTickets.min,
-              }),
-              ...(filters.maxTickets.max !== undefined && {
-                lte: filters.maxTickets.max,
-              }),
-            },
-          }),
-
-          // Start date range filter
           ...(filters?.startDate && {
-            start_date: {
-              ...(filters.startDate.from && { gte: filters.startDate.from }),
-              ...(filters.startDate.to && { lte: filters.startDate.to }),
-            },
+            start_date: { gte: new Date(filters.startDate) },
           }),
-
-          // End date range filter
           ...(filters?.endDate && {
-            end_date: {
-              ...(filters.endDate.from && { gte: filters.endDate.from }),
-              ...(filters.endDate.to && { lte: filters.endDate.to }),
-            },
+            end_date: { lte: new Date(filters.endDate) },
           }),
 
-          // Date range filter (alternative approach)
+          /*  // Date range filter (alternative approach - keep for backward compatibility)
           ...(filters?.dateRange?.startDate && {
             start_date: { gte: filters.dateRange.startDate },
           }),
           ...(filters?.dateRange?.endDate && {
             end_date: { lte: filters.dateRange.endDate },
-          }),
+          }), */
 
-          // System date filters
           ...(filters?.createdAt && {
             createdAt: {
               ...(filters.createdAt.from && { gte: filters.createdAt.from }),
@@ -101,21 +65,16 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
             },
           }),
 
-          // Available spots filter
           ...(filters?.hasAvailableSpots && {
-            registrations: {
-              _count: {
-                lt: prisma.event.fields.capacity,
-              },
+            remainingCapacity: {
+              gt: 0,
             },
           }),
 
-          // Upcoming events filter
           ...(filters?.isUpcoming && {
             start_date: { gte: new Date() },
           }),
 
-          // Active events filter (currently happening)
           ...(filters?.isActive && {
             AND: [
               { start_date: { lte: new Date() } },
