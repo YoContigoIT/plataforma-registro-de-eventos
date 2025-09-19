@@ -10,7 +10,7 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
       params,
       filters,
     ): Promise<PaginatedResponse<EventEntity>> => {
-      const { page, limit } = params;
+      const { page = 1, limit = 10 } = params ?? {};
       const offset = (page - 1) * limit;
 
       const where = buildWhereClause(filters?.search, {

@@ -26,6 +26,12 @@ export const createUserAction = async ({
         errors: simplifyZodErrors<CreateUserDTO>(result.error),
       };
     }
+    if (result.data.password) {
+      result.data.password =
+        await repositories.encryptorRepository.hashPassword(
+          result.data.password
+        );
+    }
 
     // Crear usuario
     await repositories.userRepository.create(result.data);

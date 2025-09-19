@@ -45,6 +45,14 @@ const ROLE_PROTECTED_ROUTES: Record<UserRole, string[]> = {
     "/perfil/cambiar-contrasenia",
     "/perfil/cerrar-sesion",
   ],
+  [UserRole.GUARD]: [
+    "/panel",
+    "/perfil",
+    "/perfil/actualizar",
+    "/perfil/cambiar-contrasenia",
+    "/perfil/cerrar-sesion",
+    "/registro-invitado",
+  ],
 };
 
 // Helper function to create regex for route matching
@@ -63,10 +71,14 @@ const hasRouteAccess = (userRole: UserRole, pathname: string): boolean => {
   const accessibleRoutes = [
     ...ROLE_PROTECTED_ROUTES[userRole],
     // Organizers also have access to admin routes
-    ...(userRole === UserRole.ORGANIZER ? ROLE_PROTECTED_ROUTES[UserRole.ADMIN] : []),
+    ...(userRole === UserRole.ORGANIZER
+      ? ROLE_PROTECTED_ROUTES[UserRole.ADMIN]
+      : []),
   ];
 
-  return accessibleRoutes.some(route => createRouteRegex(route).test(pathname));
+  return accessibleRoutes.some((route) =>
+    createRouteRegex(route).test(pathname)
+  );
 };
 
 // Helper function to handle session invalidation
@@ -79,9 +91,12 @@ const invalidateSession = async (session: any) => {
 };
 
 // Helper to validate device fingerprint
-const validateDeviceFingerprint = (stored: string, current: string): boolean => {
+const validateDeviceFingerprint = (
+  stored: string,
+  current: string
+): boolean => {
   if (!stored || !current) return true;
-  
+
   const getBasicBrowserInfo = (ua: string) => {
     const lowerUA = ua.toLowerCase();
     const browser = lowerUA.includes("chrome")
@@ -110,7 +125,10 @@ const validateDeviceFingerprint = (stored: string, current: string): boolean => 
   const storedInfo = getBasicBrowserInfo(stored);
   const currentInfo = getBasicBrowserInfo(current);
 
-  return storedInfo.browser === currentInfo.browser && storedInfo.os === currentInfo.os;
+  return (
+    storedInfo.browser === currentInfo.browser &&
+    storedInfo.os === currentInfo.os
+  );
 };
 
 export const authMiddleware = async ({
@@ -119,12 +137,12 @@ export const authMiddleware = async ({
 }: Route.LoaderArgs) => {
   const url = new URL(request.url);
   const pathname = url.pathname;
-  
+
   // Skip auth check for public routes
   if (PUBLIC_ROUTES.includes(pathname)) {
     return null;
   }
-  
+
   const accessToken = session.get("accessToken");
   const refreshToken = session.get("refreshToken");
   const sessionId = session.get("sessionId");
@@ -140,10 +158,16 @@ export const authMiddleware = async ({
   }
 
   // Validate device fingerprint if available
-  if (sessiondb.device_fingerprint && clientInfo.userAgent && sessiondb.user_agent) {
-    if (!validateDeviceFingerprint(sessiondb.user_agent, clientInfo.userAgent)) {
+  if (
+    sessiondb.device_fingerprint &&
+    clientInfo.userAgent &&
+    sessiondb.user_agent
+  ) {
+    if (
+      !validateDeviceFingerprint(sessiondb.user_agent, clientInfo.userAgent)
+    ) {
       console.warn(
-        `Session revoked due to device change. Stored: ${sessiondb.user_agent}, Current: ${clientInfo.userAgent}`,
+        `Session revoked due to device change. Stored: ${sessiondb.user_agent}, Current: ${clientInfo.userAgent}`
       );
       await repositories.sessionRepository.revoke(sessionId);
       return invalidateSession(session);
@@ -151,8 +175,11 @@ export const authMiddleware = async ({
   }
 
   try {
-    const payload = await repositories.jwtRepository.verifyAccessToken(accessToken);
-    const user = await repositories.userRepository.findUnique(payload.id as string);
+    const payload =
+      await repositories.jwtRepository.verifyAccessToken(accessToken);
+    const user = await repositories.userRepository.findUnique(
+      payload.id as string
+    );
 
     // Verify user exists
     if (!user) {
@@ -171,7 +198,8 @@ export const authMiddleware = async ({
         throw new Error("No refresh token available");
       }
 
-      const renewed = await repositories.sessionRepository.renewTokens(refreshToken);
+      const renewed =
+        await repositories.sessionRepository.renewTokens(refreshToken);
 
       session.set("accessToken", renewed.accessToken);
       session.set("refreshToken", renewed.refreshToken);

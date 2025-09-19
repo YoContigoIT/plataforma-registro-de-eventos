@@ -20,7 +20,7 @@ export interface EventFilters {
     min?: number;
     max?: number;
   };
-  
+
   //Filtros de fechas
   startDate?: {
     from?: Date;
@@ -34,7 +34,7 @@ export interface EventFilters {
     startDate?: Date;
     endDate?: Date;
   };
-  
+
   //Filtros de fechas de sistema
   createdAt?: {
     from?: Date;
@@ -53,8 +53,8 @@ export interface EventFilters {
 
 export interface IEventRepository {
   findMany(
-    params: { page: number; limit: number },
-    filters?: EventFilters,
+    params?: { page: number; limit: number },
+    filters?: EventFilters
   ): Promise<PaginatedResponse<EventEntity>>;
   findUnique(id: string): Promise<EventEntity | null>;
   findByOrganizerId(organizerId: string): Promise<EventEntity[]>;
@@ -62,7 +62,10 @@ export interface IEventRepository {
   update(data: UpdateEventDTO): Promise<EventEntity>;
   delete(id: string): Promise<void>;
   softDelete(id: string): Promise<void>;
-  countByStatus(status: EventStatus, dateFilter?: { from?: Date; to?: Date }): Promise<number>;
+  countByStatus(
+    status: EventStatus,
+    dateFilter?: { from?: Date; to?: Date }
+  ): Promise<number>;
   countAllStatuses(dateFilter?: { from?: Date; to?: Date }): Promise<{
     [key in EventStatus]: number;
   }>;
