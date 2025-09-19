@@ -1,9 +1,9 @@
 import { RegistrationStatus, UserRole } from "@prisma/client";
+import QRCode from "qrcode";
 import type { CreateRegistrationDto } from "~/domain/dtos/registration.dto";
 import { createGuestSchema, type CreateGuestDTO } from "~/domain/dtos/user.dto";
 import { generateQRCode, simplifyZodErrors } from "~/shared/lib/utils";
 import type { Route } from "../routes/+types/verify-registration";
-
 export const createCheckInAction = async ({
   request,
   params,
@@ -39,7 +39,6 @@ export const createCheckInAction = async ({
     };
   }
 };
-
 export const createGuestAction = async ({
   request,
   params,
@@ -50,15 +49,10 @@ export const createGuestAction = async ({
     const userId = session.get("user")?.id;
 
     if (!userId) {
-      return {
-        success: false,
-        error: "No se ha iniciado sesión",
-      };
+      return { success: false, error: "No se ha iniciado sesión" };
     }
 
-    console.log("data: ", data);
     const result = createGuestSchema.safeParse(data);
-    console.log("result: ", result);
     if (!result.success) {
       return {
         error: "Error de validación",
@@ -73,8 +67,8 @@ export const createGuestAction = async ({
       return { error: "La cantidad de tickets debe ser mayor a 0." };
     }
 
+    // Buscar usuario por email
     let user = await repositories.userRepository.findByEmail(email);
-
     if (!user) {
       user = await repositories.userRepository.create({
         email,
@@ -84,48 +78,69 @@ export const createGuestAction = async ({
       });
     }
 
-    //Obtener evento
+    // Buscar evento
     const event = await repositories.eventRepository.findUnique(eventId);
+    if (!event) return { success: false, error: "Evento no encontrado" };
 
-    if (!event) {
-      return {
-        success: false,
-        error: "Evento no encontrado",
-      };
-    }
     const maxTickets = event.maxTickets || 0;
+    const remainingTickets = event.remainingCapacity || 0;
 
-    // Contar cuántos tickets ya tiene el usuario en ese event
-    const userEventRegister =
+    // Buscar registro previo del usuario en este evento
+    const existingRegistration =
       await repositories.registrationRepository.findTickesPurchased(
         eventId,
         user.id
       );
 
-    if (userEventRegister) {
-      return {
-        success: false,
-        error: "Ya ha comprado tickets para este evento",
-      };
-    }
-
     if (ticketsRequested > maxTickets) {
       return {
         error: `Solo puedes comprar ${maxTickets} tickets como máximo. 
-                intentaste comprar ${ticketsRequested}.`,
+                Intentaste comprar ${ticketsRequested}.`,
       };
     }
 
-    // Tickets totales del evento
-    const remainingTickets = event.remainingCapacity || 0;
-    // Validación contra capacidad
     if (ticketsRequested > remainingTickets) {
       return {
         error: `No hay suficientes tickets disponibles. 
-            Quedan ${remainingTickets} tickets, 
-            intentaste comprar ${ticketsRequested}.`,
+                Quedan ${remainingTickets}, intentaste comprar ${ticketsRequested}.`,
       };
     }
+
+    // 🔹 Caso 1: Usuario invitado pendiente
+    if (existingRegistration?.status === RegistrationStatus.PENDING) {
+      await repositories.registrationRepository.update({
+        id: existingRegistration.id,
+        qrCode: generateQRCode(user.id, eventId),
+        status: RegistrationStatus.CHECKED_IN,
+        checkedInAt: new Date(),
+        registeredAt: new Date(),
+        purchasedTickets: ticketsRequested,
+      });
+
+      return {
+        success: true,
+        message:
+          "Usuario invitado pendiente ahora está registrado y en check-in.",
+        redirectTo: "/panel",
+      };
+    }
+
+    // 🔹 Caso 2: Usuario ya registrado
+    if (existingRegistration?.status === RegistrationStatus.REGISTERED) {
+      await repositories.registrationRepository.update({
+        id: existingRegistration.id,
+        status: RegistrationStatus.CHECKED_IN,
+        checkedInAt: new Date(),
+      });
+
+      return {
+        success: true,
+        message: "El usuario ya estaba registrado y en check-in.",
+        redirectTo: "/panel",
+      };
+    }
+
+    // 🔹 Caso 3: Usuario nuevo
 
     const registration: CreateRegistrationDto = {
       qrCode: generateQRCode(user.id, eventId),
@@ -139,44 +154,46 @@ export const createGuestAction = async ({
 
     await repositories.registrationRepository.create(registration);
 
-    //Actualizar evento
+    // Actualizar capacidad del evento
     await repositories.eventRepository.update({
       id: event.id,
       remainingCapacity: remainingTickets - ticketsRequested,
     });
 
-    const finalRegistrations =
+    // Buscar registro final
+    const finalRegistration =
       await repositories.registrationRepository.findTickesPurchased(
         eventId,
         user.id
       );
 
-    if (!finalRegistrations) {
-      return {
-        error: "Error al registrar el asistente.",
-        success: false,
-      };
+    if (!finalRegistration) {
+      return { error: "Error al registrar el asistente.", success: false };
     }
 
-    //TODO: Pendiente enviar el correo?
-    // const qrCodeUrl = await QRCode.toDataURL(
-    //   `${process.env.APP_URL}/verificar-registro/${finalRegistrations.qrCode}`
-    // );
-    // await services.emailService.sendRegistrationConfirmation(user.email, {
-    //   userName: user.name || "",
-    //   eventName: event.name,
-    //   eventDate: event.start_date.toISOString().split("T")[0],
-    //   eventLocation: event.location,
-    //   eventTime: event.start_date.toISOString().split("T")[1],
-    //   qrCode: finalRegistrations.qrCode,
-    //   qrCodeUrl,
-    //   ticketsQuantity: finalRegistrations.purchasedTickets || 0,
-    // });
+    // Enviar QR por correo
+    const qrCodeUrl = await QRCode.toDataURL(
+      `${process.env.APP_URL}/verificar-registro/${finalRegistration.qrCode}`
+    );
+
+    await services.emailService.sendRegistrationConfirmation(user.email, {
+      userName: user.name || "",
+      eventName: event.name,
+      eventDate: event.start_date.toISOString().split("T")[0],
+      eventLocation: event.location,
+      eventTime: event.start_date.toISOString().split("T")[1],
+      qrCode: finalRegistration.qrCode,
+      qrCodeUrl,
+      ticketsQuantity: finalRegistration.purchasedTickets || 0,
+    });
 
     return {
       success: true,
       message: "Asistente registrado exitosamente.",
       redirectTo: "/panel",
     };
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: "Error interno al registrar invitado." };
+  }
 };
