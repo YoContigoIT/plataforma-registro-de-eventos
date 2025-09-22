@@ -40,6 +40,8 @@ export function RegisterGuestForm() {
     phone: user?.phone || "",
   });
 
+  const canFillDetails = Boolean(formValues.eventId && formValues.email);
+
   // Actualizar selectedEventId cuando cambia eventId
   useEffect(() => {
     setSelectedEventId(formValues.eventId);
@@ -154,6 +156,35 @@ export function RegisterGuestForm() {
                     />
                   </FormField>
 
+                  <FormField id="email" error={errors?.email}>
+                    <TextInput
+                      label="Correo electrónico"
+                      name="email"
+                      id="email"
+                      type="email"
+                      value={formValues.email}
+                      placeholder="ejemplo@correo.com"
+                      required
+                      icon={
+                        <Mail size={20} className="text-muted-foreground" />
+                      }
+                      disabled={isSubmitting}
+                      onChange={(e) => {
+                        const { value } = e.target;
+                        setFormValues((prev) => ({ ...prev, email: value }));
+                        handleInputChange(e);
+                      }}
+                      onBlur={(e) =>
+                        handleSearchParams("email", e.target.value)
+                      }
+                      aria-invalid={!!errors?.email}
+                      aria-describedby={
+                        errors?.email ? "email-error" : undefined
+                      }
+                    />
+                  </FormField>
+                </div>
+                <div className="grid gap-5 md:grid-cols-1 mt-2">
                   <FormField id="quantity" error={errors.quantity}>
                     <SelectInput
                       label="Número de invitaciones"
@@ -174,7 +205,7 @@ export function RegisterGuestForm() {
                           label: (index + 1).toString(),
                         })
                       )}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !canFillDetails}
                       onValueChange={(value) => {
                         setFormValues((prev) => ({ ...prev, quantity: value }));
                         handleInputChange({
@@ -216,7 +247,7 @@ export function RegisterGuestForm() {
                           className="text-muted-foreground"
                         />
                       }
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !canFillDetails}
                       onChange={(e) => {
                         const { value } = e.target;
                         setFormValues((prev) => ({ ...prev, name: value }));
@@ -227,47 +258,6 @@ export function RegisterGuestForm() {
                     />
                   </FormField>
 
-                  <FormField id="email" error={errors?.email}>
-                    <TextInput
-                      label="Correo electrónico"
-                      name="email"
-                      id="email"
-                      type="email"
-                      value={formValues.email}
-                      placeholder="ejemplo@correo.com"
-                      required
-                      icon={
-                        <Mail size={20} className="text-muted-foreground" />
-                      }
-                      disabled={isSubmitting}
-                      onChange={(e) => {
-                        const { value } = e.target;
-                        setFormValues((prev) => ({ ...prev, email: value }));
-                        handleInputChange(e);
-                      }}
-                      onBlur={(e) =>
-                        handleSearchParams("email", e.target.value)
-                      }
-                      aria-invalid={!!errors?.email}
-                      aria-describedby={
-                        errors?.email ? "email-error" : undefined
-                      }
-                    />
-                  </FormField>
-                </div>
-              </div>
-            </div>
-
-            {/* Información laboral */}
-            <div className="flex items-start gap-4 pt-2 pb-4">
-              <div className="bg-primary/10 p-3 rounded-lg">
-                <Briefcase className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-4">
-                  Información laboral
-                </h3>
-                <div className="grid gap-5 md:grid-cols-2">
                   <FormField id="phone" error={errors?.phone}>
                     <TextInput
                       label="Teléfono"
@@ -277,7 +267,7 @@ export function RegisterGuestForm() {
                       inputMode="tel"
                       value={formValues.phone}
                       placeholder="+52 123 456 7890"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !canFillDetails}
                       onChange={(e) => {
                         const { value } = e.target;
                         setFormValues((prev) => ({ ...prev, phone: value }));
@@ -313,6 +303,8 @@ export function RegisterGuestForm() {
                 ) : invites &&
                   invites.status === RegistrationStatus.REGISTERED ? (
                   "Hacer check-in"
+                ) : !canFillDetails ? (
+                  "Selecciona evento y correo"
                 ) : (
                   "Guardar"
                 )}
