@@ -29,10 +29,11 @@ export const createFormFieldSchema = z.object({
 
 export const updateFormFieldSchema = createFormFieldSchema.partial().extend({
   id: z
-    .uuid({
+    .string({
       message: "El ID del campo debe ser un UUID válido",
     })
-    .trim(),
+    .trim()
+    .optional(),
 });
 
 // Event Form DTOs
@@ -58,9 +59,6 @@ export const createEventFormSchema = z.object({
 
 export const updateEventFormSchema = createEventFormSchema.partial().extend({
   id: z
-    .string({
-      error: "El ID del formulario es requerido",
-    })
     .uuid({
       message: "El ID del formulario debe ser un UUID válido",
     })

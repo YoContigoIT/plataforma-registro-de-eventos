@@ -198,7 +198,6 @@ model FormFieldResponse {
     fieldId    String       @db.Uuid
     field      FormField    @relation(fields: [fieldId], references: [id])
     value      Json // Flexible storage for any type of response, can be a string also
-    eventId    String       @db.Uuid
 
     @@schema("auth")
 }

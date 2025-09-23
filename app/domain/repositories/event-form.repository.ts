@@ -1,12 +1,14 @@
 import type {
-    CreateEventFormDTO,
-    ReorderFieldsDTO,
-    UpdateEventFormDTO,
-    UpdateFormFieldDTO,
+  CreateEventFormDTO,
+  CreateFormFieldDTO,
+  ReorderFieldsDTO,
+  UpdateEventFormDTO,
+  UpdateFormFieldDTO,
 } from "../dtos/event-form.dto";
 import type {
-    EventFormEntity,
-    FormFieldEntity,
+  EventFormEntity,
+  EventFormWithFields,
+  FormFieldEntity,
 } from "../entities/event-form.entity";
 
 export interface EventFormFilters {
@@ -21,14 +23,15 @@ export interface EventFormFilters {
 
 export interface IEventFormRepository {
   // Event Form CRUD (creates form + fields atomically)
-  findByEventId(eventId: string): Promise<EventFormEntity | null>;
-  create(data: CreateEventFormDTO): Promise<EventFormEntity>; // Creates form + all fields
+  findByEventId(eventId: string): Promise<EventFormWithFields | null>;
+  create(data: CreateEventFormDTO): Promise<void>; // Creates form + all fields
   update(data: UpdateEventFormDTO): Promise<EventFormEntity>;
   delete(id: string): Promise<void>;
 
   // Individual Field Management (for editing existing forms)
   updateField(data: UpdateFormFieldDTO): Promise<FormFieldEntity>;
   deleteField(id: string): Promise<void>;
+  addField(formId: string, data: CreateFormFieldDTO & { order: number }): Promise<FormFieldEntity>;
   reorderFields(data: ReorderFieldsDTO): Promise<void>;
 
   // Utility Methods

@@ -11,12 +11,14 @@ import { Calendar, MapPin, Users } from "lucide-react";
 import { useId } from "react";
 import { Form, Link } from "react-router";
 import { createEventSchema, updateEventSchema } from "~/domain/dtos/event.dto";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type { FormFieldEntity } from "~/domain/entities/event-form.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import { DateInput } from "~/shared/components/common/date-input";
 import { NumberInput } from "~/shared/components/common/number-input";
 import { SelectInput } from "~/shared/components/common/select-input";
 import { TextInput } from "~/shared/components/common/text-input";
 import { useFormAction } from "~/shared/hooks/use-form-action.hook";
+import { FormBuilder } from "./form-builder";
 
 const statusOptions = [
   { value: EventStatus.DRAFT, label: "Borrador" },
@@ -27,7 +29,7 @@ const statusOptions = [
 ];
 
 interface EventFormProps {
-  eventData?: EventEntity;
+  eventData?: EventEntityWithEventForm;
   isEditing?: boolean;
 }
 
@@ -41,8 +43,27 @@ export function EventForm({
   const descriptionId = useId();
   const agendaId = useId();
 
+  const initialFormFields: FormFieldEntity[] = (() => {
+    return isEditing && eventData?.EventForm?.fields
+      ? eventData.EventForm.fields.map((field, index) => ({
+          id: field.id || `field-${index}`,
+          label: field.label,
+          formId: field.formId || "",
+          type: field.type,
+          required: field.required,
+          placeholder: field.placeholder || null,
+          options: Array.isArray(field.options)
+            ? field.options
+            : field.options || null,
+          validation: field.validation || null,
+          order: field.order,
+        }))
+      : [];
+  })();
+
   return (
     <Form method="POST" replace className="space-y-6">
+      {/* Event Information Card */}
       <Card className="mt-4">
         <CardHeader>
           <CardTitle>Información del evento</CardTitle>
@@ -222,6 +243,7 @@ export function EventForm({
             </div>
           </div>
         </CardContent>
+
         <CardFooter className="flex justify-end space-x-4 border-t p-6">
           <Button variant="outline" asChild>
             <Link to="/eventos">Cancelar</Link>
@@ -242,6 +264,11 @@ export function EventForm({
           </Button>
         </CardFooter>
       </Card>
+
+      <FormBuilder
+        initialFields={initialFormFields}
+        handleInputChange={handleInputChange}
+      />
     </Form>
   );
 }

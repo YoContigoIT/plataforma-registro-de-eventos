@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/common/page-header";
 import { useLoaderData } from "react-router";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import type { LoaderData } from "~/shared/types";
 import { updateEventAction } from "../api/actions";
 import { getEventByIdLoader } from "../api/loaders";
@@ -10,7 +10,7 @@ export const loader = getEventByIdLoader;
 export const action = updateEventAction;
 
 export default function UpdateEvent() {
-  const { data: event } = useLoaderData<LoaderData<EventEntity>>();
+  const { data: event } = useLoaderData<LoaderData<EventEntityWithEventForm>>();
 
   if (!event) {
     return null;

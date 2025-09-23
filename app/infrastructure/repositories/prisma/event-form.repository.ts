@@ -1,24 +1,26 @@
 import type { PrismaClient } from "@prisma/client";
 import type {
-    CreateEventFormDTO,
-    ReorderFieldsDTO,
-    UpdateEventFormDTO,
-    UpdateFormFieldDTO,
+  CreateEventFormDTO,
+  CreateFormFieldDTO,
+  ReorderFieldsDTO,
+  UpdateEventFormDTO,
+  UpdateFormFieldDTO,
 } from "~/domain/dtos/event-form.dto";
 import type {
-    EventFormEntity,
-    FormFieldEntity,
+  EventFormEntity,
+  EventFormWithFields,
+  FormFieldEntity,
 } from "~/domain/entities/event-form.entity";
 import type {
-    IEventFormRepository
+  IEventFormRepository
 } from "~/domain/repositories/event-form.repository";
+import { runInTransaction } from "~/infrastructure/db/prisma";
 
 export const PrismaEventFormRepository = (
   prisma: PrismaClient,
 ): IEventFormRepository => {
   return {
-    // Find form by event ID with all fields
-    findByEventId: async (eventId: string): Promise<EventFormEntity | null> => {
+    findByEventId: async (eventId: string): Promise<EventFormWithFields | null> => {
       return await prisma.eventForm.findUnique({
         where: { eventId },
         include: {
@@ -29,11 +31,9 @@ export const PrismaEventFormRepository = (
       });
     },
 
-    // Create form with all fields atomically
-    create: async (data: CreateEventFormDTO): Promise<EventFormEntity> => {
-      return await prisma.$transaction(async (tx) => {
-        // Create the form first
-        const form = await tx.eventForm.create({
+    create: async (data: CreateEventFormDTO) => {
+      return await runInTransaction(async () => {
+        const form = await prisma.eventForm.create({
           data: {
             eventId: data.eventId,
             title: data.title,
@@ -41,8 +41,7 @@ export const PrismaEventFormRepository = (
           },
         });
 
-        // Create all fields with proper order
-        await tx.formField.createMany({
+        await prisma.formField.createMany({
           data: data.fields.map((field, index) => ({
             formId: form.id,
             label: field.label,
@@ -50,19 +49,9 @@ export const PrismaEventFormRepository = (
             required: field.required,
             options: field.options ?? undefined,
             validation: field.validation ?? undefined,
-            order: index, // Auto-assign order based on array position
+            order: index,
           })),
         });
-
-        // Return form with fields
-        return (await tx.eventForm.findUnique({
-          where: { id: form.id },
-          include: {
-            fields: {
-              orderBy: { order: "asc" },
-            },
-          },
-        })) as EventFormEntity;
       });
     },
 
@@ -82,14 +71,13 @@ export const PrismaEventFormRepository = (
       });
     },
 
-    // Delete form (cascade will delete fields)
     delete: async (id: string): Promise<void> => {
       await prisma.eventForm.delete({
         where: { id },
       });
     },
 
-    // Update individual field
+    // Individual Field Management (for editing existing forms)
     updateField: async (data: UpdateFormFieldDTO): Promise<FormFieldEntity> => {
       return await prisma.formField.update({
         where: { id: data.id },
@@ -97,26 +85,40 @@ export const PrismaEventFormRepository = (
           label: data.label,
           type: data.type,
           required: data.required,
+          placeholder: data.placeholder ?? undefined,
           options: data.options ?? undefined,
           validation: data.validation ?? undefined,
+          order: data.order,
         },
       });
     },
 
-    // Delete individual field
     deleteField: async (id: string): Promise<void> => {
       await prisma.formField.delete({
         where: { id },
       });
     },
 
-    // Reorder fields
+    addField: async (formId: string, data: CreateFormFieldDTO): Promise<FormFieldEntity> => {
+      return await prisma.formField.create({
+        data: {
+          formId,
+          label: data.label,
+          type: data.type,
+          required: data.required,
+          placeholder: data.placeholder ?? undefined,
+          options: data.options ?? undefined,
+          validation: data.validation ?? undefined,
+          order: data.order,
+        },
+      });
+    },
+
     reorderFields: async (data: ReorderFieldsDTO): Promise<void> => {
-      await prisma.$transaction(async (tx) => {
-        // Update each field's order
+      return await runInTransaction(async () => {
         for (const fieldOrder of data.fieldOrders) {
-          await tx.formField.update({
-            where: { id: fieldOrder.fieldId },
+          await prisma.formField.update({
+            where: { id: fieldOrder.id },
             data: { order: fieldOrder.order },
           });
         }

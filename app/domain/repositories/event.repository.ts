@@ -1,7 +1,7 @@
 import type { EventStatus } from "@prisma/client";
 import type { PaginatedResponse } from "~/shared/types";
 import type { CreateEventDTO, UpdateEventDTO } from "../dtos/event.dto";
-import type { EventEntity } from "../entities/event.entity";
+import type { EventEntity, EventEntityWithEventForm, EventEntityWithOrganizer } from "../entities/event.entity";
 
 export interface EventFilters {
   organizerId?: string;
@@ -55,8 +55,8 @@ export interface IEventRepository {
     params: { page: number; limit: number },
     filters?: EventFilters,
   ): Promise<PaginatedResponse<EventEntity>>;
-  findUnique(id: string): Promise<EventEntity | null>;
-  findByOrganizerId(organizerId: string): Promise<EventEntity[]>;
+  findUnique(id: string): Promise<EventEntityWithEventForm | null>;
+  findByOrganizerId(organizerId: string): Promise<EventEntityWithOrganizer[]>;
   create(data: CreateEventDTO): Promise<EventEntity>;
   update(data: UpdateEventDTO): Promise<EventEntity>;
   delete(id: string): Promise<void>;

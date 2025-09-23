@@ -92,33 +92,6 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
           skip: offset,
           take: limit,
           orderBy: { createdAt: "desc" },
-          include: {
-            organizer: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-            registrations: {
-              select: {
-                id: true,
-                status: true,
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                  },
-                },
-              },
-            },
-            _count: {
-              select: {
-                registrations: true,
-              },
-            },
-          },
         }),
         prisma.event.count({ where }),
       ]);
@@ -134,6 +107,19 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
     findUnique: async (id) => {
       return await prisma.event.findUnique({
         where: { id },
+        include: {
+          organizer: true,
+          registrations: true,
+          EventForm: {
+            include: {
+              fields: {
+                orderBy: {
+                  order: 'asc'
+                }
+              }
+            }
+          }
+        }
       });
     },
 
@@ -141,6 +127,9 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
       return await prisma.event.findMany({
         where: { organizerId },
         orderBy: { start_date: "desc" },
+        include: {
+          organizer: true
+        }
       });
     },
 

@@ -1,5 +1,5 @@
 import type { EventStatus } from "@prisma/client";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import type { EventFilters } from "~/domain/repositories/event.repository";
 import type { LoaderData } from "~/shared/types";
 import type { Route as DetailRoute } from "../routes/+types/detail";
@@ -43,11 +43,12 @@ export const eventsLoader = async ({
   const startDate = url.searchParams.get("startDate");
   const endDate = url.searchParams.get("endDate");
 
-  if (startDate || endDate) {
-    filters.dateRange = {
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-    };
+  if (startDate) {
+    filters.startDate =  startDate ? new Date(startDate) : undefined
+  }
+
+  if (endDate) {
+    filters.endDate = endDate ? new Date(endDate) : undefined
   }
 
   // Boolean filters
@@ -104,7 +105,7 @@ export const eventsLoader = async ({
 export const getEventByIdLoader = async ({
   params,
   context: { repositories },
-}: DetailRoute.LoaderArgs): Promise<LoaderData<EventEntity>> => {
+}: DetailRoute.LoaderArgs): Promise<LoaderData<EventEntityWithEventForm>> => {
   const id = params.id;
 
   if (!id) {
