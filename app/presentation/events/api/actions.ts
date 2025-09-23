@@ -9,6 +9,7 @@ import {
 import { createEventSchema, updateEventSchema } from "~/domain/dtos/event.dto";
 import type { FormFieldEntity } from "~/domain/entities/event-form.entity";
 import { runInTransaction } from "~/infrastructure/db/prisma";
+import { handleServiceError } from "~/shared/lib/error-handler";
 import type { ActionData } from "~/shared/types";
 
 export const createEventAction = async ({
@@ -42,7 +43,7 @@ export const createEventAction = async ({
         }
 
         const validatedFields = [];
-        for (const [index, field] of parsed.entries()) {
+        for (const [field] of parsed.entries()) {
           const result = updateFormFieldSchema.safeParse(field);
           if (!result.success) {
             return null;
@@ -51,7 +52,7 @@ export const createEventAction = async ({
         }
 
         return validatedFields.length > 0 ? validatedFields : undefined;
-      } catch (error) {
+      } catch {
         return null;
       }
     })(),
@@ -69,25 +70,11 @@ export const createEventAction = async ({
     };
   }
 
-  /* const eventFormParsedData = formData.eventFormFields
-
-  const { data: eventFormData, success: eventFormSuccess, error: eventFormError } = createEventFormSchema.safeParse(eventFormParsedData);
-
-  if (!eventFormSuccess) {
-    return {
-      success: false,
-      errors: simplifyZodErrors(eventFormError),
-    };
-  }
- */
-
   try {
-    // Create the event
     const { formFields, ...eventData } = data;
 
     const createdEvent = await repositories.eventRepository.create({
       ...eventData,
-      /* formFields: undefined, // Remove formFields from event data */
     });
 
     if (formFields && formFields.length > 0) {
@@ -106,30 +93,6 @@ export const createEventAction = async ({
           order: index,
         })),
       });
-    } else {
-      // Fallback to default form if no fields provided
-      await repositories.eventFormRepository.create({
-        eventId: createdEvent.id,
-        title: `Formulario de registro - ${createdEvent.name}`,
-        description: "Formulario de registro para el evento",
-        isActive: true,
-        fields: [
-          {
-            label: "Nombre completo",
-            type: "TEXT",
-            required: true,
-            order: 0,
-            validation: { minLength: 2, maxLength: 100 },
-          },
-          {
-            label: "Correo electrónico",
-            type: "EMAIL",
-            required: true,
-            order: 1,
-            validation: { pattern: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$" },
-          },
-        ],
-      });
     }
 
     return {
@@ -138,11 +101,7 @@ export const createEventAction = async ({
       redirectTo: `/eventos`,
     };
   } catch (error) {
-    console.error("Error creating event:", error);
-    return {
-      success: false,
-      error: "Error al crear el evento",
-    };
+    return handleServiceError(error);
   }
 };
 
@@ -165,11 +124,8 @@ export const updateEventAction = async ({
     formFields = formData.formFields
       ? JSON.parse(formData.formFields.toString())
       : undefined;
-  } catch {
-    return {
-      success: false,
-      error: "Formato de campos de formulario inválido",
-    };
+  } catch (error) {
+    return handleServiceError(error);
   }
 
   const parsedData = {
@@ -415,11 +371,7 @@ export const updateEventAction = async ({
       redirectTo: `/eventos`,
     };
   } catch (error) {
-    console.error("Error updating event:", error);
-    return {
-      success: false,
-      error: "Error al actualizar el evento",
-    };
+    return handleServiceError(error);
   }
 };
 
@@ -462,34 +414,3 @@ export const archiveEventAction = async ({
     };
   }
 };
-
-/* 
-
-formFields: (() => {
-      if (!formData.formFields) return undefined;
-
-      try {
-        const parsed = JSON.parse(formData.formFields.toString());
-
-        if (!Array.isArray(parsed)) {
-          return null;
-        }
-
-        const validatedFields = [];
-        for (const [index, field] of parsed.entries()) {
-          const result = updateFormFieldSchema
-            .omit({ id: true })
-            .safeParse(field);
-
-          if (!result.success) {
-            return null;
-          }
-          validatedFields.push(result.data);
-        }
-
-        return validatedFields.length > 0 ? validatedFields : undefined;
-      } catch (error) {
-        console.error("Error parsing form fields:", error);
-        return null;
-      }
-    })(),*/
