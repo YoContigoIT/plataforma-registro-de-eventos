@@ -1,6 +1,6 @@
 import type { Route as RouteList } from ".react-router/types/app/presentation/events/routes/+types/create";
 import { simplifyZodErrors } from "@/shared/lib/utils";
-import { EventStatus, UserRole } from "@prisma/client";
+import { EventStatus, RegistrationStatus, UserRole } from "@prisma/client";
 import { createEventSchema, updateEventSchema } from "~/domain/dtos/event.dto";
 import type { ActionData } from "~/shared/types";
 
@@ -57,7 +57,7 @@ export const createEventAction = async ({
 
 export const updateEventAction = async ({
   request,
-  context: { repositories, session },
+  context: { repositories, session, services },
 }: RouteList.ActionArgs): Promise<ActionData> => {
   const formData = Object.fromEntries(await request.formData());
   const userId = session.get("user")?.id;
@@ -91,7 +91,7 @@ export const updateEventAction = async ({
     //even if the event is full, we allow the update to keep the capacity
     const statusCounts =
       await repositories.registrationRepository.countAllStatusesByEvent(
-        data.id,
+        data.id
       );
 
     const registeredCount =
@@ -110,13 +110,39 @@ export const updateEventAction = async ({
 
     const calculatedRemainingCapacity = Math.max(
       0,
-      eventCapacity - registeredCount,
+      eventCapacity - registeredCount
     );
 
     await repositories.eventRepository.update({
       ...data,
       remainingCapacity: calculatedRemainingCapacity,
     });
+
+    if (data.status === EventStatus.CANCELLED) {
+      const invitations =
+        await repositories.registrationRepository.findByEventId(data.id);
+      // Filtrar solo los asistentes con estado válido
+      const attendeesToNotify = invitations.filter(
+        (invite) =>
+          invite.status === RegistrationStatus.REGISTERED ||
+          invite.status === RegistrationStatus.CHECKED_IN
+      );
+
+      // Generar y enviar el correo de cancelación
+      for (const attendee of attendeesToNotify) {
+        if (!data.start_date) continue;
+        await services.emailService.sendCancelInvitationEmail(
+          {
+            eventName: data.name || "",
+            eventDate: data?.start_date.toLocaleDateString() || "",
+            eventTime: data?.start_date.toLocaleTimeString() || "",
+            eventLocation: data.location || "",
+            userName: attendee.user.name || "",
+          },
+          attendee.user.email
+        );
+      }
+    }
 
     return {
       success: true,
