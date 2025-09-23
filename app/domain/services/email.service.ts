@@ -20,4 +20,5 @@ export interface IEmailService {
   sendPasswordReset(to: string, resetCode: string): Promise<void>;
   sendRegistrationConfirmation(to: string, registrationData: RegistrationConfirmationEmailDto): Promise<EmailResponse>;
   sendInvitationEmail(emailData: InvitationEmailDto, recipientEmail: string): Promise<EmailResponse>;
+  sendCancelInvitationEmail(emailData: InvitationEmailDto, recipientEmail: string): Promise<EmailResponse>;
 }

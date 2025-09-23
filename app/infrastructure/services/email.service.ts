@@ -5,6 +5,7 @@ import type {
   EmailResponse,
   IEmailService,
 } from "~/domain/services/email.service";
+import { generateCanceledEventEmailTemplate } from "~/presentation/templates/cancel-event-email.template";
 import { generateRegistrationConfirmationTemplate } from "~/presentation/templates/registration-confirmation.template";
 import type { InvitationEmailDto } from "../../domain/dtos/email-invitation.dto";
 import { generateInvitationEmailTemplate } from "../../presentation/templates/invitation-email.template";
@@ -176,6 +177,39 @@ export const EmailService = (): IEmailService => ({
         to: recipientEmail,
         from: env.EMAIL_FROM,
         subject: `Invitación: ${emailData.eventName}`,
+        html: htmlContent,
+      });
+
+      return {
+        success: true,
+        message: "Invitation email sent successfully",
+      };
+    } catch (error) {
+      console.log(error);
+      throw new Error(`Invitation email sent failed: ${error}`);
+    }
+  },
+
+  sendCancelInvitationEmail: async (
+    emailData: InvitationEmailDto,
+    recipientEmail: string
+  ): Promise<EmailResponse> => {
+    console.log(emailData);
+
+    const { success, data } = invitationEmailSchema.safeParse(emailData);
+
+    if (!success) {
+      console.log(data);
+
+      throw new Error("Invalid invitation email data");
+    }
+
+    const htmlContent = generateCanceledEventEmailTemplate(data);
+    try {
+      await transporter.sendMail({
+        to: recipientEmail,
+        from: env.EMAIL_FROM,
+        subject: `Cancelación de evento: ${emailData.eventName}`,
         html: htmlContent,
       });
 
