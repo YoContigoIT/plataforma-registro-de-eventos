@@ -144,6 +144,7 @@ export function RegistrationDetailsSheet({
                           <p className="text-sm font-medium font-mono break-all">
                             {registration.qrCode}
                           </p>
+
                           <Button
                             variant="ghost"
                             size="sm"

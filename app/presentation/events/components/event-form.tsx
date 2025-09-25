@@ -2,13 +2,15 @@ import { Button } from "@/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/ui/card";
+import { Label } from "@/ui/label";
+import { Switch } from "@/ui/switch";
 import { EventStatus } from "@prisma/client";
 import { Calendar, MapPin, Users } from "lucide-react";
-import { useId } from "react";
+import { useId, useState } from "react";
 import { Form, Link } from "react-router";
 import { createEventSchema, updateEventSchema } from "~/domain/dtos/event.dto";
 import type { FormFieldEntity } from "~/domain/entities/event-form.entity";
@@ -42,6 +44,11 @@ export function EventForm({
   });
   const descriptionId = useId();
   const agendaId = useId();
+  const formStatusSwitchId = useId();
+
+  const [isFormActive, setIsFormActive] = useState(
+    eventData?.EventForm?.isActive ?? true
+  );
 
   const initialFormFields: FormFieldEntity[] = (() => {
     return isEditing && eventData?.EventForm?.fields
@@ -63,7 +70,6 @@ export function EventForm({
 
   return (
     <Form method="POST" replace className="space-y-6">
-      {/* Event Information Card */}
       <Card className="mt-4">
         <CardHeader>
           <CardTitle>Información del evento</CardTitle>
@@ -80,9 +86,7 @@ export function EventForm({
             />
           )}
 
-          {/* All form fields in a single grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Name and Location */}
             <TextInput
               label="Nombre del evento"
               name="name"
@@ -243,32 +247,63 @@ export function EventForm({
             </div>
           </div>
         </CardContent>
-
-        <CardFooter className="flex justify-end space-x-4 border-t p-6">
-          <Button variant="outline" asChild>
-            <Link to="/eventos">Cancelar</Link>
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              isEditing ? (
-                "Actualizando..."
-              ) : (
-                "Creando..."
-              )
-            ) : (
-              <>
-                <Calendar className="w-4 h-4 mr-2" />
-                {isEditing ? "Actualizar evento" : "Crear evento"}
-              </>
-            )}
-          </Button>
-        </CardFooter>
       </Card>
 
-      <FormBuilder
-        initialFields={initialFormFields}
-        handleInputChange={handleInputChange}
-      />
+      {/* Form Builder Section with Title and Toggle */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1.5">
+              <CardTitle>Formulario del evento</CardTitle>
+              <CardDescription>
+                Configura los campos del formulario para el evento.
+              </CardDescription>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Label
+                htmlFor="form-status-switch"
+                className="text-sm font-medium"
+              >
+                {isFormActive ? "Habilitado" : "Deshabilitado"}
+              </Label>
+              <Switch
+                id={formStatusSwitchId}
+                checked={isFormActive}
+                onCheckedChange={setIsFormActive}
+              />
+            </div>
+          </div>
+        </CardHeader>
+        {isFormActive && (
+          <CardContent>
+            <FormBuilder
+              initialFields={initialFormFields}
+              handleInputChange={handleInputChange}
+              isActive={isFormActive}
+            />
+          </CardContent>
+        )}
+      </Card>
+
+      <div className="flex w-full justify-end gap-4">
+        <Button variant="outline" asChild>
+          <Link to="/eventos">Cancelar</Link>
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
+            isEditing ? (
+              "Actualizando..."
+            ) : (
+              "Creando..."
+            )
+          ) : (
+            <>
+              <Calendar className="w-4 h-4 mr-2" />
+              {isEditing ? "Actualizar evento" : "Crear evento"}
+            </>
+          )}
+        </Button>
+      </div>
     </Form>
   );
 }

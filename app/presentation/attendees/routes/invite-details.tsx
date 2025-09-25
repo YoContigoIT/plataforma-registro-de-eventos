@@ -1,4 +1,4 @@
-import {
+/* import {
   Building,
   Calendar,
   Clock,
@@ -43,17 +43,13 @@ export default function InviteDetailsPage() {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated Floating Shadows */}
-      {/* Hero Section with Gradient Overlay and Background Image */}
       <div className="relative px-6 py-16 text-primary-foreground overflow-hidden">
-        {/* Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`,
           }}
         />
-        {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/80 to-secondary/70" />
 
         <div className="relative mx-auto max-w-7xl">
@@ -107,9 +103,7 @@ export default function InviteDetailsPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="relative z-10 mx-auto max-w-7xl px-6 py-12">
-        {/* Highlighted Personalized Greeting - Outside Banner */}
         <div className="border-l-4 border-primary p-6 rounded-lg shadow-lg bg-card mb-12">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
@@ -131,9 +125,7 @@ export default function InviteDetailsPage() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
-          {/* Left Column - Event Details */}
           <div className="lg:col-span-2 space-y-8">
-            {/* About This Event */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
@@ -149,7 +141,6 @@ export default function InviteDetailsPage() {
               </CardContent>
             </Card>
 
-            {/* Event Agenda */}
             {event.agenda && (
               <Card>
                 <CardHeader>
@@ -176,7 +167,6 @@ export default function InviteDetailsPage() {
               </Card>
             )}
 
-            {/* Venue & Location */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
@@ -202,7 +192,6 @@ export default function InviteDetailsPage() {
             </Card>
           </div>
 
-          {/* Right Column - Registration Sidebar */}
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -222,7 +211,6 @@ export default function InviteDetailsPage() {
                     {availableSpots} / {event.capacity}
                   </span>
                 </div>
-                {/* Replaced with shadcn Progress component */}
                 <Progress
                   value={(availableSpots / event.capacity) * 100}
                   className="w-full h-3"
@@ -259,7 +247,6 @@ export default function InviteDetailsPage() {
               </CardContent>
             </Card>
 
-            {/* Event Details Card with Icons */}
             <Card>
               <CardContent className="pt-6 space-y-4">
                 <div className="flex items-center gap-3">
@@ -329,3 +316,4 @@ export default function InviteDetailsPage() {
     </div>
   );
 }
+ */

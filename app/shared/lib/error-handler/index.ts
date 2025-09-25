@@ -1,8 +1,7 @@
 import { clientPrismaErrors } from "@/prisma/errors";
 import { Prisma } from "@prisma/client";
-import type { ActionData } from "../../types";
 
-export async function handleServiceError(error: unknown): Promise<ActionData> {
+export async function handleServiceError(error: unknown, message?: string) {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     if (process.env.NODE_ENV === "development") {
       console.error("Prisma error:", error);
@@ -22,14 +21,14 @@ export async function handleServiceError(error: unknown): Promise<ActionData> {
 
     return {
       success: false,
-      message: error.message || clientPrismaErrors.DEFAULT,
+      message: message || error.message || clientPrismaErrors.DEFAULT,
       error: error.name,
     };
   }
 
   return {
     success: false,
-    message: clientPrismaErrors.DEFAULT,
+    message: message || clientPrismaErrors.DEFAULT,
     error: "UnknownError",
   };
 }

@@ -32,6 +32,7 @@ export const createEventAction = async ({
     maxTickets: formData.maxTickets ? Number(formData.maxTickets) : undefined,
     status: formData.status || EventStatus.DRAFT,
     organizerId: userId,
+    isActive: Boolean(formData.isActive),
     formFields: (() => {
       if (!formData.formFields) return undefined;
 
@@ -82,7 +83,7 @@ export const createEventAction = async ({
         eventId: createdEvent.id,
         title: `Formulario de registro - ${createdEvent.name}`,
         description: "Formulario de registro para el evento",
-        isActive: true,
+        isActive: formData.isActive === "true",
         fields: formFields.map((field, index) => ({
           label: field.label,
           type: field.type,
@@ -111,6 +112,8 @@ export const updateEventAction = async ({
 }: RouteList.ActionArgs): Promise<ActionData> => {
   const formData = Object.fromEntries(await request.formData());
   const userId = session.get("user")?.id;
+
+  console.log("isActive:", formData.isActive === "true");
 
   if (!userId) {
     return {
@@ -141,7 +144,7 @@ export const updateEventAction = async ({
     maxTickets: formData.maxTickets ? Number(formData.maxTickets) : undefined,
     status: formData.status || EventStatus.DRAFT,
     organizerId: userId,
-    formFields: formFields, // Use the parsed formFields
+    formFields: formFields,
     remainingCapacity: formData.capacity
       ? Number(formData.capacity)
       : undefined,
@@ -200,6 +203,7 @@ export const updateEventAction = async ({
           id: existingForm.id,
           title: `Formulario de registro - ${updatedEvent.name}`,
           description: "Formulario de registro para el evento",
+          isActive: formData.isActive === "true",
         });
 
         // Get current fields for comparison

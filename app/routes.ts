@@ -22,6 +22,7 @@ const ROUTES_PATH = {
   attendee: {
     join: "presentation/attendees/routes/join.tsx",
     inviteDetails: "presentation/attendees/routes/invite-details.tsx",
+    formResponse: "presentation/attendees/routes/form-response.tsx",
   },
   users: {
     list: "presentation/usuarios/routes/users.tsx",
@@ -49,6 +50,7 @@ export default [
   route("/iniciar-sesion", `${ROUTES_PATH.auth.login}`),
   route("/cerrar-sesion", `${ROUTES_PATH.auth.logout}`),
   route("/inscripcion/:inviteToken", `${ROUTES_PATH.attendee.join}`),
+  route("/api/form-response", `${ROUTES_PATH.attendee.formResponse}`),
   /* route("/invitacion/:inviteToken", `${ROUTES_PATH.attendee.inviteDetails}`), */
   route(
     "/verificar-registro/:qrCode",

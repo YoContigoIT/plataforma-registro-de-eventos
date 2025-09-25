@@ -30,12 +30,12 @@ export const PrismaFormResponseRepository = (
               field: true, // Include field info for validation/display
             },
           },
-          registration: {
+          /* registration: {
             include: {
               user: true,
               event: true,
             },
-          },
+          }, */
         },
       });
     },

@@ -62,6 +62,8 @@ export const PrismaEventFormRepository = (
         data: {
           title: data.title,
           description: data.description,
+          isActive: data.isActive,
+          updatedAt: new Date(), 
         },
         include: {
           fields: {
