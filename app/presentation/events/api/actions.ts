@@ -38,6 +38,13 @@ export const createEventAction = async ({
     };
   }
 
+  if ([EventStatus.CANCELLED, EventStatus.ENDED].includes(data.status as any)) {
+    return {
+      success: false,
+      error: "No se puede crear un evento como Cancelado o Finalizado.",
+    };
+  }
+
   try {
     await repositories.eventRepository.create(data);
 
@@ -83,6 +90,33 @@ export const updateEventAction = async ({
     return {
       success: false,
       errors: simplifyZodErrors(error),
+    };
+  }
+
+  const existingEvent = await repositories.eventRepository.findUnique(data.id);
+  if (!existingEvent) {
+    return { success: false, error: "Evento no encontrado" };
+  }
+
+  // Si ya terminó, no se puede cambiar el estado
+  if (
+    existingEvent.status === EventStatus.ENDED &&
+    data.status !== EventStatus.ENDED
+  ) {
+    return {
+      success: false,
+      error: "El evento ya terminó, no se permite cambiar el estado.",
+    };
+  }
+
+  // Si está en curso, solo se permite pasar a Finalizado
+  if (
+    existingEvent.status === EventStatus.ONGOING &&
+    data.status !== EventStatus.ENDED
+  ) {
+    return {
+      success: false,
+      error: "Un evento en curso solo puede marcarse como Finalizado.",
     };
   }
 

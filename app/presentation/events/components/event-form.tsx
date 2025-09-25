@@ -42,6 +42,33 @@ export function EventForm({
   const descriptionId = useId();
   const agendaId = useId();
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
+
+  const getAllowedStatusOptions = () => {
+    if (!isEditing) {
+      // Creación: no permitir Cancelado ni Finalizado
+      return statusOptions.filter(
+        (opt) =>
+          opt.value === EventStatus.DRAFT ||
+          opt.value === EventStatus.UPCOMING ||
+          opt.value === EventStatus.ONGOING
+      );
+    }
+
+    if (eventData?.status === EventStatus.ONGOING) {
+      // Si está en curso: solo permitir Finalizado
+      return statusOptions.filter(
+        (opt) =>
+          opt.value === EventStatus.ENDED || opt.value === EventStatus.ONGOING
+      );
+    }
+
+    if (eventData?.status === EventStatus.ENDED) {
+      // Si ya terminó: no permitir cambios → mantener solo el actual
+      return statusOptions.filter((opt) => opt.value === EventStatus.ENDED);
+    }
+    return statusOptions;
+  };
+
   return (
     <>
       <Form method="POST" replace className="space-y-6">
@@ -174,7 +201,7 @@ export function EventForm({
               <SelectInput
                 label="Estado"
                 name="status"
-                options={statusOptions}
+                options={getAllowedStatusOptions()}
                 defaultValue={eventData?.status || EventStatus.DRAFT}
                 placeholder="Selecciona el estado del evento"
                 error={errors.status?.[0]}
@@ -253,7 +280,7 @@ export function EventForm({
       </Form>
 
       <ConfirmationDialog
-        isOpen={showConfirmationDialog}
+        isOpen={showConfirmationDialog && isEditing}
         onClose={() => {
           setShowConfirmationDialog(false);
         }}
