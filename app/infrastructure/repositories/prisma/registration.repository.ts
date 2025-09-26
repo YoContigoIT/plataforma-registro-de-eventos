@@ -2,7 +2,10 @@ import { buildWhereClause, calculatePaginationInfo } from "@/shared/lib/utils";
 import type { PaginatedResponse } from "@/shared/types";
 import type { PrismaClient, RegistrationStatus } from "@prisma/client";
 import type { UpdateRegistrationDto } from "~/domain/dtos/registration.dto";
-import type { RegistrationWithRelations } from "~/domain/entities/registration.entity";
+import type {
+  RegistrationWithFullRelations,
+  RegistrationWithRelations,
+} from "~/domain/entities/registration.entity";
 import type {
   IRegistrationRepository,
   RegistrationFilters,
@@ -41,7 +44,7 @@ export const PrismaRegistrationRepository = (
         sortDirection?: "asc" | "desc";
       },
       filters?: RegistrationFilters,
-    ): Promise<PaginatedResponse<RegistrationWithRelations>> => {
+    ): Promise<PaginatedResponse<RegistrationWithFullRelations>> => {
       const { page, limit, sortBy, sortDirection } = params;
       const offset = (page - 1) * limit;
 
@@ -213,9 +216,14 @@ export const PrismaRegistrationRepository = (
           orderBy,
           include: {
             user: true,
-            event: {
+            event: true,
+            FormResponse: {
               include: {
-                organizer: true,
+                fieldResponses: {
+                  include: {
+                    field: true,
+                  },
+                },
               },
             },
           },
@@ -264,6 +272,15 @@ export const PrismaRegistrationRepository = (
         include: {
           user: true,
           event: true,
+          FormResponse: {
+            include: {
+              fieldResponses: {
+                include: {
+                  field: true,
+                },
+              },
+            },
+          },
         },
       });
     },

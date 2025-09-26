@@ -11,14 +11,14 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { AtSign, Calendar, CalendarCheck, User } from "lucide-react";
 import { useState } from "react";
-import type { RegistrationWithRelations } from "~/domain/entities/registration.entity";
+import type { RegistrationWithFullRelations } from "~/domain/entities/registration.entity";
 import { SortableHeader } from "~/shared/components/common/sortable-header";
 import { Checkbox } from "~/shared/components/ui/checkbox";
 import type { SortState } from "~/shared/types";
 import { RegistrationDetailsSheet } from "./registration-details-sheet";
 
 interface RegistrationTableProps {
-  registrations: RegistrationWithRelations[];
+  registrations: RegistrationWithFullRelations[];
   selectedRegistrations: string[];
   onSelectAll: (checked: boolean) => void;
   onSelectRegistration: (registrationId: string, checked: boolean) => void;
@@ -41,11 +41,11 @@ export function RegistrationTable({
   canSendInvite,
 }: RegistrationTableProps) {
   const [selectedRegistration, setSelectedRegistration] =
-    useState<RegistrationWithRelations | null>(null);
+    useState<RegistrationWithFullRelations | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const handleRowClick = (
-    registration: RegistrationWithRelations,
+    registration: RegistrationWithFullRelations,
     event: React.MouseEvent
   ) => {
     if ((event.target as HTMLElement).closest('input[type="checkbox"]')) {

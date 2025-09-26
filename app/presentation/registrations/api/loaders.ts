@@ -1,3 +1,4 @@
+import type { RegistrationStatus } from "@prisma/client";
 import type { RegistrationFilters } from "~/domain/repositories/registration.repository";
 import type { Route } from "../routes/+types/registrations";
 
@@ -16,7 +17,6 @@ export const registrationsLoader = async ({
   
   const filters: RegistrationFilters = {};
 
-  // i need to check a better way to extract this filters
   // Basic filters
   const userId = url.searchParams.get("userId");
   if (userId) {
@@ -33,50 +33,77 @@ export const registrationsLoader = async ({
     filters.search = search;
   }
 
-  // Date range filters
-  const invitedAtFrom = url.searchParams.get("invitedAtFrom");
-  const invitedAtTo = url.searchParams.get("invitedAtTo");
-  if (invitedAtFrom || invitedAtTo) {
-    filters.invitedAt = {
-      from: invitedAtFrom ? new Date(invitedAtFrom) : undefined,
-      to: invitedAtTo ? new Date(invitedAtTo) : undefined,
+  // Status filters
+  const status = url.searchParams.get("status") as RegistrationStatus;
+  if (status) {
+    filters.status = status;
+  }
+
+  // Multiple statuses filter
+  const statusesParam = url.searchParams.get("statuses");
+  if (statusesParam) {
+    filters.statuses = statusesParam.split(",") as RegistrationStatus[];
+  }
+
+  // Simple date filters (single date, not ranges)
+  const invitedAt = url.searchParams.get("invitedAt");
+  if (invitedAt) {
+    filters.invitedAt = new Date(invitedAt);
+  }
+
+  const respondedAt = url.searchParams.get("respondedAt");
+  if (respondedAt) {
+    filters.respondedAt = new Date(respondedAt);
+  }
+
+  const registeredAt = url.searchParams.get("registeredAt");
+  if (registeredAt) {
+    filters.registeredAt = new Date(registeredAt);
+  }
+
+  const checkedInAt = url.searchParams.get("checkedInAt");
+  if (checkedInAt) {
+    filters.checkedInAt = new Date(checkedInAt);
+  }
+
+  // System date range filters
+  const createdAtFrom = url.searchParams.get("createdAtFrom");
+  const createdAtTo = url.searchParams.get("createdAtTo");
+  if (createdAtFrom || createdAtTo) {
+    filters.createdAt = {
+      from: createdAtFrom ? new Date(createdAtFrom) : undefined,
+      to: createdAtTo ? new Date(createdAtTo) : undefined,
     };
   }
 
-  const respondedAtFrom = url.searchParams.get("respondedAtFrom");
-  const respondedAtTo = url.searchParams.get("respondedAtTo");
-  if (respondedAtFrom || respondedAtTo) {
-    filters.respondedAt = {
-      from: respondedAtFrom ? new Date(respondedAtFrom) : undefined,
-      to: respondedAtTo ? new Date(respondedAtTo) : undefined,
+  const updatedAtFrom = url.searchParams.get("updatedAtFrom");
+  const updatedAtTo = url.searchParams.get("updatedAtTo");
+  if (updatedAtFrom || updatedAtTo) {
+    filters.updatedAt = {
+      from: updatedAtFrom ? new Date(updatedAtFrom) : undefined,
+      to: updatedAtTo ? new Date(updatedAtTo) : undefined,
     };
   }
 
-  const registeredAtFrom = url.searchParams.get("registeredAtFrom");
-  const registeredAtTo = url.searchParams.get("registeredAtTo");
-  if (registeredAtFrom || registeredAtTo) {
-    filters.registeredAt = {
-      from: registeredAtFrom ? new Date(registeredAtFrom) : undefined,
-      to: registeredAtTo ? new Date(registeredAtTo) : undefined,
+  // Response time analysis
+  const respondedWithinHours = url.searchParams.get("respondedWithinHours");
+  const respondedWithinDays = url.searchParams.get("respondedWithinDays");
+  if (respondedWithinHours || respondedWithinDays) {
+    filters.respondedWithin = {
+      hours: respondedWithinHours ? parseInt(respondedWithinHours, 10) : undefined,
+      days: respondedWithinDays ? parseInt(respondedWithinDays, 10) : undefined,
     };
   }
 
-  const eventStartDateFrom = url.searchParams.get("eventStartDateFrom");
-  const eventStartDateTo = url.searchParams.get("eventStartDateTo");
-  if (eventStartDateFrom || eventStartDateTo) {
-    filters.eventStartDate = {
-      from: eventStartDateFrom ? new Date(eventStartDateFrom) : undefined,
-      to: eventStartDateTo ? new Date(eventStartDateTo) : undefined,
-    };
+  // Invite management filters
+  const pendingInvites = url.searchParams.get("pendingInvites");
+  if (pendingInvites === "true") {
+    filters.pendingInvites = true;
   }
 
-  const eventEndDateFrom = url.searchParams.get("eventEndDateFrom");
-  const eventEndDateTo = url.searchParams.get("eventEndDateTo");
-  if (eventEndDateFrom || eventEndDateTo) {
-    filters.eventEndDate = {
-      from: eventEndDateFrom ? new Date(eventEndDateFrom) : undefined,
-      to: eventEndDateTo ? new Date(eventEndDateTo) : undefined,
-    };
+  const expiredInvites = url.searchParams.get("expiredInvites");
+  if (expiredInvites === "true") {
+    filters.expiredInvites = true;
   }
 
   // Boolean convenience filters
@@ -88,11 +115,6 @@ export const registrationsLoader = async ({
   const isCheckedIn = url.searchParams.get("isCheckedIn");
   if (isCheckedIn !== null) {
     filters.isCheckedIn = isCheckedIn === "true";
-  }
-
-  const hasInviteToken = url.searchParams.get("hasInviteToken");
-  if (hasInviteToken !== null) {
-    filters.hasInviteToken = hasInviteToken === "true";
   }
 
   // Status convenience filters
@@ -121,58 +143,13 @@ export const registrationsLoader = async ({
     filters.isDeclined = true;
   }
 
-  // Event-related filters
-  const eventStatus = url.searchParams.get("eventStatus");
-  if (eventStatus) {
-    filters.eventStatus = eventStatus;
-  }
-
-  const eventOrganizerId = url.searchParams.get("eventOrganizerId");
-  if (eventOrganizerId) {
-    filters.eventOrganizerId = eventOrganizerId;
-  }
-
-  const isUpcomingEvent = url.searchParams.get("isUpcomingEvent");
-  if (isUpcomingEvent === "true") {
-    filters.isUpcomingEvent = true;
-  }
-
-  const isPastEvent = url.searchParams.get("isPastEvent");
-  if (isPastEvent === "true") {
-    filters.isPastEvent = true;
-  }
-
-  const isActiveEvent = url.searchParams.get("isActiveEvent");
-  if (isActiveEvent === "true") {
-    filters.isActiveEvent = true;
-  }
-
-  // Response time analysis
-  const respondedWithinHours = url.searchParams.get("respondedWithinHours");
-  const respondedWithinDays = url.searchParams.get("respondedWithinDays");
-  if (respondedWithinHours || respondedWithinDays) {
-    filters.respondedWithin = {
-      hours: respondedWithinHours ? parseInt(respondedWithinHours, 10) : undefined,
-      days: respondedWithinDays ? parseInt(respondedWithinDays, 10) : undefined,
-    };
-  }
-
-  // Invite management filters
-  const pendingInvites = url.searchParams.get("pendingInvites");
-  if (pendingInvites === "true") {
-    filters.pendingInvites = true;
-  }
-
-  const expiredInvites = url.searchParams.get("expiredInvites");
-  if (expiredInvites === "true") {
-    filters.expiredInvites = true;
-  }
-
   // Fetch registrations with pagination, filters, and sorting
   const { data, pagination } = await repositories.registrationRepository.findMany(
     { page, limit, sortBy, sortDirection },
     filters,
   );
+
+  console.log("registrations", data);
 
   return {
     registrations: data,

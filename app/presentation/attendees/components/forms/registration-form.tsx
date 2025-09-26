@@ -11,33 +11,32 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
-import { Form } from "react-router";
+import type { FetcherWithComponents } from "react-router";
+import { createUserSchema } from "~/domain/dtos/user.dto";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import type { UserEntity } from "~/domain/entities/user.entity";
 import { FormField } from "~/shared/components/common/form-field";
 import { SelectInput } from "~/shared/components/common/select-input";
 import { TextInput } from "~/shared/components/common/text-input";
-import type { ValidationErrors } from "~/shared/hooks/use-form-validation.hook";
+import { useFormAction } from "~/shared/hooks/use-form-action.hook";
 
 interface RegistrationFormProps {
   event: EventEntity;
   user: UserEntity | null;
-  isSubmitting: boolean;
-  isLoading: boolean;
-  errors: ValidationErrors;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  showEventDetails: boolean;
+  fetcher: FetcherWithComponents<FormData>;
+  inviteToken?: string; // Add this line
 }
 
 export function RegistrationForm({
   event,
   user,
-  isSubmitting,
-  isLoading,
-  errors,
-  handleInputChange,
-  showEventDetails,
+  fetcher,
+  inviteToken, // Add this line
 }: RegistrationFormProps) {
+  const { errors, handleInputChange, isLoading, isSubmitting } = useFormAction({
+    zodSchema: createUserSchema,
+  });
+
   const nameId = useId();
   const emailId = useId();
   const phoneId = useId();
@@ -122,8 +121,11 @@ export function RegistrationForm({
         </p>
       </div>
 
-      <Form method="post" className="space-y-6" replace>
-        {/* Nombre */}
+      <fetcher.Form
+        method="post"
+        className="space-y-6"
+        action={`/api/create-attendee/${inviteToken}`}
+      >
         {user && !user.name && (
           <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
             <div className="space-y-2">
@@ -134,8 +136,8 @@ export function RegistrationForm({
                   type="text"
                   placeholder="Ej. Andrea Sánchez"
                   required
-                  readOnly={user && user.name ? true : false}
-                  defaultValue={user?.name}
+                  readOnly={!!user?.name}
+                  defaultValue={user?.name ?? ""}
                   icon={<UserCircle size={20} className="text-gray-400" />}
                   disabled={isSubmitting || isLoading}
                   onChange={(e) => {
@@ -216,7 +218,7 @@ export function RegistrationForm({
                 name="phone"
                 type="tel"
                 inputMode="tel"
-                defaultValue={user?.phone}
+                defaultValue={user?.phone ?? ""}
                 placeholder="Ej. +34 600 123 456"
                 icon={<Phone size={20} className="text-gray-400" />}
                 disabled={isSubmitting || isLoading}
@@ -263,7 +265,7 @@ export function RegistrationForm({
                       quantity: true,
                     }));
                   }
-                  const hasValue = parseInt(value.trim());
+                  const hasValue = Number.parseInt(value.trim(), 10);
                   setFormData((prev) => ({
                     ...prev,
                     quantity: hasValue,
@@ -316,14 +318,6 @@ export function RegistrationForm({
                 : "Fecha del evento"}
             </div>
           </div>
-          {/* <div className="mt-4 pt-3 border-t border-blue-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-blue-800 font-semibold">Total:</span>
-                  <span className="text-green-600 font-bold text-lg">
-                    GRATUITO
-                  </span>
-                </div>
-              </div> */}
         </div>
 
         {/* Botón */}
@@ -346,7 +340,7 @@ export function RegistrationForm({
             )}
           </Button>
         </div>
-      </Form>
+      </fetcher.Form>
 
       {/* Información adicional */}
       <div className="mt-8 pt-6 border-t border-gray-200">

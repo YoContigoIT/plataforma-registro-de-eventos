@@ -1,83 +1,62 @@
-import { useState, useEffect } from "react";
-import { useFetcher } from "react-router";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useFetcher, useLoaderData } from "react-router";
 import { toast } from "sonner";
 import { Stepper } from "~/shared/components/common/stepper";
 import { Button } from "~/shared/components/ui/button";
-import { useRegistrationForm } from "../../hooks/useRegistrationForm";
+import type { LoaderData } from "~/shared/types";
+import type { InvitationData } from "../../api/get-invitation-data.loader";
 import { EventDetailsPanel } from "./event-details-panel";
 import { EventFormRenderer } from "./event-form-renderer";
-import { RegistrationConfirm } from "./registration-confirm";
 import { RegistrationForm } from "./registration-form";
 
+const STEPS = [
+  {
+    id: "event-form",
+    title: "Formulario del evento",
+    description: "Completa la información específica del evento",
+  },
+  {
+    id: "registration",
+    title: "Registro",
+    description: "Completa los detalles de tu registro",
+  },
+];
+
 export function RegistrationFormHandler() {
+  const loaderData = useLoaderData<LoaderData<InvitationData>>();
   const {
-    isSubmitting,
-    errors,
-    handleInputChange,
-    isLoading,
     event,
     user,
-    showSuccess,
-    eventForm,
     registrationId,
-  } = useRegistrationForm();
-
+    eventForm,
+    hasResponse,
+    formResponse: formAnswers,
+    inviteToken,
+  } = loaderData.data || {};
   const [showEventDetails, setShowEventDetails] = useState(true);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formResponseCompleted, setFormResponseCompleted] = useState(false);
-  
-  // Fetcher for form response submission
+  const [currentStep, setCurrentStep] = useState(hasResponse ? 2 : 1);
+  const [formResponseCompleted, setFormResponseCompleted] = useState(
+    hasResponse || false
+  );
+
   const formResponseFetcher = useFetcher();
   const registrationFetcher = useFetcher();
 
-  // Define the steps for the stepper
-  const steps = [
-    {
-      id: "event-form",
-      title: "Formulario del evento",
-      description: "Completa la información específica del evento",
-    },
-    {
-      id: "registration",
-      title: "Registro",
-      description: "Completa los detalles de tu registro",
-    },
-  ];
-
-  // Handle form response submission result
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <not needed>
   useEffect(() => {
     if (formResponseFetcher.state === "idle" && formResponseFetcher.data) {
       if (formResponseFetcher.data.success) {
-        toast.success(
-          formResponseFetcher.data.message || "Formulario enviado exitosamente"
-        );
         setFormResponseCompleted(true);
         handleNextStep();
-      } else {
-        toast.error(
-          formResponseFetcher.data.error || "Error al enviar el formulario"
-        );
+      } else if (formResponseFetcher.data.error) {
+        toast.error(formResponseFetcher.data.error);
       }
     }
   }, [formResponseFetcher.state, formResponseFetcher.data]);
 
-  // Handle registration submission result
-  useEffect(() => {
-    if (registrationFetcher.state === "idle" && registrationFetcher.data) {
-      if (registrationFetcher.data.success) {
-        toast.success(
-          registrationFetcher.data.message || "Registro completado exitosamente"
-        );
-      } else {
-        toast.error(
-          registrationFetcher.data.error || "Error al completar el registro"
-        );
-      }
-    }
-  }, [registrationFetcher.state, registrationFetcher.data]);
-
   const handleNextStep = () => {
-    if (currentStep < steps.length) {
+    if (currentStep < STEPS.length) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -88,28 +67,12 @@ export function RegistrationFormHandler() {
     }
   };
 
-  // Handle form response submission
-  const handleFormResponseSubmit = (formData: Record<string, any>) => {
-    const submitData = new FormData();
-    submitData.append("registrationId", registrationId);
-    
-    // Add field responses
-    Object.entries(formData).forEach(([key, value]) => {
-      submitData.append(`field_${key}`, value as string);
-    });
-
-    formResponseFetcher.submit(submitData, {
-      method: "post",
-      action: "/api/form-response",
-    });
-  };
-
-  if (showSuccess) {
-    return <RegistrationConfirm />;
-  }
-
   const isFormResponseSubmitting = formResponseFetcher.state === "submitting";
   const isRegistrationSubmitting = registrationFetcher.state === "submitting";
+
+  if (!event || !user || !registrationId || !eventForm) {
+    return <div>Error: No se pudo cargar la información del evento</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto bg-card rounded-2xl shadow-2xl overflow-hidden relative">
@@ -121,28 +84,40 @@ export function RegistrationFormHandler() {
         />
 
         <div className="flex-1 p-6">
-          {/* Stepper Component */}
           <div className="mb-8">
-            <Stepper steps={steps} currentStep={currentStep} className="mb-6" />
+            <Stepper steps={STEPS} currentStep={currentStep} className="mb-6" />
           </div>
 
-          {/* Step Content */}
           <div className="min-h-[400px]">
             {currentStep === 1 && (
               <div>
-                <EventFormRenderer
-                  eventForm={eventForm}
-                  registrationId={registrationId}
-                  onFormSubmit={handleFormResponseSubmit}
-                />
+                {eventForm && (
+                  <EventFormRenderer
+                    eventForm={eventForm}
+                    registrationId={registrationId}
+                    fetcher={formResponseFetcher}
+                    defaultValues={formAnswers ?? undefined}
+                    isUpdateForm={hasResponse}
+                    formResponseId={formAnswers?.id}
+                  />
+                )}
                 <div className="flex justify-end mt-6">
                   <Button
                     onClick={handleNextStep}
-                    disabled={isLoading || !formResponseCompleted}
+                    disabled={
+                      isFormResponseSubmitting || !formResponseCompleted
+                    }
                     type="button"
                     size="lg"
                   >
-                    {isFormResponseSubmitting ? "Enviando..." : "Siguiente"}
+                    {isFormResponseSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      "Siguiente"
+                    )}
                   </Button>
                 </div>
               </div>
@@ -153,23 +128,26 @@ export function RegistrationFormHandler() {
                 <RegistrationForm
                   event={event}
                   user={user}
-                  isSubmitting={isRegistrationSubmitting}
-                  isLoading={isLoading}
-                  errors={errors}
-                  handleInputChange={handleInputChange}
-                  showEventDetails={showEventDetails}
+                  fetcher={registrationFetcher}
+                  inviteToken={inviteToken}
                 />
                 <div className="flex justify-between mt-6">
                   <Button
                     onClick={handlePreviousStep}
-                    disabled={isLoading}
+                    disabled={isRegistrationSubmitting}
                     type="button"
                     variant="outline"
                     size="lg"
                   >
-                    Anterior
+                    {isRegistrationSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      "Anterior"
+                    )}
                   </Button>
-                  {/* The submit button should be handled within RegistrationForm component */}
                 </div>
               </div>
             )}

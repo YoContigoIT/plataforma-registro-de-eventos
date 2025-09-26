@@ -1,19 +1,21 @@
 import { EventStatus } from "@prisma/client";
 import type { EventFormWithFields } from "~/domain/entities/event-form.entity";
 import type { EventEntity } from "~/domain/entities/event.entity";
-import type { FormResponseEntity } from "~/domain/entities/form-response.entity";
+import type { FormResponseAnswers } from "~/domain/entities/form-response.entity";
 import type { UserEntity } from "~/domain/entities/user.entity";
 import { handleServiceError } from "~/shared/lib/error-handler";
 import { decodeInvitationData } from "~/shared/lib/utils";
 import type { LoaderData } from "~/shared/types";
 import type { Route } from "../routes/+types/join";
 
-type InvitationData = {
+export type InvitationData = {
   event: EventEntity;
   user: UserEntity;
   eventForm: EventFormWithFields | null;
-  formResponse: FormResponseEntity | null;
+  formResponse: FormResponseAnswers | null;
   registrationId: string;
+  hasResponse: boolean;
+  inviteToken: string;
 };
 
 export async function getInvitationDataLoader({
@@ -68,39 +70,35 @@ export async function getInvitationDataLoader({
       return {
         success: false,
         error: "Este evento ya ha finalizado.",
+        data: null,
       };
     }
 
     const eventForm =
       await repositories.eventFormRepository.findByEventId(eventId);
 
-    let formResponse: FormResponseEntity | null = null;
+    let formResponse: FormResponseAnswers | null = null;
 
     if (eventForm?.isActive) {
-      const responseExists =
-        await repositories.formResponseRepository.responseExists(invite.id);
-
-      if (responseExists) {
-        formResponse =
-          await repositories.formResponseRepository.findByRegistrationId(
-            invite.id
-          );
-      }
+      formResponse =
+        await repositories.formResponseRepository.findByRegistrationId(
+          invite.id
+        );
     }
 
-    const data = {
-      event: invite.event,
-      user: invite.user,
-      eventForm: eventForm?.isActive ? eventForm : null,
-      formResponse,
-      registrationId: invite.id,
-    };
-
-    console.log("data", data);
+    console.log("form response id: ", formResponse?.id);
 
     return {
       success: true,
-      data,
+      data: {
+        event: invite.event,
+        user: invite.user,
+        eventForm: eventForm?.isActive ? eventForm : null,
+        formResponse,
+        registrationId: invite.id,
+        hasResponse: !!formResponse,
+        inviteToken,
+      },
     };
   } catch (error) {
     return handleServiceError(

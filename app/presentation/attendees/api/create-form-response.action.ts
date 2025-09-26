@@ -9,8 +9,7 @@ export const createFormResponseAction = async ({
   try {
     const formData = await request.formData();
     const data = Object.fromEntries(formData);
-
-    // Extract registrationId
+    
     const registrationId = data.registrationId as string;
     if (!registrationId) {
       return {
@@ -24,7 +23,7 @@ export const createFormResponseAction = async ({
     if (!registration) {
       return {
         success: false,
-        error: "Registro no encontrado.",
+        error: "Invitación no encontrada.",
       };
     }
 
@@ -49,7 +48,6 @@ export const createFormResponseAction = async ({
       }
     }
 
-    // Validate the form response data
     const result = createFormResponseSchema.safeParse({
       registrationId,
       fieldResponses,
@@ -63,7 +61,6 @@ export const createFormResponseAction = async ({
       };
     }
 
-    // Create the form response with all field responses
     const formResponse = await repositories.formResponseRepository.create(result.data);
 
     return {

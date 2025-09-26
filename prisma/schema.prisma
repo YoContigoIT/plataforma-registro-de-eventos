@@ -135,7 +135,7 @@ model Registration {
     registeredAt DateTime? // Make nullable since they might not be registered yet
 
     //formResponses Json? //for the simpler approach
-    FormResponse FormResponse[]
+    FormResponse FormResponse?
 
     @@index([invitedAt])
     @@index([respondedAt])
@@ -159,6 +159,10 @@ model EventForm {
     createdAt   DateTime    @default(now())
     updatedAt   DateTime    @updatedAt
 
+    // Indexes for query optimization
+    @@index([isActive])
+    @@index([createdAt])
+    @@index([isActive, createdAt])
     @@schema("auth")
 }
 
@@ -176,17 +180,25 @@ model FormField {
     order       Int // Display order
     responses   FormFieldResponse[]
 
+    // Indexes for query optimization
+    @@index([formId])
+    @@index([formId, order])
+    @@index([type])
     @@schema("auth")
 }
 
 // User's response to the entire form
 model FormResponse {
     id             String              @id @default(uuid()) @db.Uuid
-    registrationId String              @db.Uuid
+    registrationId String              @unique @db.Uuid
     registration   Registration        @relation(fields: [registrationId], references: [id])
     fieldResponses FormFieldResponse[]
     submittedAt    DateTime            @default(now())
 
+    // Indexes for query optimization
+    @@index([registrationId])
+    @@index([submittedAt])
+    @@index([registrationId, submittedAt])
     @@schema("auth")
 }
 
@@ -199,5 +211,9 @@ model FormFieldResponse {
     field      FormField    @relation(fields: [fieldId], references: [id])
     value      Json // Flexible storage for any type of response, can be a string also
 
+    // Indexes for query optimization
+    @@index([responseId])
+    @@index([fieldId])
+    @@index([responseId, fieldId])
     @@schema("auth")
 }

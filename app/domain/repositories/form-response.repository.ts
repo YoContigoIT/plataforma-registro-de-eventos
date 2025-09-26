@@ -7,7 +7,9 @@ import type {
 } from "../dtos/form-response.dto";
 import type {
   FormFieldResponseEntity,
+  FormResponseAnswers,
   FormResponseEntity,
+  FormResponseEntityWithFields
 } from "../entities/form-response.entity";
 
 export interface FormResponseFilters {
@@ -23,7 +25,8 @@ export interface FormResponseFilters {
 
 export interface IFormResponseRepository {
   // Form Response CRUD (creates response + all field responses atomically)
-  findByRegistrationId(registrationId: string): Promise<FormResponseEntity | null>;
+  findByRegistrationId(registrationId: string): Promise<FormResponseAnswers | null>;
+  findByRegistrationIdWithFields(registrationId: string): Promise<FormResponseEntityWithFields | null>;
   findById(id: string): Promise<FormResponseEntity | null>;
   create(data: CreateFormResponseDTO): Promise<FormResponseEntity>;
   update(data: UpdateFormResponseDTO): Promise<FormResponseEntity>;

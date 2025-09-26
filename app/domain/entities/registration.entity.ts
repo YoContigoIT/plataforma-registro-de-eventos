@@ -8,3 +8,19 @@ export type RegistrationWithRelations = Prisma.RegistrationGetPayload<{
     event: true;
   }
 }>
+
+export type RegistrationWithFullRelations = Prisma.RegistrationGetPayload<{
+  include: {
+    user: true;
+    event: true;
+    FormResponse: {
+      include: {
+        fieldResponses: {
+          include: {
+            field: true,
+          }
+        }
+      }
+    };
+  }
+}>

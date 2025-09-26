@@ -6,6 +6,7 @@ import type {
 } from "../dtos/registration.dto";
 import type {
   RegistrationEntity,
+  RegistrationWithFullRelations,
   RegistrationWithRelations,
 } from "../entities/registration.entity";
 
@@ -80,8 +81,8 @@ export interface IRegistrationRepository {
       sortDirection?: "asc" | "desc";
     },
     filters?: RegistrationFilters
-  ): Promise<PaginatedResponse<RegistrationWithRelations>>;
-  findOne(id: string): Promise<RegistrationWithRelations | null>;
+  ): Promise<PaginatedResponse<RegistrationWithFullRelations>>;
+  findOne(id: string): Promise<RegistrationWithFullRelations | null>;
   findByUserId(userId: string): Promise<RegistrationEntity[]>;
   findByEventId(eventId: string): Promise<RegistrationEntity[]>;
   findByQrCode(qrCode: string): Promise<RegistrationWithRelations | null>;

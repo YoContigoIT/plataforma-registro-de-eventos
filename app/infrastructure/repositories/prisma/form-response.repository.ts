@@ -7,12 +7,15 @@ import type {
 } from "~/domain/dtos/form-response.dto";
 import type {
   FormFieldResponseEntity,
+  FormResponseAnswers,
   FormResponseEntity,
+  FormResponseEntityWithFields
 } from "~/domain/entities/form-response.entity";
 import type {
   FormResponseFilters,
   IFormResponseRepository,
 } from "~/domain/repositories/form-response.repository";
+import { runInTransaction } from "~/infrastructure/db/prisma";
 import { buildWhereClause, calculatePaginationInfo } from "~/shared/lib/utils";
 import type { PaginatedResponse } from "~/shared/types";
 
@@ -21,13 +24,17 @@ export const PrismaFormResponseRepository = (
 ): IFormResponseRepository => {
   return {
     // Find response by registration ID with all field responses
-    findByRegistrationId: async (registrationId: string): Promise<FormResponseEntity | null> => {
+    findByRegistrationId: async (
+      registrationId: string,
+    ): Promise<FormResponseAnswers | null> => {
       return await prisma.formResponse.findUnique({
-        where: { id: registrationId },
+        where: { registrationId },
         include: {
           fieldResponses: {
-            include: {
-              field: true, // Include field info for validation/display
+            select: {
+              fieldId: true,
+              value: true,
+              id: true,
             },
           },
           /* registration: {
@@ -36,6 +43,21 @@ export const PrismaFormResponseRepository = (
               event: true,
             },
           }, */
+        },
+      });
+    },
+
+    findByRegistrationIdWithFields: async (
+      registrationId: string,
+    ): Promise<FormResponseEntityWithFields | null> => {
+      return await prisma.formResponse.findUnique({
+        where: { registrationId },
+        include: {
+          fieldResponses: {
+            include: {
+              field: true,
+            }
+          },
         },
       });
     },
@@ -61,7 +83,11 @@ export const PrismaFormResponseRepository = (
     },
 
     // Create response with all field responses atomically
-    create: async (data: CreateFormResponseDTO): Promise<FormResponseEntity> => {
+    create: async (
+      data: CreateFormResponseDTO,
+    ): Promise<FormResponseEntity> => {
+      console.log("data sent for creation: ", data);
+
       return await prisma.$transaction(async (tx) => {
         // Create the form response first
         const response = await tx.formResponse.create({
@@ -103,7 +129,9 @@ export const PrismaFormResponseRepository = (
     },
 
     // Update response (submittedAt only)
-    update: async (data: UpdateFormResponseDTO): Promise<FormResponseEntity> => {
+    update: async (
+      data: UpdateFormResponseDTO,
+    ): Promise<FormResponseEntity> => {
       return await prisma.formResponse.update({
         where: { id: data.id },
         data: {
@@ -133,7 +161,9 @@ export const PrismaFormResponseRepository = (
     },
 
     // Update individual field response
-    updateFieldResponse: async (data: UpdateFormFieldResponseDTO): Promise<FormFieldResponseEntity> => {
+    updateFieldResponse: async (
+      data: UpdateFormFieldResponseDTO,
+    ): Promise<FormFieldResponseEntity> => {
       return await prisma.formFieldResponse.update({
         where: { id: data.id },
         data: {
@@ -147,30 +177,35 @@ export const PrismaFormResponseRepository = (
     },
 
     // Bulk update field responses
-    bulkUpdateFieldResponses: async (data: BulkUpdateFieldResponsesDTO): Promise<FormResponseEntity> => {
-      return await prisma.$transaction(async (tx) => {
-        // Update each field response
-        for (const fieldResponse of data.fieldUpdates) {
-          if (fieldResponse.fieldId) {
-            // Update existing field response
-            await tx.formFieldResponse.update({
-              where: { id: fieldResponse.fieldId },
-              data: { value: fieldResponse.value },
+    bulkUpdateFieldResponses: async (
+      data: BulkUpdateFieldResponsesDTO,
+    ): Promise<FormResponseEntity> => {
+      return await runInTransaction(async () => {
+        for (const fieldUpdate of data.fieldUpdates) {
+          const existingFieldResponse = await prisma.formFieldResponse.findFirst({
+            where: {
+              responseId: data.responseId,
+              fieldId: fieldUpdate.fieldId,
+            },
+          });
+
+          if (existingFieldResponse) {
+            await prisma.formFieldResponse.update({
+              where: { id: existingFieldResponse.id },
+              data: { value: fieldUpdate.value },
             });
           } else {
-            // Create new field response
-            await tx.formFieldResponse.create({
+            await prisma.formFieldResponse.create({
               data: {
                 responseId: data.responseId,
-                fieldId: fieldResponse.fieldId,
-                value: fieldResponse.value,
+                fieldId: fieldUpdate.fieldId,
+                value: fieldUpdate.value,
               },
             });
           }
         }
 
-        // Return updated response with all field responses
-        return (await tx.formResponse.findUnique({
+        return (await prisma.formResponse.findUnique({
           where: { id: data.responseId },
           include: {
             fieldResponses: {
@@ -186,7 +221,7 @@ export const PrismaFormResponseRepository = (
             },
           },
         })) as FormResponseEntity;
-      });
+      }, { timeout: 10000 });
     },
 
     // Delete individual field response
@@ -206,7 +241,9 @@ export const PrismaFormResponseRepository = (
 
       const where = buildWhereClause(undefined, {
         exactFilters: {
-          ...(filters?.registrationId && { registrationId: filters.registrationId }),
+          ...(filters?.registrationId && {
+            registrationId: filters.registrationId,
+          }),
         },
         customFilters: {
           // Event filter through registration
@@ -226,16 +263,16 @@ export const PrismaFormResponseRepository = (
           // Date filters
           ...(filters?.submittedAt && {
             submittedAt: {
-              ...(filters.submittedAt.from && { gte: filters.submittedAt.from }),
+              ...(filters.submittedAt.from && {
+                gte: filters.submittedAt.from,
+              }),
               ...(filters.submittedAt.to && { lte: filters.submittedAt.to }),
             },
           }),
 
           // Has responses filter
           ...(filters?.hasResponses !== undefined && {
-            fieldResponses: filters.hasResponses 
-              ? { some: {} } 
-              : { none: {} },
+            fieldResponses: filters.hasResponses ? { some: {} } : { none: {} },
           }),
         },
       });
@@ -305,7 +342,9 @@ export const PrismaFormResponseRepository = (
     },
 
     // Get field responses by response ID
-    getFieldResponsesByResponseId: async (responseId: string): Promise<FormFieldResponseEntity[]> => {
+    getFieldResponsesByResponseId: async (
+      responseId: string,
+    ): Promise<FormFieldResponseEntity[]> => {
       return await prisma.formFieldResponse.findMany({
         where: { responseId },
         include: {

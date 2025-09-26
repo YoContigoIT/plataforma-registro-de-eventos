@@ -5,18 +5,20 @@ import {
   createUserSchema,
   type UpdateUserDTO,
 } from "~/domain/dtos/user.dto";
+import { handleServiceError } from "~/shared/lib/error-handler";
 import {
   decodeInvitationData,
   generateQRCode,
   simplifyZodErrors,
 } from "~/shared/lib/utils";
+import type { ActionData } from "~/shared/types";
 import type { Route } from "../routes/+types/join";
 
 export const createAttendeeAction = async ({
   request,
   params,
   context: { repositories, services },
-}: Route.ActionArgs) => {
+}: Route.ActionArgs): Promise<ActionData> => {
   try {
     const formData = await request.formData();
     const data = Object.fromEntries(formData);
@@ -78,7 +80,6 @@ export const createAttendeeAction = async ({
     }
 
     //Obtener evento
-
     const event = await repositories.eventRepository.findUnique(eventId);
     if (!event) {
       return {
@@ -123,18 +124,16 @@ export const createAttendeeAction = async ({
     }
 
     //Actualizar registro
-    const updateRegistration = await repositories.registrationRepository.update(
-      {
-        id: userEventRegister.id,
-        userId: user.id,
-        eventId,
-        status: RegistrationStatus.REGISTERED,
-        qrCode: generateQRCode(user.id, eventId),
-        purchasedTickets:
-          (userEventRegister?.purchasedTickets || 0) + ticketsRequested,
-        registeredAt: new Date(),
-      },
-    );
+    await repositories.registrationRepository.update({
+      id: userEventRegister.id,
+      userId: user.id,
+      eventId,
+      status: RegistrationStatus.REGISTERED,
+      qrCode: generateQRCode(user.id, eventId),
+      purchasedTickets:
+        (userEventRegister?.purchasedTickets || 0) + ticketsRequested,
+      registeredAt: new Date(),
+    });
 
     //Actualizar evento
     await repositories.eventRepository.update({
@@ -173,8 +172,6 @@ export const createAttendeeAction = async ({
       `${process.env.APP_URL}/verificar-registro/${finalRegistrations.qrCode}`,
     );
 
-    console.log(qrCodeUrl);
-
     await services.emailService.sendRegistrationConfirmation(user.email, {
       userName: user.name || "",
       eventName: event.name,
@@ -188,12 +185,9 @@ export const createAttendeeAction = async ({
 
     return {
       message: "Asistente registrado exitosamente.",
+      redirectTo: "/registro-existoso",
     };
   } catch (error) {
-    console.error(error);
-    return {
-      error: "Error al registrar el asistente.",
-      message: "Intenta de nuevo más tarde.",
-    };
+    return handleServiceError(error, "Error al registrar el asistente.");
   }
 };
