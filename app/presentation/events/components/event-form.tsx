@@ -46,6 +46,8 @@ export function EventForm({
   const agendaId = useId();
   const formStatusSwitchId = useId();
 
+  console.log("isFormActive: ", eventData?.EventForm);
+
   const [isFormActive, setIsFormActive] = useState(
     eventData?.EventForm?.isActive ?? true
   );
@@ -271,6 +273,11 @@ export function EventForm({
                 checked={isFormActive}
                 onCheckedChange={setIsFormActive}
               />
+              <input
+                type="hidden"
+                name="isActive"
+                value={isFormActive.toString()}
+              />
             </div>
           </div>
         </CardHeader>
@@ -282,6 +289,14 @@ export function EventForm({
               isActive={isFormActive}
             />
           </CardContent>
+        )}
+        {/* when form is disabled, still include existing fields as hidden inputs to preserve them */}
+        {!isFormActive && isEditing && initialFormFields.length > 0 && (
+          <input
+            type="hidden"
+            name="formFields"
+            value={JSON.stringify(initialFormFields)}
+          />
         )}
       </Card>
 

@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { seedEvents } from "./seed/event";
+import { seedEventForms } from "./seed/form";
 import { seedRegistrations } from "./seed/registration";
 import { seedUsers } from "./seed/user";
 
@@ -9,6 +10,11 @@ async function main() {
   console.log("Starting seeding...");
 
   console.log("Clearing existing data...");
+  // Clear in reverse dependency order to avoid foreign key constraints
+  await prisma.formFieldResponse.deleteMany();
+  await prisma.formResponse.deleteMany();
+  await prisma.formField.deleteMany();
+  await prisma.eventForm.deleteMany();
   await prisma.registration.deleteMany();
   await prisma.event.deleteMany();
   await prisma.session.deleteMany();
@@ -24,6 +30,9 @@ async function main() {
 
   await seedRegistrations(prisma);
   console.log("Registrations seeded successfully");
+
+  await seedEventForms(prisma);
+  console.log("Event forms and responses seeded successfully");
 
   console.log("Seeding completed successfully");
 }

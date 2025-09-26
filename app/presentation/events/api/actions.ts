@@ -193,19 +193,25 @@ export const updateEventAction = async ({
       remainingCapacity: calculatedRemainingCapacity,
     });
 
-    if (formFields && formFields.length > 0) {
-      const existingForm = await repositories.eventFormRepository.findByEventId(
-        data.id,
-      );
+    // Check if we have an existing form
+    const existingForm = await repositories.eventFormRepository.findByEventId(
+      data.id,
+    );
 
-      if (existingForm) {
-        await repositories.eventFormRepository.update({
-          id: existingForm.id,
-          title: `Formulario de registro - ${updatedEvent.name}`,
-          description: "Formulario de registro para el evento",
-          isActive: formData.isActive === "true",
-        });
+    // Handle form logic based on isActive state and form fields
+    const isFormActive = formData.isActive === "true";
+    
+    if (existingForm) {
+      // Update existing form's isActive state
+      await repositories.eventFormRepository.update({
+        id: existingForm.id,
+        title: `Formulario de registro - ${updatedEvent.name}`,
+        description: "Formulario de registro para el evento",
+        isActive: isFormActive,
+      });
 
+      // Only update fields if form is active and fields are provided
+      if (isFormActive && formFields && formFields.length > 0) {
         // Get current fields for comparison
         const currentFields = existingForm.fields || [];
         const newFields = formFields;
@@ -291,7 +297,6 @@ export const updateEventAction = async ({
           if (newField.id?.startsWith("new-field-")) {
             fieldsToCreate.push({
               data: {
-                /*  formId: existingForm.id, */
                 label: newField.label || "",
                 type: newField.type || "TEXT",
                 required: newField.required || false,
@@ -341,33 +346,28 @@ export const updateEventAction = async ({
             });
           }
         });
-      } else {
-        // Create new form if it doesn't exist
-        await repositories.eventFormRepository.create({
-          eventId: data.id,
-          title: `Formulario de registro - ${updatedEvent.name}`,
-          description: "Formulario de registro para el evento",
-          isActive: true,
-          fields: formFields.map((field, index) => ({
-            label: field.label || "",
-            type: field.type || "TEXT",
-            required: field.required || false,
-            placeholder: field.placeholder || "",
-            options: field.options || [],
-            validation: field.validation || {},
-            order: index,
-          })),
-        });
       }
-    } else {
-      // If no form fields provided, delete existing form if it exists
-      const existingForm = await repositories.eventFormRepository.findByEventId(
-        data.id,
-      );
-      if (existingForm) {
-        await repositories.eventFormRepository.delete(existingForm.id);
-      }
+      // If form is disabled, we keep the existing fields unchanged
+    } else if (isFormActive && formFields && formFields.length > 0) {
+      // Create new form only if form is active and has fields
+      await repositories.eventFormRepository.create({
+        eventId: data.id,
+        title: `Formulario de registro - ${updatedEvent.name}`,
+        description: "Formulario de registro para el evento",
+        isActive: true,
+        fields: formFields.map((field, index) => ({
+          label: field.label || "",
+          type: field.type || "TEXT",
+          required: field.required || false,
+          placeholder: field.placeholder || "",
+          options: field.options || [],
+          validation: field.validation || {},
+          order: index,
+        })),
+      });
     }
+    // Note: We no longer delete the form when no fields are provided
+    // The form is only deleted if explicitly requested, not when disabled
 
     return {
       success: true,

@@ -86,7 +86,6 @@ export const PrismaFormResponseRepository = (
     create: async (
       data: CreateFormResponseDTO,
     ): Promise<FormResponseEntity> => {
-      console.log("data sent for creation: ", data);
 
       return await prisma.$transaction(async (tx) => {
         // Create the form response first

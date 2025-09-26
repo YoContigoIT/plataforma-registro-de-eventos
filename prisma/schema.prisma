@@ -191,7 +191,7 @@ model FormField {
 model FormResponse {
     id             String              @id @default(uuid()) @db.Uuid
     registrationId String              @unique @db.Uuid
-    registration   Registration        @relation(fields: [registrationId], references: [id])
+    registration   Registration        @relation(fields: [registrationId], references: [id], onDelete: Cascade)
     fieldResponses FormFieldResponse[]
     submittedAt    DateTime            @default(now())
 
@@ -208,7 +208,7 @@ model FormFieldResponse {
     responseId String       @db.Uuid
     response   FormResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
     fieldId    String       @db.Uuid
-    field      FormField    @relation(fields: [fieldId], references: [id])
+    field      FormField    @relation(fields: [fieldId], references: [id], onDelete: Cascade)
     value      Json // Flexible storage for any type of response, can be a string also
 
     // Indexes for query optimization

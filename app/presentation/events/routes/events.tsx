@@ -4,7 +4,7 @@ import { Pagination } from "@/ui/pagination";
 import { CalendarPlus, Grid, List } from "lucide-react";
 import { useState } from "react";
 import { Link, useLoaderData } from "react-router";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import { SearchBar } from "~/shared/components/common/search-bar";
 import { Card, CardContent } from "~/shared/components/ui/card";
 import {
@@ -23,10 +23,11 @@ export default function Events() {
   const { events, pagination } = useLoaderData<typeof loader>();
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [selectedEvent, setSelectedEvent] = useState<EventEntity | null>(null);
+  const [selectedEvent, setSelectedEvent] =
+    useState<EventEntityWithEventForm | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const handleSelectEvent = (event: EventEntity) => {
+  const handleSelectEvent = (event: EventEntityWithEventForm) => {
     setSelectedEvent(event);
     setIsSheetOpen(true);
   };
