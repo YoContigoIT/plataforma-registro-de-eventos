@@ -35,6 +35,7 @@ import { eventsLoader } from "../../events/api/loaders";
 import { EventDetailsSheet } from "../../events/components/event-details-sheet";
 import { registrationsLoader } from "../api/loaders";
 import { EventCombobox } from "../components/event-combobox";
+import { RegistrationFilters } from "../components/registration-filters";
 import { RegistrationTable } from "../components/registration-table";
 import { StatusCards } from "../components/status-cards";
 import type { Route } from "./+types/registrations";
@@ -321,15 +322,20 @@ export default function Registrations() {
             remainingCapacity={selectedEvent.remainingCapacity || 0}
           />
 
-          <Card>
-            <CardContent>
-              <SearchBar
-                searchParamKey="search"
-                placeholder="Buscar registros por nombre usuario, correo"
-                className="w-full"
-              />
-            </CardContent>
-          </Card>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Card className="flex-1">
+              <CardContent>
+                <div className="flex gap-2 items-center">
+                  <SearchBar
+                    searchParamKey="search"
+                    placeholder="Buscar registros por nombre usuario, correo"
+                    className="w-full"
+                  />
+                  <RegistrationFilters />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </>
       )}
 

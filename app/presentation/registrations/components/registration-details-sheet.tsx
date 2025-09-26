@@ -15,6 +15,7 @@ import {
   Calendar,
   CalendarCheck,
   Copy,
+  FileText,
   Mail,
   Phone,
   QrCode,
@@ -27,13 +28,18 @@ import {
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import { toast } from "sonner";
-import type { RegistrationWithRelations } from "~/domain/entities/registration.entity";
+import type { RegistrationWithFullRelations } from "~/domain/entities/registration.entity";
 import { ConfirmationDialog } from "~/shared/components/common/confirmation-dialog";
-import { Card, CardContent } from "~/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "~/shared/components/ui/card";
 import { copyToClipboard } from "~/shared/lib/utils";
 
 interface RegistrationDetailsSheetProps {
-  registration: RegistrationWithRelations | null;
+  registration: RegistrationWithFullRelations | null;
   isOpen: boolean;
   onClose: () => void;
   getStatusBadgeVariant: (status: string) => string;
@@ -76,7 +82,34 @@ export function RegistrationDetailsSheet({
 
   if (!registration) return null;
 
-  const { user } = registration;
+  const { user, FormResponse } = registration;
+
+  // Helper function to format field response value
+  const formatFieldValue = (value: any, fieldType: string) => {
+    if (value === null || value === undefined || value === "") {
+      return "Sin respuesta";
+    }
+
+    // Handle different field types
+    switch (fieldType) {
+      case "DATE":
+        try {
+          return format(new Date(value), "PP", { locale: es });
+        } catch {
+          return value;
+        }
+      case "CHECKBOX":
+        if (Array.isArray(value)) {
+          return value.join(", ");
+        }
+        return value;
+      case "SELECT":
+      case "RADIO":
+        return value;
+      default:
+        return value;
+    }
+  };
 
   const handleDeleteClick = () => {
     setIsDeleteDialogOpen(true);
@@ -144,6 +177,7 @@ export function RegistrationDetailsSheet({
                           <p className="text-sm font-medium font-mono break-all">
                             {registration.qrCode}
                           </p>
+
                           <Button
                             variant="ghost"
                             size="sm"
@@ -245,32 +279,6 @@ export function RegistrationDetailsSheet({
                         </div>
                       </div>
                     )}
-
-                    {/*  {registration.inviteToken && (
-                      <div className="flex items-start gap-3">
-                        <QrCode className="h-4 w-4 text-muted-foreground mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium font-mono break-all">
-                              {registration.inviteToken}
-                            </p>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 hover:bg-muted"
-                            >
-                              <Copy className="h-3 w-3" />
-                              <span className="sr-only">
-                                Copiar token de invitación
-                              </span>
-                            </Button>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Token de invitación
-                          </p>
-                        </div>
-                      </div>
-                    )} */}
                   </div>
                 </CardContent>
               </Card>
@@ -342,6 +350,79 @@ export function RegistrationDetailsSheet({
                 </CardContent>
               </Card>
             </div>
+
+            {/* Form Response Information */}
+            {FormResponse && FormResponse.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Respuestas del formulario
+                </h3>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center justify-between">
+                      <span>Formulario completado</span>
+                      <span className="text-xs text-muted-foreground font-normal">
+                        {format(new Date(FormResponse[0].submittedAt), "PPp", {
+                          locale: es,
+                        })}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {FormResponse[0].fieldResponses
+                      .sort((a, b) => a.field.order - b.field.order)
+                      .map((fieldResponse) => (
+                        <div key={fieldResponse.id} className="space-y-1">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-foreground">
+                                {fieldResponse.field.label}
+                                {fieldResponse.field.required && (
+                                  <span className="text-destructive ml-1">
+                                    *
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {formatFieldValue(
+                                  fieldResponse.value,
+                                  fieldResponse.field.type
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          {fieldResponse !==
+                            FormResponse[0].fieldResponses[
+                              FormResponse[0].fieldResponses.length - 1
+                            ] && (
+                            <div className="border-b border-border/50 pt-2" />
+                          )}
+                        </div>
+                      ))}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* No Form Response Message */}
+            {(!FormResponse || FormResponse.length === 0) && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Respuestas del formulario
+                </h3>
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Este usuario aún no ha completado el formulario de
+                      registro
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* Actions Card */}
             {canSendInvite && (

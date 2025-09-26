@@ -15,7 +15,7 @@ export function useRegistrationForm() {
   const navigate = useNavigate();
   const loaderData = useLoaderData();
 
-  const { event, user } = loaderData?.data || {};
+  const { event, user, registrationId, eventForm } = loaderData?.data || {};
   const [showSuccess, setShowSuccess] = useState(false);
 
   const isSubmitting = navigation.state === "submitting";
@@ -26,6 +26,7 @@ export function useRegistrationForm() {
     initialErrors: actionData?.errors,
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <not needed>
   useEffect(() => {
     if (actionData?.error) {
       toast.error(actionData.message || actionData.error);
@@ -51,6 +52,8 @@ export function useRegistrationForm() {
     errors,
     handleInputChange,
     showSuccess,
+    registrationId,
+    eventForm,
     event,
     user,
   };

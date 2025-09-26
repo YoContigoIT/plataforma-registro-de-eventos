@@ -4,7 +4,7 @@ import { Pagination } from "@/ui/pagination";
 import { CalendarPlus, Grid, List } from "lucide-react";
 import { useState } from "react";
 import { Link, useLoaderData } from "react-router";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import { SearchBar } from "~/shared/components/common/search-bar";
 import { Card, CardContent } from "~/shared/components/ui/card";
 import {
@@ -13,6 +13,7 @@ import {
 } from "~/shared/lib/utils";
 import { eventsLoader } from "../api/loaders";
 import { EventDetailsSheet } from "../components/event-details-sheet";
+import { EventFilters } from "../components/event-filters";
 import { EventGridView } from "../components/event-grid-view";
 import { EventListView } from "../components/event-list-view";
 
@@ -22,10 +23,11 @@ export default function Events() {
   const { events, pagination } = useLoaderData<typeof loader>();
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [selectedEvent, setSelectedEvent] = useState<EventEntity | null>(null);
+  const [selectedEvent, setSelectedEvent] =
+    useState<EventEntityWithEventForm | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const handleSelectEvent = (event: EventEntity) => {
+  const handleSelectEvent = (event: EventEntityWithEventForm) => {
     setSelectedEvent(event);
     setIsSheetOpen(true);
   };
@@ -74,11 +76,14 @@ export default function Events() {
 
       <Card>
         <CardContent>
-          <SearchBar
-            searchParamKey="eventSearch"
-            placeholder="Buscar eventos por nombre"
-            className="w-full"
-          />
+          <div className="flex gap-2 items-center">
+            <SearchBar
+              searchParamKey="eventSearch"
+              placeholder="Buscar eventos por nombre"
+              className="flex-1"
+            />
+            <EventFilters />
+          </div>
         </CardContent>
       </Card>
 

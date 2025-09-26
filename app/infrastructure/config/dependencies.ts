@@ -1,14 +1,18 @@
 import type { PrismaClient } from "@prisma/client";
 import type { IEncryptorRepository } from "~/domain/repositories/encrypt.repository";
+import type { IEventFormRepository } from "~/domain/repositories/event-form.repository";
 import type { IEventRepository } from "~/domain/repositories/event.repository";
+import type { IFormResponseRepository } from "~/domain/repositories/form-response.repository";
 import type { IJWTRepository } from "~/domain/repositories/jwt.repository";
+import type { IRegistrationRepository } from "~/domain/repositories/registration.repository";
 import type { ISessionRepository } from "~/domain/repositories/session.repository";
 import type { IUserRepository } from "~/domain/repositories/user.repository";
 import type { IEmailService } from "~/domain/services/email.service";
-import type { IRegistrationRepository } from "~/domain/repositories/registration.repository";
 import { bcryptRepository } from "../auth/bcrypt.repository";
 import { JWTRepository } from "../auth/jwt.repository";
+import { PrismaEventFormRepository } from "../repositories/prisma/event-form.repository";
 import { PrismaEventRepository } from "../repositories/prisma/event.repository";
+import { PrismaFormResponseRepository } from "../repositories/prisma/form-response.repository";
 import { PrismaRegistrationRepository } from "../repositories/prisma/registration.repository";
 import { PrismaSessionRepository } from "../repositories/prisma/session.repository";
 import { PrismaUserRepository } from "../repositories/prisma/user.repository";
@@ -21,6 +25,8 @@ export interface IRepositoriesContainer {
   sessionRepository: ISessionRepository;
   eventRepository: IEventRepository;
   registrationRepository: IRegistrationRepository;
+  eventFormRepository: IEventFormRepository;
+  formResponseRepository: IFormResponseRepository;
 }
 
 export interface IServicesContainer {
@@ -37,7 +43,7 @@ export interface IDependenciesContainer {
  * Centraliza la creación e inyección de todas las dependencias de repositorios
  */
 export const createRepositoriesContainer = (
-  prisma: PrismaClient
+  prisma: PrismaClient,
 ): IRepositoriesContainer => {
   const jwtRepository = JWTRepository();
   const encryptorRepository = bcryptRepository();
@@ -45,6 +51,8 @@ export const createRepositoriesContainer = (
   const sessionRepository = PrismaSessionRepository(prisma, jwtRepository);
   const eventRepository = PrismaEventRepository(prisma);
   const registrationRepository = PrismaRegistrationRepository(prisma);
+  const eventFormRepository = PrismaEventFormRepository(prisma);
+  const formResponseRepository = PrismaFormResponseRepository(prisma);
 
   return {
     encryptorRepository,
@@ -53,6 +61,8 @@ export const createRepositoriesContainer = (
     sessionRepository,
     eventRepository,
     registrationRepository,
+    eventFormRepository,
+    formResponseRepository,
   };
 };
 
@@ -75,7 +85,7 @@ export const createServicesContainer = (
  * Combina repositorios y servicios en un solo contenedor
  */
 export const createDependenciesContainer = (
-  prisma: PrismaClient
+  prisma: PrismaClient,
 ): IDependenciesContainer => {
   const repositories = createRepositoriesContainer(prisma);
   const services = createServicesContainer(repositories);

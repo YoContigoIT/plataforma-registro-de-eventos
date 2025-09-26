@@ -2,7 +2,10 @@ import { buildWhereClause, calculatePaginationInfo } from "@/shared/lib/utils";
 import type { PaginatedResponse } from "@/shared/types";
 import type { PrismaClient, RegistrationStatus } from "@prisma/client";
 import type { UpdateRegistrationDto } from "~/domain/dtos/registration.dto";
-import type { RegistrationWithRelations } from "~/domain/entities/registration.entity";
+import type {
+  RegistrationWithFullRelations,
+  RegistrationWithRelations,
+} from "~/domain/entities/registration.entity";
 import type {
   IRegistrationRepository,
   RegistrationFilters,
@@ -12,7 +15,7 @@ const createOrderByClause = (
   defaultSortBy: string,
   sortBy?: string,
   sortOrder?: "asc" | "desc" | null,
-  defaultSortOrder?: "asc" | "desc"
+  defaultSortOrder?: "asc" | "desc",
 ) => {
   if (!sortBy || !sortOrder) {
     return { [defaultSortBy]: defaultSortOrder };
@@ -30,7 +33,7 @@ const createOrderByClause = (
 };
 
 export const PrismaRegistrationRepository = (
-  prisma: PrismaClient
+  prisma: PrismaClient,
 ): IRegistrationRepository => {
   return {
     findMany: async (
@@ -40,8 +43,8 @@ export const PrismaRegistrationRepository = (
         sortBy?: string;
         sortDirection?: "asc" | "desc";
       },
-      filters?: RegistrationFilters
-    ): Promise<PaginatedResponse<RegistrationWithRelations>> => {
+      filters?: RegistrationFilters,
+    ): Promise<PaginatedResponse<RegistrationWithFullRelations>> => {
       const { page, limit, sortBy, sortDirection } = params;
       const offset = (page - 1) * limit;
 
@@ -49,7 +52,6 @@ export const PrismaRegistrationRepository = (
         searchFields: [
           { field: "user.name" },
           { field: "user.email" },
-          { field: "event.name" },
           { field: "qrCode" },
         ],
         exactFilters: {
@@ -63,61 +65,31 @@ export const PrismaRegistrationRepository = (
             status: { in: filters.statuses },
           }),
 
-          // Date range filters
+          // Date filters - simplified to match event repository pattern
           ...(filters?.invitedAt && {
-            invitedAt: {
-              ...(filters.invitedAt.from && { gte: filters.invitedAt.from }),
-              ...(filters.invitedAt.to && { lte: filters.invitedAt.to }),
-            },
+            invitedAt: { gte: new Date(filters.invitedAt) },
           }),
           ...(filters?.respondedAt && {
-            respondedAt: {
-              ...(filters.respondedAt.from && {
-                gte: filters.respondedAt.from,
-              }),
-              ...(filters.respondedAt.to && { lte: filters.respondedAt.to }),
-            },
+            respondedAt: { gte: new Date(filters.respondedAt) },
           }),
           ...(filters?.registeredAt && {
-            registeredAt: {
-              ...(filters.registeredAt.from && {
-                gte: filters.registeredAt.from,
-              }),
-              ...(filters.registeredAt.to && { lte: filters.registeredAt.to }),
-            },
+            registeredAt: { gte: new Date(filters.registeredAt) },
           }),
           ...(filters?.checkedInAt && {
-            checkedInAt: {
-              ...(filters.checkedInAt.from && {
-                gte: filters.checkedInAt.from,
-              }),
-              ...(filters.checkedInAt.to && { lte: filters.checkedInAt.to }),
-            },
+            checkedInAt: { gte: new Date(filters.checkedInAt) },
           }),
 
-          // Event date filters
-          ...(filters?.eventStartDate && {
-            event: {
-              start_date: {
-                ...(filters.eventStartDate.from && {
-                  gte: filters.eventStartDate.from,
-                }),
-                ...(filters.eventStartDate.to && {
-                  lte: filters.eventStartDate.to,
-                }),
-              },
+          // System date filters
+          ...(filters?.createdAt && {
+            createdAt: {
+              ...(filters.createdAt.from && { gte: filters.createdAt.from }),
+              ...(filters.createdAt.to && { lte: filters.createdAt.to }),
             },
           }),
-          ...(filters?.eventEndDate && {
-            event: {
-              end_date: {
-                ...(filters.eventEndDate.from && {
-                  gte: filters.eventEndDate.from,
-                }),
-                ...(filters.eventEndDate.to && {
-                  lte: filters.eventEndDate.to,
-                }),
-              },
+          ...(filters?.updatedAt && {
+            updatedAt: {
+              ...(filters.updatedAt.from && { gte: filters.updatedAt.from }),
+              ...(filters.updatedAt.to && { lte: filters.updatedAt.to }),
             },
           }),
 
@@ -128,9 +100,6 @@ export const PrismaRegistrationRepository = (
           ...(filters?.isCheckedIn !== undefined && {
             checkedInAt: filters.isCheckedIn ? { not: null } : null,
           }),
-          ...(filters?.hasInviteToken !== undefined && {
-            inviteToken: filters.hasInviteToken ? { not: null } : null,
-          }),
 
           // Status convenience filters
           ...(filters?.isPending && { status: "PENDING" }),
@@ -139,7 +108,7 @@ export const PrismaRegistrationRepository = (
           ...(filters?.isCancelled && { status: "CANCELLED" }),
           ...(filters?.isDeclined && { status: "DECLINED" }),
 
-          // Event-related filters
+          /* Event-related filters - commented out as we don't filter by events right now
           ...(filters?.eventStatus && {
             event: { status: filters.eventStatus },
           }),
@@ -165,7 +134,33 @@ export const PrismaRegistrationRepository = (
                 { end_date: { gte: new Date() } },
               ],
             },
+          }), */
+
+          /* Event date filters - commented out as we don't filter by events right now
+          ...(filters?.eventStartDate && {
+            event: {
+              start_date: {
+                ...(filters.eventStartDate.from && {
+                  gte: filters.eventStartDate.from,
+                }),
+                ...(filters.eventStartDate.to && {
+                  lte: filters.eventStartDate.to,
+                }),
+              },
+            },
           }),
+          ...(filters?.eventEndDate && {
+            event: {
+              end_date: {
+                ...(filters.eventEndDate.from && {
+                  gte: filters.eventEndDate.from,
+                }),
+                ...(filters.eventEndDate.to && {
+                  lte: filters.eventEndDate.to,
+                }),
+              },
+            },
+          }), */
 
           // Response time filters
           ...(filters?.respondedWithin && {
@@ -176,12 +171,12 @@ export const PrismaRegistrationRepository = (
                   gte: filters.respondedWithin.days
                     ? new Date(
                         Date.now() -
-                          filters.respondedWithin.days * 24 * 60 * 60 * 1000
+                          filters.respondedWithin.days * 24 * 60 * 60 * 1000,
                       )
                     : filters.respondedWithin.hours
                       ? new Date(
                           Date.now() -
-                            filters.respondedWithin.hours * 60 * 60 * 1000
+                            filters.respondedWithin.hours * 60 * 60 * 1000,
                         )
                       : new Date(),
                 },
@@ -191,14 +186,14 @@ export const PrismaRegistrationRepository = (
 
           // Invite management filters
           ...(filters?.pendingInvites && {
-            AND: [{ status: "PENDING" }, { inviteToken: { not: null } }],
+            status: "PENDING",
           }),
           ...(filters?.expiredInvites && {
             AND: [
               { status: "PENDING" },
               {
                 invitedAt: {
-                  lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+                  lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
                 },
               },
             ],
@@ -210,7 +205,7 @@ export const PrismaRegistrationRepository = (
         "invitedAt",
         sortBy,
         sortDirection,
-        "desc"
+        "desc",
       );
 
       const [registrations, total] = await Promise.all([
@@ -221,9 +216,14 @@ export const PrismaRegistrationRepository = (
           orderBy,
           include: {
             user: true,
-            event: {
+            event: true,
+            FormResponse: {
               include: {
-                organizer: true,
+                fieldResponses: {
+                  include: {
+                    field: true,
+                  },
+                },
               },
             },
           },
@@ -239,7 +239,7 @@ export const PrismaRegistrationRepository = (
     },
     findExactInvitation: async (
       eventId: string,
-      userId: string
+      userId: string,
     ): Promise<RegistrationWithRelations | null> => {
       return await prisma.registration.findFirst({
         where: {
@@ -254,7 +254,7 @@ export const PrismaRegistrationRepository = (
     },
     registrationExists: async (
       eventId: string,
-      userId: string
+      userId: string,
     ): Promise<boolean> => {
       const count = await prisma.registration.count({
         where: {
@@ -272,6 +272,15 @@ export const PrismaRegistrationRepository = (
         include: {
           user: true,
           event: true,
+          FormResponse: {
+            include: {
+              fieldResponses: {
+                include: {
+                  field: true,
+                },
+              },
+            },
+          },
         },
       });
     },
@@ -286,13 +295,6 @@ export const PrismaRegistrationRepository = (
       return await prisma.registration.findMany({
         where: {
           eventId,
-        },
-      });
-    },
-    findByInviteToken: async (inviteToken: string) => {
-      return await prisma.registration.findUnique({
-        where: {
-          inviteToken,
         },
         include: {
           user: true,
@@ -345,7 +347,7 @@ export const PrismaRegistrationRepository = (
           acc[item.status] = item._count.status;
           return acc;
         },
-        {} as Record<RegistrationStatus, number>
+        {} as Record<RegistrationStatus, number>,
       );
     },
 
