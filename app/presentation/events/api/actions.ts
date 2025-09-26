@@ -1,6 +1,6 @@
 import type { Route as RouteList } from ".react-router/types/app/presentation/events/routes/+types/create";
 import { simplifyZodErrors } from "@/shared/lib/utils";
-import { EventStatus, UserRole } from "@prisma/client";
+import { EventStatus, RegistrationStatus, UserRole } from "@prisma/client";
 import {
   type CreateFormFieldDTO,
   type UpdateFormFieldDTO,
@@ -71,30 +71,15 @@ export const createEventAction = async ({
     };
   }
 
+  if ([EventStatus.CANCELLED, EventStatus.ENDED].includes(data.status as any)) {
+    return {
+      success: false,
+      error: "No se puede crear un evento como Cancelado o Finalizado.",
+    };
+  }
+
   try {
-    const { formFields, ...eventData } = data;
-
-    const createdEvent = await repositories.eventRepository.create({
-      ...eventData,
-    });
-
-    if (formFields && formFields.length > 0) {
-      await repositories.eventFormRepository.create({
-        eventId: createdEvent.id,
-        title: `Formulario de registro - ${createdEvent.name}`,
-        description: "Formulario de registro para el evento",
-        isActive: formData.isActive === "true",
-        fields: formFields.map((field, index) => ({
-          label: field.label,
-          type: field.type,
-          required: field.required,
-          placeholder: field.placeholder,
-          options: field.options,
-          validation: field.validation,
-          order: index,
-        })),
-      });
-    }
+    await repositories.eventRepository.create(data);
 
     return {
       success: true,
@@ -108,7 +93,7 @@ export const createEventAction = async ({
 
 export const updateEventAction = async ({
   request,
-  context: { repositories, session },
+  context: { repositories, session, services },
 }: RouteList.ActionArgs): Promise<ActionData> => {
   const formData = Object.fromEntries(await request.formData());
   const userId = session.get("user")?.id;
@@ -159,6 +144,33 @@ export const updateEventAction = async ({
     };
   }
 
+  const existingEvent = await repositories.eventRepository.findUnique(data.id);
+  if (!existingEvent) {
+    return { success: false, error: "Evento no encontrado" };
+  }
+
+  // Si ya terminó, no se puede cambiar el estado
+  if (
+    existingEvent.status === EventStatus.ENDED &&
+    data.status !== EventStatus.ENDED
+  ) {
+    return {
+      success: false,
+      error: "El evento ya terminó, no se permite cambiar el estado.",
+    };
+  }
+
+  // Si está en curso, solo se permite pasar a Finalizado
+  if (
+    existingEvent.status === EventStatus.ONGOING &&
+    data.status !== EventStatus.ENDED
+  ) {
+    return {
+      success: false,
+      error: "Un evento en curso solo puede marcarse como Finalizado.",
+    };
+  }
+
   try {
     //edge case: when we update the event capacity, we preserve the updated capacity
     //even if the event is full, we allow the update to keep the capacity
@@ -193,6 +205,32 @@ export const updateEventAction = async ({
       remainingCapacity: calculatedRemainingCapacity,
     });
 
+    if (data.status === EventStatus.CANCELLED) {
+      const invitations =
+        await repositories.registrationRepository.findByEventId(data.id);
+      // Filtrar solo los asistentes con estado válido
+      const attendeesToNotify = invitations.filter(
+        (invite) =>
+          invite.status === RegistrationStatus.REGISTERED ||
+          invite.status === RegistrationStatus.CHECKED_IN,
+      );
+
+      // Generar y enviar el correo de cancelación
+      for (const attendee of attendeesToNotify) {
+        if (!data.start_date) continue;
+        await services.emailService.sendCancelInvitationEmail(
+          {
+            eventName: data.name || "",
+            eventDate: data?.start_date.toLocaleDateString() || "",
+            eventTime: data?.start_date.toLocaleTimeString() || "",
+            eventLocation: data.location || "",
+            userName: attendee.user.name || "",
+          },
+          attendee.user.email,
+        );
+      }
+    }
+
     // Check if we have an existing form
     const existingForm = await repositories.eventFormRepository.findByEventId(
       data.id,
@@ -200,7 +238,7 @@ export const updateEventAction = async ({
 
     // Handle form logic based on isActive state and form fields
     const isFormActive = formData.isActive === "true";
-    
+
     if (existingForm) {
       // Update existing form's isActive state
       await repositories.eventFormRepository.update({

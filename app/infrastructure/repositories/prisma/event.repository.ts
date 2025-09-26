@@ -1,9 +1,7 @@
 import { buildWhereClause, calculatePaginationInfo } from "@/shared/lib/utils";
 import type { PaginatedResponse } from "@/shared/types";
 import { EventStatus, type PrismaClient } from "@prisma/client";
-import type {
-  EventEntityWithEventForm
-} from "~/domain/entities/event.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import type { IEventRepository } from "~/domain/repositories/event.repository";
 
 export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
@@ -12,7 +10,7 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
       params,
       filters,
     ): Promise<PaginatedResponse<EventEntityWithEventForm>> => {
-      const { page, limit } = params;
+      const { page = 1, limit = 10 } = params ?? {};
       const offset = (page - 1) * limit;
 
       const where = buildWhereClause(filters?.search, {

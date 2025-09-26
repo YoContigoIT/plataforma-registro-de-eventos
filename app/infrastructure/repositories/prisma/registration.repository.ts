@@ -296,6 +296,10 @@ export const PrismaRegistrationRepository = (
         where: {
           eventId,
         },
+        include: {
+          user: true,
+          event: true,
+        },
       });
     },
     update: async (data: UpdateRegistrationDto) => {

@@ -21,6 +21,7 @@ export interface EventFilters {
     max?: number;
   };
 
+
   //Filtros de fechas
   /*  startDate?: {
     from?: Date;

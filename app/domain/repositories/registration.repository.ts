@@ -84,7 +84,7 @@ export interface IRegistrationRepository {
   ): Promise<PaginatedResponse<RegistrationWithFullRelations>>;
   findOne(id: string): Promise<RegistrationWithFullRelations | null>;
   findByUserId(userId: string): Promise<RegistrationEntity[]>;
-  findByEventId(eventId: string): Promise<RegistrationEntity[]>;
+  findByEventId(eventId: string): Promise<RegistrationWithRelations[]>;
   findByQrCode(qrCode: string): Promise<RegistrationWithRelations | null>;
   findExactInvitation(
     eventId: string,

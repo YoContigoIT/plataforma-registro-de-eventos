@@ -1,3 +1,4 @@
+import { UserRole } from "@prisma/client";
 import {
   Calendar,
   Clock,
@@ -23,7 +24,7 @@ import { dashboardLoader } from "../api/dashboard.loader";
 export const loader = dashboardLoader;
 
 export default function Panel() {
-  const { eventStats, ongoingEvents, upcomingEvents } =
+  const { eventStats, ongoingEvents, upcomingEvents, userRole } =
     useLoaderData<typeof loader>();
 
   const [selectedEvent, setSelectedEvent] = useState<EventEntity | null>(null);
@@ -43,6 +44,42 @@ export default function Panel() {
     (sum, count) => sum + count,
     0
   );
+
+  if (userRole === UserRole.GUARD) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Panel de administración"
+          description="Administra invitaciones y registros"
+        />
+
+        {/* Acciones rápidas */}
+        <section className="space-y-4 md:col-span-2">
+          <div className="flex items-center gap-2">
+            <Zap className="size-6 text-primary" />
+            <h2 className="text-2xl font-bold">Acciones rápidas</h2>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Link
+              to="/registro-invitado"
+              className="group flex flex-col items-center justify-center gap-3 rounded-2xl border p-6 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-accent/10"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <Plus className="h-6 w-6 text-primary" />
+              </div>
+              <span className="text-lg font-medium text-center">
+                Crear nuevo asistente
+              </span>
+              <p className="text-sm text-muted-foreground text-center">
+                Registra invitados de forma rápida y sencilla
+              </p>
+            </Link>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
