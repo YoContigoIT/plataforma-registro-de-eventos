@@ -1,7 +1,9 @@
 import { buildWhereClause, calculatePaginationInfo } from "@/shared/lib/utils";
 import type { PaginatedResponse } from "@/shared/types";
 import { EventStatus, type PrismaClient } from "@prisma/client";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type {
+  EventEntityWithEventForm
+} from "~/domain/entities/event.entity";
 import type { IEventRepository } from "~/domain/repositories/event.repository";
 
 export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
@@ -9,7 +11,7 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
     findMany: async (
       params,
       filters,
-    ): Promise<PaginatedResponse<EventEntity>> => {
+    ): Promise<PaginatedResponse<EventEntityWithEventForm>> => {
       const { page, limit } = params;
       const offset = (page - 1) * limit;
 
@@ -92,6 +94,17 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
           skip: offset,
           take: limit,
           orderBy: { createdAt: "desc" },
+          include: {
+            EventForm: {
+              include: {
+                fields: {
+                  orderBy: {
+                    order: "asc",
+                  },
+                },
+              },
+            },
+          },
         }),
         prisma.event.count({ where }),
       ]);
@@ -114,12 +127,12 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
             include: {
               fields: {
                 orderBy: {
-                  order: 'asc'
-                }
-              }
-            }
-          }
-        }
+                  order: "asc",
+                },
+              },
+            },
+          },
+        },
       });
     },
 
@@ -128,8 +141,8 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
         where: { organizerId },
         orderBy: { start_date: "desc" },
         include: {
-          organizer: true
-        }
+          organizer: true,
+        },
       });
     },
 

@@ -9,13 +9,13 @@ import {
 } from "@/ui/card";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 
 type EventGridViewProps = {
-  events: EventEntity[];
+  events: EventEntityWithEventForm[];
   getStatusBadgeVariant: (status: string) => BadgeVariants;
   getStatusLabel: (status: string) => string;
-  onSelectEvent: (event: EventEntity) => void;
+  onSelectEvent: (event: EventEntityWithEventForm) => void;
 };
 
 export function EventGridView({

@@ -54,7 +54,7 @@ export interface IEventRepository {
   findMany(
     params: { page: number; limit: number },
     filters?: EventFilters,
-  ): Promise<PaginatedResponse<EventEntity>>;
+  ): Promise<PaginatedResponse<EventEntityWithEventForm>>;
   findUnique(id: string): Promise<EventEntityWithEventForm | null>;
   findByOrganizerId(organizerId: string): Promise<EventEntityWithOrganizer[]>;
   create(data: CreateEventDTO): Promise<EventEntity>;
