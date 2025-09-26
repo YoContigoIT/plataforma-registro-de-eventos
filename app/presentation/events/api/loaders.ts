@@ -1,5 +1,5 @@
 import type { EventStatus } from "@prisma/client";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import type { EventFilters } from "~/domain/repositories/event.repository";
 import type { LoaderData } from "~/shared/types";
 import type { Route as DetailRoute } from "../routes/+types/detail";
@@ -17,8 +17,8 @@ export const eventsLoader = async ({
 
   // Status filter
   const status = url.searchParams.get("status");
-  if (status) {
-    filters.status = status as EventStatus; // Cast to EventStatus enum
+  if (status && status !== "todos") {
+    filters.status = status as EventStatus;
   }
 
   // Location filter
@@ -33,20 +33,43 @@ export const eventsLoader = async ({
     filters.organizerId = organizerId;
   }
 
+  // Search filter
   const search = url.searchParams.get("eventSearch");
   if (search) {
     filters.search = search;
   }
 
-  // Date range filter
+  // Date range filters
   const startDate = url.searchParams.get("startDate");
   const endDate = url.searchParams.get("endDate");
 
-  if (startDate || endDate) {
-    filters.dateRange = {
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-    };
+  if (startDate) {
+    filters.startDate =  startDate ? new Date(startDate) : undefined
+  }
+
+  if (endDate) {
+    filters.endDate = endDate ? new Date(endDate) : undefined
+  }
+
+  // Boolean filters
+  const isUpcoming = url.searchParams.get("isUpcoming");
+  if (isUpcoming === "true") {
+    filters.isUpcoming = true;
+  }
+
+  const hasAvailableSpots = url.searchParams.get("hasAvailableSpots");
+  if (hasAvailableSpots === "true") {
+    filters.hasAvailableSpots = true;
+  }
+
+  const isActive = url.searchParams.get("isActive");
+  if (isActive === "true") {
+    filters.isActive = true;
+  }
+
+  const archived = url.searchParams.get("archived");
+  if (archived === "true") {
+    filters.archived = true;
   }
 
   // Fetch events with pagination and filters
@@ -61,10 +84,28 @@ export const eventsLoader = async ({
   };
 };
 
+/* export const eventDetailLoader = async ({
+  params,
+  context: { repositories },
+}: DetailRoute.LoaderArgs) => {
+  const event = await repositories.eventRepository.findUnique(params.id);
+
+  if (!event) {
+    throw new Response("Event not found", {
+      status: 404,
+      statusText: "Event not found",
+    });
+  }
+
+  return {
+    event,
+  };
+};
+ */
 export const getEventByIdLoader = async ({
   params,
   context: { repositories },
-}: DetailRoute.LoaderArgs): Promise<LoaderData<EventEntity>> => {
+}: DetailRoute.LoaderArgs): Promise<LoaderData<EventEntityWithEventForm>> => {
   const id = params.id;
 
   if (!id) {

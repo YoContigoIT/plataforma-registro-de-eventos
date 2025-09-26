@@ -86,9 +86,8 @@ model User {
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @updatedAt
 
-    // Add indexes for sorting
     @@index([name])
-    @@index([email]) // Already has unique constraint, but explicit index helps
+    @@index([email])
     @@schema("auth")
 }
 
@@ -107,13 +106,12 @@ model Event {
     organizerId       String      @db.Uuid
     organizer         User        @relation("EventsByOrganizer", fields: [organizerId], references: [id])
 
-    registrations Registration[]
-    //form          EventForm?
-
     archived Boolean? @default(false)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
+    registrations Registration[]
+    EventForm     EventForm?
 
     @@schema("auth")
 }
@@ -127,7 +125,6 @@ model Registration {
     // New fields for invite management
     invitedAt        DateTime  @default(now())
     respondedAt      DateTime? // When user responded to invite
-    inviteToken      String?   @unique // For invite links
     purchasedTickets Int? //Cantidad de tickets adquiridos
     userId           String    @db.Uuid
     user             User      @relation(fields: [userId], references: [id])
@@ -137,64 +134,86 @@ model Registration {
 
     registeredAt DateTime? // Make nullable since they might not be registered yet
 
-    // Future: Link to custom form responses
-    //formResponses FormResponse[]
+    //formResponses Json? //for the simpler approach
+    FormResponse FormResponse?
 
     @@index([invitedAt])
     @@index([respondedAt])
     @@index([registeredAt])
     @@index([checkedInAt])
     @@index([status])
-    @@index([eventId, invitedAt]) // Composite index for event-specific sorting
-    @@index([userId, invitedAt]) // Composite index for user-specific sorting
+    @@index([eventId, invitedAt])
+    @@index([userId, invitedAt])
     @@schema("auth")
 }
 
-/**
- * model EventForm {
- * id      String @id @default(uuid()) @db.Uuid
- * eventId String @unique @db.Uuid
- * event   Event  @relation(fields: [eventId], references: [id])
- * title       String
- * description String?
- * isActive    Boolean @default(true)
- * fields FormField[]
- * createdAt DateTime @default(now())
- * updatedAt DateTime @updatedAt
- * @@schema("auth")
- * }
- * // Individual form fields (questions)
- * model FormField {
- * id     String    @id @default(uuid()) @db.Uuid
- * formId String    @db.Uuid
- * form   EventForm @relation(fields: [formId], references: [id], onDelete: Cascade)
- * label       String
- * type        FormFieldType
- * required    Boolean       @default(false)
- * placeholder String?
- * options     Json? // For select, radio, checkbox options
- * validation  Json? // Validation rules
- * order       Int // Display order
- * responses FormFieldResponse[]
- * @@schema("auth")
- * }
- * // User's response to the entire form
- * model FormResponse {
- * id             String       @id @default(uuid()) @db.Uuid
- * registrationId String       @db.Uuid
- * registration   Registration @relation(fields: [registrationId], references: [id])
- * fieldResponses FormFieldResponse[]
- * submittedAt DateTime @default(now())
- * @@schema("auth")
- * }
- * // Individual field responses
- * model FormFieldResponse {
- * id         String       @id @default(uuid()) @db.Uuid
- * responseId String       @db.Uuid
- * response   FormResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
- * fieldId String    @db.Uuid
- * field   FormField @relation(fields: [fieldId], references: [id])
- * value Json // Flexible storage for any type of response
- * @@schema("auth")
- * }
- */
+//this models will work well if we need to have complex analitics on individual responses or advanced reporting.
+model EventForm {
+    id          String      @id @default(uuid()) @db.Uuid
+    eventId     String      @unique @db.Uuid
+    event       Event       @relation(fields: [eventId], references: [id])
+    title       String
+    description String?
+    isActive    Boolean     @default(true)
+    fields      FormField[]
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+
+    // Indexes for query optimization
+    @@index([isActive])
+    @@index([createdAt])
+    @@index([isActive, createdAt])
+    @@schema("auth")
+}
+
+//individual form fields (questions)
+model FormField {
+    id          String              @id @default(uuid()) @db.Uuid
+    formId      String              @db.Uuid
+    form        EventForm           @relation(fields: [formId], references: [id], onDelete: Cascade)
+    label       String
+    type        FormFieldType
+    required    Boolean             @default(false)
+    placeholder String?
+    options     Json? // For select, radio, checkbox options
+    validation  Json? // Validation rules
+    order       Int // Display order
+    responses   FormFieldResponse[]
+
+    // Indexes for query optimization
+    @@index([formId])
+    @@index([formId, order])
+    @@index([type])
+    @@schema("auth")
+}
+
+// User's response to the entire form
+model FormResponse {
+    id             String              @id @default(uuid()) @db.Uuid
+    registrationId String              @unique @db.Uuid
+    registration   Registration        @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+    fieldResponses FormFieldResponse[]
+    submittedAt    DateTime            @default(now())
+
+    // Indexes for query optimization
+    @@index([registrationId])
+    @@index([submittedAt])
+    @@index([registrationId, submittedAt])
+    @@schema("auth")
+}
+
+// Individual field responses
+model FormFieldResponse {
+    id         String       @id @default(uuid()) @db.Uuid
+    responseId String       @db.Uuid
+    response   FormResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+    fieldId    String       @db.Uuid
+    field      FormField    @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+    value      Json // Flexible storage for any type of response, can be a string also
+
+    // Indexes for query optimization
+    @@index([responseId])
+    @@index([fieldId])
+    @@index([responseId, fieldId])
+    @@schema("auth")
+}

@@ -10,12 +10,13 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-  Building2,
+  BarChart3,
   Calendar,
   CalendarCheck,
   Clock,
   Edit,
   FileText,
+  FormInput,
   List,
   Loader2,
   MapPin,
@@ -28,7 +29,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { toast } from "sonner";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import { ConfirmationDialog } from "~/shared/components/common/confirmation-dialog";
 import { Card, CardContent } from "~/shared/components/ui/card";
 import {
@@ -38,9 +39,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/shared/components/ui/dropdown-menu";
+import { Progress } from "~/shared/components/ui/progress";
 
 interface EventDetailsSheetProps {
-  event: EventEntity | null;
+  event: EventEntityWithEventForm | null;
   isOpen: boolean;
   onClose: () => void;
   getStatusBadgeVariant: (status: string) => string;
@@ -57,6 +59,31 @@ export function EventDetailsSheet({
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
   const fetcher = useFetcher();
   const emailFetcher = useFetcher();
+
+  // Helper function to get field type labels
+  const getFieldTypeLabel = (type: string): string => {
+    const typeLabels: Record<string, string> = {
+      TEXT: "Texto",
+      EMAIL: "Email",
+      PHONE: "Teléfono",
+      NUMBER: "Número",
+      TEXTAREA: "Área de texto",
+      SELECT: "Selección",
+      RADIO: "Opción única",
+      CHECKBOX: "Casillas",
+      DATE: "Fecha",
+      FILE: "Archivo",
+    };
+    return typeLabels[type] || type;
+  };
+
+  // Calculate capacity statistics
+  const registeredCount = event
+    ? event.capacity - (event.remainingCapacity || 0)
+    : 0;
+  const capacityPercentage = event
+    ? Math.round((registeredCount / event.capacity) * 100)
+    : 0;
 
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data) {
@@ -126,12 +153,18 @@ export function EventDetailsSheet({
             {/* Desktop buttons */}
             <div className="hidden md:flex gap-2">
               <Link to={`/eventos/actualizar/${event.id}`}>
-                <Button variant="outline" size="sm">
+                <Button variant="default" size="sm">
                   <Edit className="size-5 mr-2" />
                   Editar
                 </Button>
               </Link>
-              <Button
+              <Link to={`/registros?eventId=${event.id}`} className="block">
+                <Button variant="secondary" size="sm">
+                  <Users className="size-5 mr-2" />
+                  Ver registros
+                </Button>
+              </Link>
+              {/* <Button
                 variant="destructive"
                 size="sm"
                 onClick={handleArchiveClick}
@@ -143,7 +176,7 @@ export function EventDetailsSheet({
                   <Trash2 className="size-5 mr-2" />
                 )}
                 {isArchiving ? "Archivando..." : "Archivar"}
-              </Button>
+              </Button> */}
             </div>
 
             {/* Mobile dropdown */}
@@ -160,6 +193,12 @@ export function EventDetailsSheet({
                     <Link to={`/eventos/actualizar/${event.id}`}>
                       <Edit className="size-4 mr-2" />
                       Editar
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={`/registros?eventId=${event.id}`}>
+                      <Users className="size-4 mr-2" />
+                      Ver registros
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -179,6 +218,86 @@ export function EventDetailsSheet({
               </DropdownMenu>
             </div>
           </SheetHeader>
+
+          <div className="mt-6 space-y-3">
+            <h3 className="text-sm font-medium flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Estadísticas del evento
+            </h3>
+            <Card>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  {/* Capacity Progress */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Ocupación</span>
+                      <span className="text-sm text-muted-foreground">
+                        {registeredCount} / {event.capacity} (
+                        {capacityPercentage}%)
+                      </span>
+                    </div>
+                    <Progress
+                      value={capacityPercentage}
+                      className="w-full h-2"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{registeredCount} registrados</span>
+                      <span>{event.remainingCapacity || 0} disponibles</span>
+                    </div>
+                  </div>
+
+                  {/* Other Statistics */}
+                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <p className="text-lg font-semibold">{event.capacity}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Capacidad total
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <p className="text-lg font-semibold">{registeredCount}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Registrados
+                      </p>
+                    </div>
+                  </div>
+
+                  {event.maxTickets && (
+                    <div className="flex justify-between items-center pt-2 border-t">
+                      <span className="text-sm text-muted-foreground">
+                        Máximo tickets por persona
+                      </span>
+                      <span className="font-medium">{event.maxTickets}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center pt-2 border-t">
+                    <span className="text-sm text-muted-foreground">
+                      Estado del evento
+                    </span>
+                    <Badge
+                      variant={
+                        getStatusBadgeVariant(event.status) as BadgeVariants
+                      }
+                    >
+                      {getStatusLabel(event.status)}
+                    </Badge>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">
+                      Fecha de creación
+                    </span>
+                    <span className="font-medium text-sm">
+                      {format(new Date(event.createdAt), "PP", {
+                        locale: es,
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           <div className="mt-6 space-y-6">
             {/* Event Overview */}
@@ -318,7 +437,88 @@ export function EventDetailsSheet({
               </div>
             )}
 
-            <div className="space-y-3">
+            {/* Event Form */}
+            {event.EventForm && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium flex items-center gap-2">
+                  <FormInput className="h-4 w-4" />
+                  Formulario de registro
+                </h3>
+                <Card>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="text-sm font-medium">
+                          {event.EventForm.title}
+                        </h4>
+                        {event.EventForm.description && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {event.EventForm.description}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">
+                          Estado
+                        </span>
+                        <Badge
+                          variant={
+                            event.EventForm.isActive ? "default" : "secondary"
+                          }
+                        >
+                          {event.EventForm.isActive ? "Activo" : "Inactivo"}
+                        </Badge>
+                      </div>
+
+                      {event.EventForm.fields &&
+                        event.EventForm.fields.length > 0 && (
+                          <div className="space-y-2">
+                            <h5 className="text-xs font-medium text-muted-foreground">
+                              Campos del formulario (
+                              {event.EventForm.fields.length})
+                            </h5>
+                            <div className="space-y-2">
+                              {event.EventForm.fields.map((field) => (
+                                <div
+                                  key={field.id}
+                                  className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-medium">
+                                      {field.label}
+                                      {field.required && (
+                                        <span className="text-red-500 ml-1">
+                                          *
+                                        </span>
+                                      )}
+                                    </span>
+                                    {field.placeholder && (
+                                      <span className="text-xs text-muted-foreground">
+                                        • {field.placeholder}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {getFieldTypeLabel(field.type)}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* <div className="space-y-3">
               <h3 className="text-sm font-medium flex items-center gap-2">
                 <Building2 className="h-4 w-4" />
                 Estadísticas
@@ -361,7 +561,7 @@ export function EventDetailsSheet({
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </div> */}
 
             {/* Quick Actions */}
             <div className="space-y-3">
@@ -376,8 +576,8 @@ export function EventDetailsSheet({
                     className="block"
                   >
                     <Button
-                      variant="default"
-                      className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                      variant="secondary"
+                      className="w-full justify-start"
                     >
                       <Edit className="w-4 h-4 mr-2" />
                       Editar evento
@@ -392,6 +592,19 @@ export function EventDetailsSheet({
                       Ver registros
                     </Button>
                   </Link>
+                  <Button
+                    variant="destructive"
+                    className="w-full justify-start"
+                    onClick={handleArchiveClick}
+                    disabled={isArchiving}
+                  >
+                    {isArchiving ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4 mr-2" />
+                    )}
+                    {isArchiving ? "Archivando..." : "Archivar evento"}
+                  </Button>
                 </CardContent>
               </Card>
             </div>

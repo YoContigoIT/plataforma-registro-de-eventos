@@ -2,13 +2,13 @@ import { Badge, type BadgeVariants } from "@/ui/badge";
 import { Card } from "@/ui/card";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 
 type EventListViewProps = {
-  events: EventEntity[];
+  events: EventEntityWithEventForm[];
   getStatusBadgeVariant: (status: string) => string;
   getStatusLabel: (status: string) => string;
-  onSelectEvent: (event: EventEntity) => void;
+  onSelectEvent: (event: EventEntityWithEventForm) => void;
 };
 
 export function EventListView({

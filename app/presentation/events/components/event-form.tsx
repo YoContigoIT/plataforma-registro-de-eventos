@@ -2,22 +2,26 @@ import { Button } from "@/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/ui/card";
+import { Label } from "@/ui/label";
+import { Switch } from "@/ui/switch";
 import { EventStatus } from "@prisma/client";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { useId, useState } from "react";
 import { Form, Link } from "react-router";
 import { createEventSchema, updateEventSchema } from "~/domain/dtos/event.dto";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type { FormFieldEntity } from "~/domain/entities/event-form.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import { ConfirmationDialog } from "~/shared/components/common/confirmation-dialog";
 import { DateInput } from "~/shared/components/common/date-input";
 import { NumberInput } from "~/shared/components/common/number-input";
 import { SelectInput } from "~/shared/components/common/select-input";
 import { TextInput } from "~/shared/components/common/text-input";
 import { useFormAction } from "~/shared/hooks/use-form-action.hook";
+import { FormBuilder } from "./form-builder";
 
 const statusOptions = [
   { value: EventStatus.DRAFT, label: "Borrador" },
@@ -28,7 +32,7 @@ const statusOptions = [
 ];
 
 interface EventFormProps {
-  eventData?: EventEntity;
+  eventData?: EventEntityWithEventForm;
   isEditing?: boolean;
 }
 
@@ -41,6 +45,31 @@ export function EventForm({
   });
   const descriptionId = useId();
   const agendaId = useId();
+  const formStatusSwitchId = useId();
+
+  console.log("isFormActive: ", eventData?.EventForm);
+
+  const [isFormActive, setIsFormActive] = useState(
+    eventData?.EventForm?.isActive ?? true
+  );
+
+  const initialFormFields: FormFieldEntity[] = (() => {
+    return isEditing && eventData?.EventForm?.fields
+      ? eventData.EventForm.fields.map((field, index) => ({
+          id: field.id || `field-${index}`,
+          label: field.label,
+          formId: field.formId || "",
+          type: field.type,
+          required: field.required,
+          placeholder: field.placeholder || null,
+          options: Array.isArray(field.options)
+            ? field.options
+            : field.options || null,
+          validation: field.validation || null,
+          order: field.order,
+        }))
+      : [];
+  })();
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
 
   const getAllowedStatusOptions = () => {
@@ -257,26 +286,76 @@ export function EventForm({
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end space-x-4 border-t p-6">
-            <Button variant="outline" asChild>
-              <Link to="/eventos">Cancelar</Link>
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                isEditing ? (
-                  "Actualizando..."
-                ) : (
-                  "Creando..."
-                )
-              ) : (
-                <>
-                  <Calendar className="w-4 h-4 mr-2" />
-                  {isEditing ? "Actualizar evento" : "Crear evento"}
-                </>
-              )}
-            </Button>
-          </CardFooter>
         </Card>
+
+        {/* Form Builder Section with Title and Toggle */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="space-y-1.5">
+                <CardTitle>Formulario del evento</CardTitle>
+                <CardDescription>
+                  Configura los campos del formulario para el evento.
+                </CardDescription>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Label
+                  htmlFor="form-status-switch"
+                  className="text-sm font-medium"
+                >
+                  {isFormActive ? "Habilitado" : "Deshabilitado"}
+                </Label>
+                <Switch
+                  id={formStatusSwitchId}
+                  checked={isFormActive}
+                  onCheckedChange={setIsFormActive}
+                />
+                <input
+                  type="hidden"
+                  name="isActive"
+                  value={isFormActive.toString()}
+                />
+              </div>
+            </div>
+          </CardHeader>
+          {isFormActive && (
+            <CardContent>
+              <FormBuilder
+                initialFields={initialFormFields}
+                handleInputChange={handleInputChange}
+                isActive={isFormActive}
+              />
+            </CardContent>
+          )}
+          {/* when form is disabled, still include existing fields as hidden inputs to preserve them */}
+          {!isFormActive && isEditing && initialFormFields.length > 0 && (
+            <input
+              type="hidden"
+              name="formFields"
+              value={JSON.stringify(initialFormFields)}
+            />
+          )}
+        </Card>
+
+        <div className="flex w-full justify-end gap-4">
+          <Button variant="outline" asChild>
+            <Link to="/eventos">Cancelar</Link>
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              isEditing ? (
+                "Actualizando..."
+              ) : (
+                "Creando..."
+              )
+            ) : (
+              <>
+                <Calendar className="w-4 h-4 mr-2" />
+                {isEditing ? "Actualizar evento" : "Crear evento"}
+              </>
+            )}
+          </Button>
+        </div>
       </Form>
 
       <ConfirmationDialog

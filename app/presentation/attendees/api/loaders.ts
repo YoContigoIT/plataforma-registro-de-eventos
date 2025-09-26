@@ -1,4 +1,47 @@
-import type { RegistrationWithRelations } from "~/domain/entities/registration.entity";
+/* import { handleServiceError } from "~/shared/lib/error-handler";
+import { decodeInvitationData } from "~/shared/lib/utils";
+import type { Route } from "../routes/+types/join";
+
+export const getEventFormLoader = async ({
+  params,
+  context: { repositories },
+}: Route.LoaderArgs) => {
+  const { inviteToken } = params;
+
+  if (!inviteToken) {
+    return {
+      success: false,
+      error: "No se encontró el token de invitación.",
+    };
+  }
+
+  const decodedData = decodeInvitationData(inviteToken);
+
+  if (!decodedData) {
+    return {
+      success: false,
+      error: "Invitación no válida o expirada.",
+    };
+  }
+
+  const { eventId } = decodedData;
+
+  try {
+    const eventForm = await 
+
+    return {
+      success: true,
+      data: {
+        inviteToken,
+        ...decodedData,
+      },
+    };
+  } catch (error) {
+    return handleServiceError(error);
+  }
+};
+ */
+/* import type { RegistrationWithRelations } from "~/domain/entities/registration.entity";
 import { decodeInvitationData } from "~/shared/lib/utils";
 import type { LoaderData } from "~/shared/types";
 import type { Route } from "../routes/+types/invite-details";
@@ -87,3 +130,4 @@ export const loadInviteDetails = async ({
     };
   }
 };
+ */

@@ -5,22 +5,26 @@ import {
   createUserSchema,
   type UpdateUserDTO,
 } from "~/domain/dtos/user.dto";
+import { handleServiceError } from "~/shared/lib/error-handler";
 import {
   decodeInvitationData,
   generateQRCode,
   simplifyZodErrors,
 } from "~/shared/lib/utils";
+import type { ActionData } from "~/shared/types";
 import type { Route } from "../routes/+types/join";
 
 export const createAttendeeAction = async ({
   request,
   params,
   context: { repositories, services },
-}: Route.ActionArgs) => {
+}: Route.ActionArgs): Promise<ActionData> => {
   try {
     const formData = await request.formData();
     const data = Object.fromEntries(formData);
     const { inviteToken } = params;
+
+    console.log(data);
 
     const decodedData = decodeInvitationData(inviteToken);
     if (!decodedData) {
@@ -78,13 +82,14 @@ export const createAttendeeAction = async ({
     }
 
     //Obtener evento
-
     const event = await repositories.eventRepository.findUnique(eventId);
     if (!event) {
       return {
         error: "Evento no encontrado",
       };
     }
+
+    console.log(event);
 
     const maxTickets = event.maxTickets || 0;
 
@@ -105,15 +110,22 @@ export const createAttendeeAction = async ({
     const userTickets = userEventRegister.purchasedTickets || 0;
     if (userTickets + ticketsRequested > maxTickets) {
       return {
+        success: false,
+        
         error: `Solo puedes comprar ${maxTickets} tickets como máximo. 
                 Actualmente tienes ${userTickets}, 
                 intentaste comprar ${ticketsRequested}.`,
       };
     }
-    // Tickets totales del evento
-    const remainingTickets = event.remainingCapacity || 0; //force to fail.
 
-    // Validación contra capacidad
+    console.log({
+      maxTickets,
+      userTickets,
+      ticketsRequested,
+    });
+
+    const remainingTickets = event.remainingCapacity || 0;
+
     if (ticketsRequested > remainingTickets) {
       return {
         error: `No hay suficientes tickets disponibles. 
@@ -122,19 +134,22 @@ export const createAttendeeAction = async ({
       };
     }
 
+    console.log({
+      remainingTickets,
+    });
+
     //Actualizar registro
-    const updateRegistration = await repositories.registrationRepository.update(
-      {
-        id: userEventRegister.id,
-        userId: user.id,
-        eventId,
-        status: RegistrationStatus.REGISTERED,
-        qrCode: generateQRCode(user.id, eventId),
-        purchasedTickets:
-          (userEventRegister?.purchasedTickets || 0) + ticketsRequested,
-        registeredAt: new Date(),
-      },
-    );
+    await repositories.registrationRepository.update({
+      id: userEventRegister.id,
+      userId: user.id,
+      eventId,
+      status: RegistrationStatus.REGISTERED,
+      qrCode: generateQRCode(user.id, eventId),
+      purchasedTickets:
+        (userEventRegister?.purchasedTickets || 0) + ticketsRequested,
+      registeredAt: new Date(),
+      respondedAt: new Date(),
+    });
 
     //Actualizar evento
     await repositories.eventRepository.update({
@@ -173,8 +188,6 @@ export const createAttendeeAction = async ({
       `${process.env.APP_URL}/verificar-registro/${finalRegistrations.qrCode}`,
     );
 
-    console.log(qrCodeUrl);
-
     await services.emailService.sendRegistrationConfirmation(user.email, {
       userName: user.name || "",
       eventName: event.name,
@@ -186,14 +199,14 @@ export const createAttendeeAction = async ({
       ticketsQuantity: finalRegistrations.purchasedTickets || 0,
     });
 
+
+
     return {
+      success: true,
       message: "Asistente registrado exitosamente.",
+      redirectTo: "/registro-existoso",
     };
   } catch (error) {
-    console.error(error);
-    return {
-      error: "Error al registrar el asistente.",
-      message: "Intenta de nuevo más tarde.",
-    };
+    return handleServiceError(error, "Error al registrar el asistente.");
   }
 };
