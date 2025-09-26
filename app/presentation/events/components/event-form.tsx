@@ -1,7 +1,3 @@
-import { EventStatus } from "@prisma/client";
-import { Calendar, MapPin, Users } from "lucide-react";
-import { useId, useId, useState, useState } from "react";
-import { Form, Link } from "react-router";
 import { Button } from "@/ui/button";
 import {
   Card,
@@ -12,9 +8,13 @@ import {
 } from "@/ui/card";
 import { Label } from "@/ui/label";
 import { Switch } from "@/ui/switch";
+import { EventStatus } from "@prisma/client";
+import { Calendar, MapPin, Users } from "lucide-react";
+import { useId, useState } from "react";
+import { Form, Link } from "react-router";
 import { createEventSchema, updateEventSchema } from "~/domain/dtos/event.dto";
-import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import type { FormFieldEntity } from "~/domain/entities/event-form.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import { ConfirmationDialog } from "~/shared/components/common/confirmation-dialog";
 import { DateInput } from "~/shared/components/common/date-input";
 import { NumberInput } from "~/shared/components/common/number-input";
@@ -50,7 +50,7 @@ export function EventForm({
   console.log("isFormActive: ", eventData?.EventForm);
 
   const [isFormActive, setIsFormActive] = useState(
-    eventData?.EventForm?.isActive ?? true,
+    eventData?.EventForm?.isActive ?? true
   );
 
   const initialFormFields: FormFieldEntity[] = (() => {
@@ -79,7 +79,7 @@ export function EventForm({
         (opt) =>
           opt.value === EventStatus.DRAFT ||
           opt.value === EventStatus.UPCOMING ||
-          opt.value === EventStatus.ONGOING,
+          opt.value === EventStatus.ONGOING
       );
     }
 
@@ -87,7 +87,7 @@ export function EventForm({
       // Si está en curso: solo permitir Finalizado
       return statusOptions.filter(
         (opt) =>
-          opt.value === EventStatus.ENDED || opt.value === EventStatus.ONGOING,
+          opt.value === EventStatus.ENDED || opt.value === EventStatus.ONGOING
       );
     }
 
@@ -246,116 +246,117 @@ export function EventForm({
               />
             </div>
 
-          {/* Description and Agenda (full width) */}
-          <div className="grid grid-cols-1 gap-6">
-            <div className="space-y-1.5">
-              <label htmlFor="description" className="text-sm font-medium">
-                Descripción
-              </label>
-              <textarea
-                id={descriptionId}
-                name="description"
-                className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="Ingresa una descripción del evento"
-                onChange={handleInputChange}
-                defaultValue={eventData?.description || ""}
-              />
-              {errors.description && (
-                <p className="text-sm font-medium text-destructive mt-1">
-                  {errors.description[0]}
-                </p>
-              )}
+            {/* Description and Agenda (full width) */}
+            <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-1.5">
+                <label htmlFor="description" className="text-sm font-medium">
+                  Descripción
+                </label>
+                <textarea
+                  id={descriptionId}
+                  name="description"
+                  className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="Ingresa una descripción del evento"
+                  onChange={handleInputChange}
+                  defaultValue={eventData?.description || ""}
+                />
+                {errors.description && (
+                  <p className="text-sm font-medium text-destructive mt-1">
+                    {errors.description[0]}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <label htmlFor="agenda" className="text-sm font-medium">
+                  Agenda
+                </label>
+                <textarea
+                  id={agendaId}
+                  name="agenda"
+                  className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="Ingresa la agenda del evento"
+                  onChange={handleInputChange}
+                  defaultValue={eventData?.agenda || ""}
+                />
+                {errors.agenda && (
+                  <p className="text-sm font-medium text-destructive mt-1">
+                    {errors.agenda[0]}
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label htmlFor="agenda" className="text-sm font-medium">
-                Agenda
-              </label>
-              <textarea
-                id={agendaId}
-                name="agenda"
-                className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="Ingresa la agenda del evento"
-                onChange={handleInputChange}
-                defaultValue={eventData?.agenda || ""}
-              />
-              {errors.agenda && (
-                <p className="text-sm font-medium text-destructive mt-1">
-                  {errors.agenda[0]}
-                </p>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Form Builder Section with Title and Toggle */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1.5">
-              <CardTitle>Formulario del evento</CardTitle>
-              <CardDescription>
-                Configura los campos del formulario para el evento.
-              </CardDescription>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Label
-                htmlFor="form-status-switch"
-                className="text-sm font-medium"
-              >
-                {isFormActive ? "Habilitado" : "Deshabilitado"}
-              </Label>
-              <Switch
-                id={formStatusSwitchId}
-                checked={isFormActive}
-                onCheckedChange={setIsFormActive}
-              />
-              <input
-                type="hidden"
-                name="isActive"
-                value={isFormActive.toString()}
-              />
-            </div>
-          </div>
-        </CardHeader>
-        {isFormActive && (
-          <CardContent>
-            <FormBuilder
-              initialFields={initialFormFields}
-              handleInputChange={handleInputChange}
-              isActive={isFormActive}
-            />
           </CardContent>
-        )}
-        {/* when form is disabled, still include existing fields as hidden inputs to preserve them */}
-        {!isFormActive && isEditing && initialFormFields.length > 0 && (
-          <input
-            type="hidden"
-            name="formFields"
-            value={JSON.stringify(initialFormFields)}
-          />
-        )}
-      </Card>
+        </Card>
 
-      <div className="flex w-full justify-end gap-4">
-        <Button variant="outline" asChild>
-          <Link to="/eventos">Cancelar</Link>
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? (
-            isEditing ? (
-              "Actualizando..."
-            ) : (
-              "Creando..."
-            )
-          ) : (
-            <>
-              <Calendar className="w-4 h-4 mr-2" />
-              {isEditing ? "Actualizar evento" : "Crear evento"}
-            </>
+        {/* Form Builder Section with Title and Toggle */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="space-y-1.5">
+                <CardTitle>Formulario del evento</CardTitle>
+                <CardDescription>
+                  Configura los campos del formulario para el evento.
+                </CardDescription>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Label
+                  htmlFor="form-status-switch"
+                  className="text-sm font-medium"
+                >
+                  {isFormActive ? "Habilitado" : "Deshabilitado"}
+                </Label>
+                <Switch
+                  id={formStatusSwitchId}
+                  checked={isFormActive}
+                  onCheckedChange={setIsFormActive}
+                />
+                <input
+                  type="hidden"
+                  name="isActive"
+                  value={isFormActive.toString()}
+                />
+              </div>
+            </div>
+          </CardHeader>
+          {isFormActive && (
+            <CardContent>
+              <FormBuilder
+                initialFields={initialFormFields}
+                handleInputChange={handleInputChange}
+                isActive={isFormActive}
+              />
+            </CardContent>
           )}
-        </Button>
-      </div>
+          {/* when form is disabled, still include existing fields as hidden inputs to preserve them */}
+          {!isFormActive && isEditing && initialFormFields.length > 0 && (
+            <input
+              type="hidden"
+              name="formFields"
+              value={JSON.stringify(initialFormFields)}
+            />
+          )}
+        </Card>
+
+        <div className="flex w-full justify-end gap-4">
+          <Button variant="outline" asChild>
+            <Link to="/eventos">Cancelar</Link>
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              isEditing ? (
+                "Actualizando..."
+              ) : (
+                "Creando..."
+              )
+            ) : (
+              <>
+                <Calendar className="w-4 h-4 mr-2" />
+                {isEditing ? "Actualizar evento" : "Crear evento"}
+              </>
+            )}
+          </Button>
+        </div>
+      </Form>
 
       <ConfirmationDialog
         isOpen={showConfirmationDialog && isEditing}
@@ -373,6 +374,5 @@ export function EventForm({
         showTextarea={false}
       />
     </>
-    </Form>
   );
 }
