@@ -1,6 +1,8 @@
 import { Checkbox } from "@/ui/checkbox";
 import { Label } from "@/ui/label";
 import { Textarea } from "@/ui/textarea";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { FetcherWithComponents } from "react-router";
 // Remove Form import from react-router
 // import { Form } from "react-router";
@@ -40,9 +42,41 @@ export function EventFormRenderer({
   isUpdateForm = false,
   formResponseId,
 }: EventFormRendererProps) {
-  const { isSubmitting, handleInputChange } = useFormAction({
+  const { handleInputChange } = useFormAction({
     zodSchema: createFormResponseSchema,
   });
+
+  // Use fetcher state instead of useFormAction's isSubmitting
+  const isSubmitting = fetcher.state === "submitting";
+
+  const [checkboxSelections, setCheckboxSelections] = useState<
+    Record<string, string[]>
+  >({});
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <>
+  useEffect(() => {
+    const initialSelections: Record<string, string[]> = {};
+
+    eventForm.fields.forEach((field) => {
+      if (field.type === "CHECKBOX") {
+        const defaultValue = getDefaultValue(field.id);
+        if (defaultValue) {
+          try {
+            const parsed = JSON.parse(defaultValue);
+            initialSelections[field.id] = Array.isArray(parsed)
+              ? parsed
+              : [defaultValue];
+          } catch {
+            initialSelections[field.id] = [defaultValue];
+          }
+        } else {
+          initialSelections[field.id] = [];
+        }
+      }
+    });
+
+    setCheckboxSelections(initialSelections);
+  }, [eventForm.fields, defaultValues]);
 
   const getDefaultValue = (fieldId: string): string => {
     if (!defaultValues?.fieldResponses) return "";
@@ -185,7 +219,9 @@ export function EventFormRenderer({
           />
         );
 
-      case "CHECKBOX":
+      case "CHECKBOX": {
+        const selectedOptions = checkboxSelections[field.id] || [];
+
         return (
           <div className="space-y-2">
             <Label>
@@ -205,29 +241,43 @@ export function EventFormRenderer({
                 >
                   <Checkbox
                     id={`${field.id}-${index}`}
-                    name={`field_${field.id}`}
                     value={option}
-                    checked={defaultValue === option}
+                    checked={selectedOptions.includes(option)}
                     onCheckedChange={(checked) => {
+                      const newSelections = checked
+                        ? [...selectedOptions, option]
+                        : selectedOptions.filter((item) => item !== option);
+
+                      setCheckboxSelections((prev) => ({
+                        ...prev,
+                        [field.id]: newSelections,
+                      }));
+
                       handleInputChange({
                         target: {
                           name: `field_${field.id}`,
-                          value: checked ? option : "",
+                          value: JSON.stringify(newSelections),
                         },
                       } as React.ChangeEvent<HTMLInputElement>);
                     }}
                   />
                   <Label
                     htmlFor={`${field.id}-${index}`}
-                    className="text-sm font-normal"
+                    className="text-sm font-normal cursor-pointer"
                   >
                     {option}
                   </Label>
                 </div>
               ))}
             </div>
+            <input
+              type="hidden"
+              name={`field_${field.id}`}
+              value={JSON.stringify(selectedOptions)}
+            />
           </div>
         );
+      }
 
       case "DATE":
         return (
@@ -286,7 +336,16 @@ export function EventFormRenderer({
           )}
 
           <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? "Enviando..." : submitButtonText}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isUpdateForm ? "Actualizando..." : "Enviando..."}
+              </>
+            ) : isUpdateForm ? (
+              "Actualizar"
+            ) : (
+              submitButtonText
+            )}
           </Button>
         </div>
       </fetcher.Form>

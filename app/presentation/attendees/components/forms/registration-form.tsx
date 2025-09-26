@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import type { FetcherWithComponents } from "react-router";
+import { toast } from "sonner";
 import { createUserSchema } from "~/domain/dtos/user.dto";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import type { UserEntity } from "~/domain/entities/user.entity";
@@ -19,6 +20,7 @@ import { FormField } from "~/shared/components/common/form-field";
 import { SelectInput } from "~/shared/components/common/select-input";
 import { TextInput } from "~/shared/components/common/text-input";
 import { useFormAction } from "~/shared/hooks/use-form-action.hook";
+import type { ActionData } from "~/shared/types";
 
 interface RegistrationFormProps {
   event: EventEntity;
@@ -31,11 +33,14 @@ export function RegistrationForm({
   event,
   user,
   fetcher,
-  inviteToken, // Add this line
+  inviteToken,
 }: RegistrationFormProps) {
-  const { errors, handleInputChange, isLoading, isSubmitting } = useFormAction({
+  const { errors, handleInputChange, isLoading } = useFormAction({
     zodSchema: createUserSchema,
   });
+
+  // Get submission state from fetcher instead of useFormAction
+  const isSubmitting = fetcher.state === "submitting";
 
   const nameId = useId();
   const emailId = useId();
@@ -63,6 +68,33 @@ export function RegistrationForm({
       }
     }
   }, [user]);
+
+  // Add effect to handle fetcher data (messages/errors)
+  useEffect(() => {
+    const actionData = fetcher.data as ActionData | undefined;
+
+    if (
+      actionData &&
+      !actionData.success &&
+      (actionData.error || actionData.message)
+    ) {
+      toast.error(actionData.error || actionData.message);
+    }
+
+    if (actionData && !actionData.success && actionData.errors) {
+      Object.entries(actionData.errors).forEach(([field, messages]) => {
+        if (messages && messages.length > 0) {
+          messages.forEach((message) => {
+            toast.error(`${field}: ${message}`);
+          });
+        }
+      });
+    }
+
+    if (actionData?.success && actionData.message) {
+      toast.success(actionData.message);
+    }
+  }, [fetcher.data]);
 
   const handleFieldBlur = (fieldName: string) => {
     setTouchedFields((prev) => ({ ...prev, [fieldName]: true }));

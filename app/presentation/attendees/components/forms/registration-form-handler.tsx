@@ -75,7 +75,7 @@ export function RegistrationFormHandler() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto bg-card rounded-2xl shadow-2xl overflow-hidden relative">
+    <div className="max-w-7xl mx-auto bg-background rounded-2xl shadow-2xl overflow-hidden relative">
       <div className="flex flex-col md:flex-row relative">
         <EventDetailsPanel
           event={event}
@@ -83,12 +83,12 @@ export function RegistrationFormHandler() {
           onToggle={() => setShowEventDetails(!showEventDetails)}
         />
 
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-6 flex flex-col">
           <div className="mb-8">
             <Stepper steps={STEPS} currentStep={currentStep} className="mb-6" />
           </div>
 
-          <div className="min-h-[400px]">
+          <div className="flex-1 min-h-[400px]">
             {currentStep === 1 && (
               <div>
                 {eventForm && (
@@ -101,25 +101,6 @@ export function RegistrationFormHandler() {
                     formResponseId={formAnswers?.id}
                   />
                 )}
-                <div className="flex justify-end mt-6">
-                  <Button
-                    onClick={handleNextStep}
-                    disabled={
-                      isFormResponseSubmitting || !formResponseCompleted
-                    }
-                    type="button"
-                    size="lg"
-                  >
-                    {isFormResponseSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Enviando...
-                      </>
-                    ) : (
-                      "Siguiente"
-                    )}
-                  </Button>
-                </div>
               </div>
             )}
 
@@ -131,27 +112,50 @@ export function RegistrationFormHandler() {
                   fetcher={registrationFetcher}
                   inviteToken={inviteToken}
                 />
-                <div className="flex justify-between mt-6">
-                  <Button
-                    onClick={handlePreviousStep}
-                    disabled={isRegistrationSubmitting}
-                    type="button"
-                    variant="outline"
-                    size="lg"
-                  >
-                    {isRegistrationSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Procesando...
-                      </>
-                    ) : (
-                      "Anterior"
-                    )}
-                  </Button>
-                </div>
               </div>
             )}
           </div>
+
+          {formResponseCompleted && (
+            <div className="flex justify-between mt-6 pt-6 border-t">
+              {currentStep > 1 ? (
+                <Button
+                  onClick={handlePreviousStep}
+                  disabled={isRegistrationSubmitting}
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                >
+                  Anterior
+                </Button>
+              ) : (
+                <div />
+              )}
+
+              {currentStep < STEPS.length ? (
+                <Button
+                  onClick={handleNextStep}
+                  disabled={
+                    isFormResponseSubmitting ||
+                    (currentStep === 1 && !formResponseCompleted)
+                  }
+                  type="button"
+                  size="lg"
+                >
+                  {isFormResponseSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    "Siguiente"
+                  )}
+                </Button>
+              ) : (
+                <div />
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -24,6 +24,8 @@ export const createAttendeeAction = async ({
     const data = Object.fromEntries(formData);
     const { inviteToken } = params;
 
+    console.log(data);
+
     const decodedData = decodeInvitationData(inviteToken);
     if (!decodedData) {
       return {
@@ -87,6 +89,8 @@ export const createAttendeeAction = async ({
       };
     }
 
+    console.log(event);
+
     const maxTickets = event.maxTickets || 0;
 
     // Contar cuántos tickets ya tiene el usuario en ese event
@@ -106,15 +110,22 @@ export const createAttendeeAction = async ({
     const userTickets = userEventRegister.purchasedTickets || 0;
     if (userTickets + ticketsRequested > maxTickets) {
       return {
+        success: false,
+        
         error: `Solo puedes comprar ${maxTickets} tickets como máximo. 
                 Actualmente tienes ${userTickets}, 
                 intentaste comprar ${ticketsRequested}.`,
       };
     }
-    // Tickets totales del evento
-    const remainingTickets = event.remainingCapacity || 0; //force to fail.
 
-    // Validación contra capacidad
+    console.log({
+      maxTickets,
+      userTickets,
+      ticketsRequested,
+    });
+
+    const remainingTickets = event.remainingCapacity || 0;
+
     if (ticketsRequested > remainingTickets) {
       return {
         error: `No hay suficientes tickets disponibles. 
@@ -122,6 +133,10 @@ export const createAttendeeAction = async ({
             intentaste comprar ${ticketsRequested}.`,
       };
     }
+
+    console.log({
+      remainingTickets,
+    });
 
     //Actualizar registro
     await repositories.registrationRepository.update({
@@ -133,6 +148,7 @@ export const createAttendeeAction = async ({
       purchasedTickets:
         (userEventRegister?.purchasedTickets || 0) + ticketsRequested,
       registeredAt: new Date(),
+      respondedAt: new Date(),
     });
 
     //Actualizar evento
@@ -183,7 +199,10 @@ export const createAttendeeAction = async ({
       ticketsQuantity: finalRegistrations.purchasedTickets || 0,
     });
 
+
+
     return {
+      success: true,
       message: "Asistente registrado exitosamente.",
       redirectTo: "/registro-existoso",
     };
