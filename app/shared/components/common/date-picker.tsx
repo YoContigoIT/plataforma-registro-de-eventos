@@ -72,21 +72,32 @@ export function DatePicker({
     setTimeValue(newTime);
 
     if (date) {
-      const [hours, minutes] = newTime.split(":").map(Number);
-      const newDate = new Date(date);
-      newDate.setHours(hours, minutes, 0, 0);
+      // Only proceed if the time string contains a colon and has both parts
+      if (newTime.includes(':')) {
+        const timeParts = newTime.split(":");
+        if (timeParts.length >= 2) {
+          const hours = Number(timeParts[0]);
+          const minutes = Number(timeParts[1]);
+          
+          // Only proceed if both hours and minutes are valid numbers
+          if (!isNaN(hours) && !isNaN(minutes)) {
+            const newDate = new Date(date);
+            newDate.setHours(hours, minutes, 0, 0);
 
-      setDate(newDate);
-      onChange?.(newDate);
+            setDate(newDate);
+            onChange?.(newDate);
 
-      if (onInputChange && name) {
-        const event = {
-          target: {
-            name,
-            value: newDate.toISOString(),
-          },
-        } as React.ChangeEvent<HTMLInputElement>;
-        onInputChange(event);
+            if (onInputChange && name) {
+              const event = {
+                target: {
+                  name,
+                  value: newDate.toISOString(),
+                },
+              } as React.ChangeEvent<HTMLInputElement>;
+              onInputChange(event);
+            }
+          }
+        }
       }
     }
   };
