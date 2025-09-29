@@ -122,6 +122,7 @@ export function EventDetailsSheet({
   };
 
   const handleConfirmArchive = () => {
+    console.log("Confirming archive for event ID:", event.id);
     fetcher.submit(
       {},
       {
