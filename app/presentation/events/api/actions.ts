@@ -1,3 +1,4 @@
+import type { Route as ArchiveRoute } from ".react-router/types/app/presentation/events/routes/+types/archive";
 import type { Route as RouteList } from ".react-router/types/app/presentation/events/routes/+types/create";
 import { simplifyZodErrors } from "@/shared/lib/utils";
 import { EventStatus, RegistrationStatus, UserRole } from "@prisma/client";
@@ -418,13 +419,12 @@ export const updateEventAction = async ({
 };
 
 export const archiveEventAction = async ({
-  request,
+  params,
   context: { repositories, session },
-}: RouteList.ActionArgs): Promise<ActionData> => {
-  const formData = Object.fromEntries(await request.formData());
+}: ArchiveRoute.ActionArgs): Promise<ActionData> => {
   const userId = session.get("user")?.id;
   const userRole = session.get("user")?.role;
-  const eventId = formData.id as string;
+  const eventId = params.id as string;
 
   if (!userId) {
     return {
@@ -449,6 +449,7 @@ export const archiveEventAction = async ({
       redirectTo: `/eventos`,
     };
   } catch (error) {
+    console.error("Error al archivar el evento:", error);
     return {
       success: false,
       message:
