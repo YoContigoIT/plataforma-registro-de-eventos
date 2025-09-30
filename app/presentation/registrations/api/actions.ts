@@ -327,7 +327,10 @@ export const deleteRegistrationAction = async ({
           userRole === UserRole.ORGANIZER &&
           currentEvent.organizerId !== userId
         ) {
-          continue;
+          return {
+            success: false,
+            error: "No tienes permisos para eliminar este registro",
+          };
         }
 
         // Eliminar registro
