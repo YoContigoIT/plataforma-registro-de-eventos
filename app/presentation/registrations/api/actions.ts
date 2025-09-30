@@ -21,7 +21,7 @@ function parseEmails(emailsString: string): string[] {
     .split(/[,;\n\r]+/)
     .map((email) => email.trim().toLowerCase())
     .filter(
-      (email) => email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+      (email) => email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     )
     .filter((email, index, arr) => arr.indexOf(email) === index);
 }
@@ -152,7 +152,7 @@ export const sendInvitationsAction = async ({
             const existingRegistration =
               await repositories.registrationRepository.registrationExists(
                 eventId,
-                user.id,
+                user.id
               );
 
             if (existingRegistration) {
@@ -177,7 +177,7 @@ export const sendInvitationsAction = async ({
                 year: "numeric",
                 month: "long",
                 day: "numeric",
-              },
+              }
             );
 
             const eventTime = new Date(event.start_date).toLocaleTimeString(
@@ -185,7 +185,7 @@ export const sendInvitationsAction = async ({
               {
                 hour: "2-digit",
                 minute: "2-digit",
-              },
+              }
             );
 
             const invitationHash = encodeInvitationData(user.id, eventId);
@@ -210,12 +210,12 @@ export const sendInvitationsAction = async ({
             // TODO: hmm this should work, i need to check it
             await runInTransaction(async () => {
               await repositories.registrationRepository.create(
-                registrationData,
+                registrationData
               );
 
               await services.emailService.sendInvitationEmail(
                 invitationData,
-                email,
+                email
               );
             });
 
@@ -223,7 +223,7 @@ export const sendInvitationsAction = async ({
           } catch (error) {
             results.failed++;
             results.errors.push(
-              `Error al procesar ${email}: ${error instanceof Error ? error.message : "Error desconocido"}`,
+              `Error al procesar ${email}: ${error instanceof Error ? error.message : "Error desconocido"}`
             );
           }
         }
@@ -256,7 +256,7 @@ export const sendInvitationsAction = async ({
       },
       {
         timeout: 25000,
-      },
+      }
     );
   } catch (error) {
     return {
@@ -272,16 +272,23 @@ export const deleteRegistrationAction = async ({
   context: { repositories, session, services },
 }: Route.ActionArgs): Promise<ActionData> => {
   const formData = Object.fromEntries(await request.formData());
-  const registrationId = formData.registrationId as string;
+
+  // Acepta tanto un solo ID como múltiples IDs
+  const registrationIds: string[] = formData.registrationIds
+    ? (formData.registrationIds as string)
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean)
+    : formData.registrationId
+      ? [formData.registrationId as string]
+      : [];
+
   const customMessage = formData.customMessage as string;
   const userId = session.get("user")?.id;
   const userRole = session.get("user")?.role;
 
   if (!userId) {
-    return {
-      success: false,
-      error: "No se ha iniciado sesión",
-    };
+    return { success: false, error: "No se ha iniciado sesión" };
   }
 
   if (
@@ -294,88 +301,79 @@ export const deleteRegistrationAction = async ({
     };
   }
 
-  if (!registrationId) {
-    return {
-      success: false,
-      error: "ID de registro requerido",
-    };
+  if (registrationIds.length === 0) {
+    return { success: false, error: "ID(s) de registro requeridos" };
   }
 
   try {
-    const registration =
-      await repositories.registrationRepository.findOne(registrationId);
-
-    if (!registration) {
-      return {
-        success: false,
-        error: "Registro no encontrado",
-      };
-    }
-
-    const currentEvent = await repositories.eventRepository.findUnique(
-      registration.eventId,
-    );
-    const user = await repositories.userRepository.findUnique(
-      registration.userId,
-    );
-
-    if (!currentEvent) {
-      return {
-        success: false,
-        error: "Evento no encontrado",
-      };
-    }
-
-    if (userRole === UserRole.ORGANIZER) {
-      if (currentEvent.organizerId !== userId) {
-        return {
-          success: false,
-          error: "No tienes permisos para eliminar este registro",
-        };
-      }
-    }
-
     await runInTransaction(async () => {
-      await repositories.registrationRepository.delete(registrationId);
+      for (const registrationId of registrationIds) {
+        const registration =
+          await repositories.registrationRepository.findOne(registrationId);
 
-      if (
-        registration.status === RegistrationStatus.REGISTERED ||
-        registration.status === RegistrationStatus.CHECKED_IN
-      ) {
-        await repositories.eventRepository.update({
-          id: currentEvent.id,
-          remainingCapacity: currentEvent.remainingCapacity
-            ? currentEvent.remainingCapacity + 1
-            : 1, //should check this
-        });
-      }
+        if (!registration) continue;
 
-      if (user?.email) {
-        const emailTemplate = generateRevocationEmailTemplate({
-          userName: user.name || user.email.split("@")[0],
-          eventName: currentEvent.name,
-          eventDate: format(
-            new Date(currentEvent.start_date),
-            "PPP 'a las' p",
-            {
-              locale: es,
-            },
-          ),
-          customMessage: customMessage || undefined,
-        });
+        const currentEvent = await repositories.eventRepository.findUnique(
+          registration.eventId
+        );
+        const user = await repositories.userRepository.findUnique(
+          registration.userId
+        );
 
-        await services.emailService.sendEmail({
-          to: user.email,
-          subject: `Invitación revocada - ${currentEvent.name}`,
-          html: emailTemplate,
-        });
+        if (!currentEvent) continue;
+
+        // Permisos
+        if (
+          userRole === UserRole.ORGANIZER &&
+          currentEvent.organizerId !== userId
+        ) {
+          continue;
+        }
+
+        // Eliminar registro
+        await repositories.registrationRepository.delete(registrationId);
+
+        // Actualizar capacidad
+        if (
+          registration.status === RegistrationStatus.REGISTERED ||
+          registration.status === RegistrationStatus.CHECKED_IN
+        ) {
+          await repositories.eventRepository.update({
+            id: currentEvent.id,
+            remainingCapacity: currentEvent.remainingCapacity
+              ? currentEvent.remainingCapacity + 1
+              : 1,
+          });
+        }
+
+        // Notificación por correo
+        if (user?.email) {
+          const emailTemplate = generateRevocationEmailTemplate({
+            userName: user.name || user.email.split("@")[0],
+            eventName: currentEvent.name,
+            eventDate: format(
+              new Date(currentEvent.start_date),
+              "PPP 'a las' p",
+              { locale: es }
+            ),
+            customMessage: customMessage || undefined,
+          });
+
+          await services.emailService.sendEmail({
+            to: user.email,
+            subject: `Invitación revocada - ${currentEvent.name}`,
+            html: emailTemplate,
+          });
+        }
       }
     });
 
     return {
       success: true,
       message:
-        "Registro eliminado exitosamente. Se ha enviado una notificación al usuario.",
+        registrationIds.length > 1
+          ? "Registros eliminados exitosamente. Se ha enviado una notificación a los usuarios."
+          : "Registro eliminado exitosamente. Se ha enviado una notificación al usuario.",
     };
   } catch (error) {
     return handleServiceError(error);
@@ -436,7 +434,7 @@ export const resendInviteAction = async ({
     /* const newInviteToken = generateInviteToken(); */
     const encodedToken = encodeInvitationData(
       registration.userId,
-      registration.eventId,
+      registration.eventId
     );
 
     await repositories.registrationRepository.update({
@@ -457,7 +455,7 @@ export const resendInviteAction = async ({
 
     const emailResponse = await services.emailService.sendInvitationEmail(
       emailData,
-      registration.user.email,
+      registration.user.email
     );
 
     if (emailResponse.success) {
