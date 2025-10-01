@@ -318,7 +318,7 @@ export const PrismaRegistrationRepository = (
     findByEmailAndEventId: async (
       email: string,
       eventId: string,
-    ): Promise<RegistrationWithRelations | null> => {
+    ): Promise<RegistrationWithFullRelations | null> => {
       return await prisma.registration.findFirst({
         where: {
           eventId,

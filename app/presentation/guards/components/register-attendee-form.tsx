@@ -1,11 +1,9 @@
-import { Loader2, Mail, UserCircle } from "lucide-react";
+import { Mail, UserCircle } from "lucide-react";
 import { useId } from "react";
 import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import { FormField } from "~/shared/components/common/form-field";
-import { NumberInput } from "~/shared/components/common/number-input";
 import { SelectInput } from "~/shared/components/common/select-input";
 import { TextInput } from "~/shared/components/common/text-input";
-import { Button } from "~/shared/components/ui/button";
 import type { ValidationErrors } from "~/shared/hooks/use-form-validation.hook";
 import { useSearchParamsManager } from "~/shared/hooks/use-search-params-manager";
 
@@ -18,10 +16,8 @@ interface RegisterAttendeeProps {
   errors: ValidationErrors;
   prefilledEmail?: string;
   defaultValues?: {
-    eventId: string;
     quantity: string;
     name: string;
-    email: string;
     phone: string;
   };
 }
@@ -54,14 +50,16 @@ export function RegisterAttendeeForm({
               name="email"
               id={emailId}
               type="email"
-              defaultValue={prefilledEmail || defaultValues?.email || ""}
+              defaultValue={prefilledEmail || ""}
               placeholder="ejemplo@correo.com"
               required
               readOnly={!!prefilledEmail}
               icon={<Mail size={20} className="text-muted-foreground" />}
               disabled={isSubmitting || !!prefilledEmail}
               onChange={handleInputChange}
-              onBlur={(e) => !prefilledEmail && handleSearchParams("email", e.target.value)}
+              onBlur={(e) =>
+                !prefilledEmail && handleSearchParams("email", e.target.value)
+              }
               aria-invalid={!!errors?.email}
               aria-describedby={errors?.email ? "email-error" : undefined}
               className={prefilledEmail ? "bg-muted/50" : ""}
@@ -75,7 +73,7 @@ export function RegisterAttendeeForm({
 
           <FormField id={quantityId} error={errors.quantity}>
             <SelectInput
-              label="Número de invitaciones"
+              label="Número de pases"
               name="quantity"
               id={quantityId}
               defaultValue={defaultValues?.quantity || ""}
@@ -144,12 +142,12 @@ export function RegisterAttendeeForm({
         </div>
       </div>
 
-      <div className="flex justify-end">
+      {/*  <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Registrar asistente
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }

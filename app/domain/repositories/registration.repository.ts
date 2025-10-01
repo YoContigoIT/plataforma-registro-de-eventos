@@ -86,7 +86,7 @@ export interface IRegistrationRepository {
   findByEmailAndEventId(
     email: string,
     eventId: string
-  ): Promise<RegistrationWithRelations | null>;
+  ): Promise<RegistrationWithFullRelations | null>;
   findByUserId(userId: string): Promise<RegistrationEntity[]>;
   findByEventId(eventId: string): Promise<RegistrationWithRelations[]>;
   findByQrCode(qrCode: string): Promise<RegistrationWithRelations | null>;

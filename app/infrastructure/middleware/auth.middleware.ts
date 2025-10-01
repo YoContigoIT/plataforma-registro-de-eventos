@@ -23,8 +23,8 @@ const ROLE_PROTECTED_ROUTES: Record<UserRole, string[]> = {
     "/perfil/actualizar",
     "/perfil/cambiar-contrasenia",
     "/perfil/cerrar-sesion",
-    "/registrar-nuevo-asistente",
-    "/completar-registro",
+    "/crear-registro",
+    "/actualizar-registro",
   ],
   [UserRole.ORGANIZER]: [
     "/panel",
@@ -36,8 +36,8 @@ const ROLE_PROTECTED_ROUTES: Record<UserRole, string[]> = {
     "/perfil/actualizar",
     "/perfil/cambiar-contrasenia",
     "/perfil/cerrar-sesion",
-    "/registrar-nuevo-asistente",
-    "/completar-registro",
+    "/crear-registro",
+    "/actualizar-registro",
   ],
   [UserRole.ATTENDEE]: [
     "/registro",
@@ -55,8 +55,8 @@ const ROLE_PROTECTED_ROUTES: Record<UserRole, string[]> = {
     "/perfil/actualizar",
     "/perfil/cambiar-contrasenia",
     "/perfil/cerrar-sesion",
-    "/registrar-nuevo-asistente",
-    "/completar-registro",
+    "/crear-registro",
+    "/actualizar-registro",
   ],
 };
 

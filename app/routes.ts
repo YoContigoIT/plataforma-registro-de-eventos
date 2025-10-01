@@ -47,12 +47,13 @@ const ROUTES_PATH = {
   },
   guard: {
     verify: "presentation/guards/routes/verify.tsx",
-    registerAttendee:
-      "presentation/guards/routes/register-attendee-handler.tsx",
-    completeRegistration:
-      "presentation/guards/routes/complete-registration.tsx",
-    createNewAttendeeAction:
-      "presentation/guards/routes/create-new-attendee.action.tsx",
+    createRegister: "presentation/guards/routes/create-registration.tsx",
+    updateRegiter: "presentation/guards/routes/update-registration.tsx",
+    createRegistrationAction:
+      "presentation/guards/routes/actions/create-registration.action.tsx",
+    updateRegisterAction:
+      "presentation/guards/routes/actions/update-registration.action.tsx",
+    checkInAction: "presentation/guards/routes/actions/check-in.action.tsx",
   },
 };
 
@@ -71,8 +72,17 @@ export default [
     "/api/create-attendee/:inviteToken",
     `${ROUTES_PATH.attendee.createAttendee}`,
   ),
+  route(
+    "/api/update-registration",
+    `${ROUTES_PATH.guard.updateRegisterAction}`,
+  ),
 
-  route("/api/create-guest", `${ROUTES_PATH.guard.createNewAttendeeAction}`),
+  route(
+    "/api/create-registration",
+    `${ROUTES_PATH.guard.createRegistrationAction}`,
+  ),
+
+  route("/api/check-in/:qrCode", `${ROUTES_PATH.guard.checkInAction}`),
   /* route("/invitacion/:inviteToken", `${ROUTES_PATH.attendee.inviteDetails}`), */
   route("/verificar-registro/:qrCode", `${ROUTES_PATH.guard.verify}`),
   layout(`${ROUTES_PATH.layout}`, [
@@ -100,10 +110,7 @@ export default [
       `${ROUTES_PATH.registrations.resendInvite}`,
     ),
 
-    route(
-      "/registrar-nuevo-asistente",
-      `${ROUTES_PATH.guard.registerAttendee}`,
-    ),
-    /*  route("/completar-registro", `${ROUTES_PATH.guard.completeRegistration}`), */
+    route("/crear-registro", `${ROUTES_PATH.guard.createRegister}`),
+    route("/actualizar-registro", `${ROUTES_PATH.guard.updateRegiter}`),
   ]),
 ] satisfies RouteConfig;

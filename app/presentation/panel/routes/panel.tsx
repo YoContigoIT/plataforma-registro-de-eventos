@@ -62,7 +62,7 @@ export default function Panel() {
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Link
-              to="/registrar-nuevo-asistente"
+              to="/crear-registro"
               className="flex flex-col items-center justify-center gap-3 rounded-2xl border p-6 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-accent/10"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
@@ -76,7 +76,7 @@ export default function Panel() {
               </p>
             </Link>
             <Link
-              to="/completar-registro"
+              to="/actualizar-registro"
               className="flex flex-col items-center justify-center gap-3 rounded-2xl border p-6 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-accent/10"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
