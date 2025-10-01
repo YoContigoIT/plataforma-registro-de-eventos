@@ -23,6 +23,8 @@ const ROLE_PROTECTED_ROUTES: Record<UserRole, string[]> = {
     "/perfil/actualizar",
     "/perfil/cambiar-contrasenia",
     "/perfil/cerrar-sesion",
+    "/registrar-nuevo-asistente",
+    "/completar-registro",
   ],
   [UserRole.ORGANIZER]: [
     "/panel",
@@ -34,6 +36,8 @@ const ROLE_PROTECTED_ROUTES: Record<UserRole, string[]> = {
     "/perfil/actualizar",
     "/perfil/cambiar-contrasenia",
     "/perfil/cerrar-sesion",
+    "/registrar-nuevo-asistente",
+    "/completar-registro",
   ],
   [UserRole.ATTENDEE]: [
     "/registro",
@@ -51,13 +55,14 @@ const ROLE_PROTECTED_ROUTES: Record<UserRole, string[]> = {
     "/perfil/actualizar",
     "/perfil/cambiar-contrasenia",
     "/perfil/cerrar-sesion",
-    "/registro-invitado",
+    "/registrar-nuevo-asistente",
+    "/completar-registro",
   ],
 };
 
 // Helper function to create regex for route matching
 const createRouteRegex = (route: string): RegExp => {
-  return new RegExp("^" + route.replace(/:[^/]+/g, "[^/]+") + "$");
+  return new RegExp(`^${route.replace(/:[^/]+/g, "[^/]+")}$`);
 };
 
 // Function to check if user has access to a route
@@ -188,7 +193,7 @@ export const authMiddleware = async ({
 
     // Verify user has access to the route
     if (!hasRouteAccess(user.role, pathname)) {
-      return redirect("/inicio");
+      return redirect("/panel");
     }
 
     return { user };

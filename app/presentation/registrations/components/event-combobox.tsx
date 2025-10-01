@@ -1,6 +1,9 @@
 import { Calendar, Check, ChevronsUpDown } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type {
+  EventEntity,
+  EventEntityWithEventForm,
+} from "~/domain/entities/event.entity";
 import { Badge } from "~/shared/components/ui/badge";
 import { Button } from "~/shared/components/ui/button";
 import { Card, CardContent } from "~/shared/components/ui/card";
@@ -49,7 +52,7 @@ export function EventCombobox({
   onEventSelect,
   searchKey = "search",
 }: {
-  events: EventEntity[];
+  events: EventEntity[] | EventEntityWithEventForm[];
   selectedEventId?: string;
   onEventSelect: (eventId: string) => void;
   searchKey?: string;

@@ -3,10 +3,8 @@ import { Label } from "@/ui/label";
 import { Textarea } from "@/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { FetcherWithComponents } from "react-router";
 // Remove Form import from react-router
 // import { Form } from "react-router";
-import { createFormResponseSchema } from "~/domain/dtos/form-response.dto";
 import type {
   EventFormWithFields,
   FormFieldEntity,
@@ -19,36 +17,32 @@ import { RadioGroupInput } from "~/shared/components/common/radio-group-input";
 import { SelectInput } from "~/shared/components/common/select-input";
 import { TextInput } from "~/shared/components/common/text-input";
 import { Button } from "~/shared/components/ui/button";
-import { useFormAction } from "~/shared/hooks/use-form-action.hook";
 
 interface EventFormRendererProps {
   eventForm: EventFormWithFields;
-  registrationId: string;
+  handleInputChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
+  registrationId?: string;
   submitButtonText?: string;
-  fetcher: FetcherWithComponents<FormData>;
   className?: string;
   defaultValues?: FormResponseAnswers;
   isUpdateForm?: boolean;
   formResponseId?: string; // Add this for update operations
+  isSubmitting?: boolean;
 }
 
 export function EventFormRenderer({
   eventForm,
+  handleInputChange,
   registrationId,
   submitButtonText = "Enviar",
-  fetcher,
   className,
   defaultValues,
   isUpdateForm = false,
   formResponseId,
+  isSubmitting = false,
 }: EventFormRendererProps) {
-  const { handleInputChange } = useFormAction({
-    zodSchema: createFormResponseSchema,
-  });
-
-  // Use fetcher state instead of useFormAction's isSubmitting
-  const isSubmitting = fetcher.state === "submitting";
-
   const [checkboxSelections, setCheckboxSelections] = useState<
     Record<string, string[]>
   >({});
@@ -316,39 +310,33 @@ export function EventFormRenderer({
 
   const sortedFields = [...eventForm.fields].sort((a, b) => a.order - b.order);
 
-  const action = isUpdateForm
-    ? "/api/update-form-response"
-    : "/api/form-response";
-
   return (
     <div className={className}>
-      <fetcher.Form method="post" action={action}>
-        <div className="space-y-6">
-          <div className="space-y-4">
-            {sortedFields.map((field) => (
-              <div key={field.id}>{renderField(field)}</div>
-            ))}
-          </div>
-
-          <input type="hidden" name="registrationId" value={registrationId} />
-          {isUpdateForm && formResponseId && (
-            <input type="hidden" name="formResponseId" value={formResponseId} />
-          )}
-
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isUpdateForm ? "Actualizando..." : "Enviando..."}
-              </>
-            ) : isUpdateForm ? (
-              "Actualizar"
-            ) : (
-              submitButtonText
-            )}
-          </Button>
+      <div className="space-y-6">
+        <div className="space-y-4">
+          {sortedFields.map((field) => (
+            <div key={field.id}>{renderField(field)}</div>
+          ))}
         </div>
-      </fetcher.Form>
+
+        <input type="hidden" name="registrationId" value={registrationId} />
+        {isUpdateForm && formResponseId && (
+          <input type="hidden" name="formResponseId" value={formResponseId} />
+        )}
+
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {isUpdateForm ? "Actualizando..." : "Enviando..."}
+            </>
+          ) : isUpdateForm ? (
+            "Actualizar"
+          ) : (
+            submitButtonText
+          )}
+        </Button>
+      </div>
     </div>
   );
 }

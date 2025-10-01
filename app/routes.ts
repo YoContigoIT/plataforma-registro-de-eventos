@@ -26,7 +26,8 @@ const ROUTES_PATH = {
     updateFormResponse:
       "presentation/attendees/routes/update-form-response.tsx",
     createAttendee: "presentation/attendees/routes/create-attendee.tsx",
-    registrationConfirm: "presentation/attendees/routes/registration-confirm.tsx",
+    registrationConfirm:
+      "presentation/attendees/routes/registration-confirm.tsx",
   },
   users: {
     list: "presentation/usuarios/routes/users.tsx",
@@ -45,8 +46,13 @@ const ROUTES_PATH = {
     dashboard: "presentation/panel/routes/panel.tsx",
   },
   guard: {
-    verifyRegistration: "presentation/guards/routes/verify-registration.tsx",
-    registerGuest: "presentation/guards/routes/register-guest.tsx",
+    verify: "presentation/guards/routes/verify.tsx",
+    registerAttendee:
+      "presentation/guards/routes/register-attendee-handler.tsx",
+    completeRegistration:
+      "presentation/guards/routes/complete-registration.tsx",
+    createNewAttendeeAction:
+      "presentation/guards/routes/create-new-attendee.action.tsx",
   },
 };
 
@@ -65,11 +71,10 @@ export default [
     "/api/create-attendee/:inviteToken",
     `${ROUTES_PATH.attendee.createAttendee}`,
   ),
+
+  route("/api/create-guest", `${ROUTES_PATH.guard.createNewAttendeeAction}`),
   /* route("/invitacion/:inviteToken", `${ROUTES_PATH.attendee.inviteDetails}`), */
-  route(
-    "/verificar-registro/:qrCode",
-    `${ROUTES_PATH.guard.verifyRegistration}`
-  ),
+  route("/verificar-registro/:qrCode", `${ROUTES_PATH.guard.verify}`),
   layout(`${ROUTES_PATH.layout}`, [
     route("/panel", `${ROUTES_PATH.panel.dashboard}`),
     route("/usuarios", `${ROUTES_PATH.users.list}`),
@@ -84,17 +89,21 @@ export default [
     route("/registros", `${ROUTES_PATH.registrations.list}`),
     route(
       "/registros/enviar-invitaciones/:id",
-      `${ROUTES_PATH.registrations.sendInvitations}`
+      `${ROUTES_PATH.registrations.sendInvitations}`,
     ),
     route(
       "/registros/delete-registration",
-      `${ROUTES_PATH.registrations.deleteRegistration}`
+      `${ROUTES_PATH.registrations.deleteRegistration}`,
     ),
     route(
       "/registros/resend-invite",
-      `${ROUTES_PATH.registrations.resendInvite}`
+      `${ROUTES_PATH.registrations.resendInvite}`,
     ),
 
-    route("/registro-invitado", `${ROUTES_PATH.guard.registerGuest}`),
+    route(
+      "/registrar-nuevo-asistente",
+      `${ROUTES_PATH.guard.registerAttendee}`,
+    ),
+    /*  route("/completar-registro", `${ROUTES_PATH.guard.completeRegistration}`), */
   ]),
 ] satisfies RouteConfig;

@@ -225,6 +225,17 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
             ],
           }),
         },
+        include: {
+          EventForm: {
+            include: {
+              fields: {
+                orderBy: {
+                  order: "asc",
+                },
+              },
+            },
+          },
+        },
         orderBy: { start_date: "asc" },
         take: limit,
       });
@@ -250,6 +261,17 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
           },
         },
         orderBy: { start_date: "asc" },
+        include: {
+          EventForm: {
+            include: {
+              fields: {
+                orderBy: {
+                  order: "asc",
+                },
+              },
+            },
+          },
+        },
         take: limit,
       });
     },
