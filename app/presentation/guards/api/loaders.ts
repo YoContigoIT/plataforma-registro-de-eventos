@@ -1,10 +1,11 @@
 import QRCode from "qrcode";
-import type { Route as RegisterGuestRoute } from "../routes/+types/register-guest";
-import type { Route } from "../routes/+types/verify-registration";
+import type { Route as RegisterAttendeeRoute } from "../routes/+types/register-attendee-handler";
+import type { Route as VerifyRoute } from "../routes/+types/verify";
+
 export const registrationByTokenLoader = async ({
   params,
   context: { repositories },
-}: Route.LoaderArgs) => {
+}: VerifyRoute.LoaderArgs) => {
   const { qrCode } = params;
 
   if (!qrCode) {
@@ -23,7 +24,7 @@ export const registrationByTokenLoader = async ({
     };
   }
   const qrCodeUrl = await QRCode.toDataURL(
-    `${process.env.DOMAIN}/verificar-registro/${invite.qrCode}`
+    `${process.env.DOMAIN}/verificar-registro/${invite.qrCode}`,
   );
 
   return {
@@ -37,13 +38,13 @@ export const registrationByTokenLoader = async ({
   };
 };
 
-export const getEventsLoader = async ({
+export const registerAttendeeLoader = async ({
   request,
   context: { repositories, session },
-}: RegisterGuestRoute.LoaderArgs) => {
+}: RegisterAttendeeRoute.LoaderArgs) => {
   const url = new URL(request.url);
-  const email = url.searchParams.get("email");
   const eventId = url.searchParams.get("eventId");
+  const email = url.searchParams.get("email"); // Changed from emailInput to email
 
   const userId = session.get("user")?.id;
 
@@ -53,23 +54,33 @@ export const getEventsLoader = async ({
       error: "No se ha iniciado sesión",
     };
   }
-  const { data, pagination } = await repositories.eventRepository.findMany();
-  let invites = null;
-  let user = null;
-  if (email) {
-    user = await repositories.userRepository.findByEmail(email as string);
 
-    if (user && eventId) {
-      invites = await repositories.registrationRepository.findTickesPurchased(
-        eventId as string,
-        user.id
-      );
-    }
+  const { data: events } = await repositories.eventRepository.findMany({
+    page: 1,
+    limit: 100,
+  });
+
+  if (!eventId) {
+    return {
+      events,
+      selectedEvent: null,
+      existingRegistration: null,
+    };
+  }
+
+  const selectedEvent = await repositories.eventRepository.findUnique(eventId);
+
+  let existingRegistration = null;
+  if (email && eventId) {
+    existingRegistration = await repositories.registrationRepository.findByEmailAndEventId(
+      email,
+      eventId,
+    );
   }
 
   return {
-    events: data,
-    invites,
-    user,
+    events,
+    selectedEvent,
+    existingRegistration,
   };
 };

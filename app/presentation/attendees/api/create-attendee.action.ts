@@ -199,8 +199,6 @@ export const createAttendeeAction = async ({
       ticketsQuantity: finalRegistrations.purchasedTickets || 0,
     });
 
-
-
     return {
       success: true,
       message: "Asistente registrado exitosamente.",

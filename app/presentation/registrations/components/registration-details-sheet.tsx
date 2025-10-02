@@ -102,6 +102,18 @@ export function RegistrationDetailsSheet({
         if (Array.isArray(value)) {
           return value.join(", ");
         }
+        if (
+          typeof value === "string" &&
+          value.startsWith("[") &&
+          value.endsWith("]")
+        ) {
+          try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) {
+              return parsed.join(", ");
+            }
+          } catch {}
+        }
         return value;
       case "SELECT":
       case "RADIO":
@@ -352,7 +364,7 @@ export function RegistrationDetailsSheet({
             </div>
 
             {/* Form Response Information */}
-            {FormResponse && FormResponse.length > 0 && (
+            {FormResponse && FormResponse.fieldResponses.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-sm font-medium flex items-center gap-2">
                   <FileText className="h-4 w-4" />
@@ -363,14 +375,14 @@ export function RegistrationDetailsSheet({
                     <CardTitle className="text-sm flex items-center justify-between">
                       <span>Formulario completado</span>
                       <span className="text-xs text-muted-foreground font-normal">
-                        {format(new Date(FormResponse[0].submittedAt), "PPp", {
+                        {format(new Date(FormResponse.submittedAt), "PPp", {
                           locale: es,
                         })}
                       </span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {FormResponse[0].fieldResponses
+                    {FormResponse.fieldResponses
                       .sort((a, b) => a.field.order - b.field.order)
                       .map((fieldResponse) => (
                         <div key={fieldResponse.id} className="space-y-1">
@@ -393,8 +405,8 @@ export function RegistrationDetailsSheet({
                             </div>
                           </div>
                           {fieldResponse !==
-                            FormResponse[0].fieldResponses[
-                              FormResponse[0].fieldResponses.length - 1
+                            FormResponse.fieldResponses[
+                              FormResponse.fieldResponses.length - 1
                             ] && (
                             <div className="border-b border-border/50 pt-2" />
                           )}
@@ -406,7 +418,7 @@ export function RegistrationDetailsSheet({
             )}
 
             {/* No Form Response Message */}
-            {(!FormResponse || FormResponse.length === 0) && (
+            {(!FormResponse || FormResponse.fieldResponses.length === 0) && (
               <div className="space-y-3">
                 <h3 className="text-sm font-medium flex items-center gap-2">
                   <FileText className="h-4 w-4" />

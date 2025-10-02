@@ -35,6 +35,7 @@ import { eventsLoader } from "../../events/api/loaders";
 import { EventDetailsSheet } from "../../events/components/event-details-sheet";
 import { registrationsLoader } from "../api/loaders";
 import { EventCombobox } from "../components/event-combobox";
+import { MassActions } from "../components/mass-actions";
 import { RegistrationFilters } from "../components/registration-filters";
 import { RegistrationTable } from "../components/registration-table";
 import { StatusCards } from "../components/status-cards";
@@ -91,6 +92,7 @@ export default function Registrations() {
   const { sort, handleSort } = useTableSorting("invitedAt", "desc");
 
   const eventId = getParamValue("eventId");
+  const [loading, setLoading] = useState(false);
 
   const handleEventSelect = useCallback(
     (eventId: string) => {
@@ -199,6 +201,12 @@ export default function Registrations() {
 
   return (
     <div className="space-y-6">
+      {/* Overlay loader */}
+      {loading && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-primary/10 backdrop-blur-sm">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-white border-t-transparent" />
+        </div>
+      )}
       <PageHeader
         title={`Registros - ${selectedEvent.name}`}
         description={`${formatDate(selectedEvent.start_date)} de ${formatTime(selectedEvent.start_date)} a ${formatTime(selectedEvent.end_date)}`}
@@ -226,10 +234,10 @@ export default function Registrations() {
                     <Download className="size-5 mr-2" />
                     Exportar ({selectedRegistrations.length})
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <Filter className="size-5 mr-2" />
-                    Acciones masivas
-                  </Button>
+                  <MassActions
+                    selectedRegistrations={selectedRegistrations}
+                    onLoadingChange={setLoading}
+                  />
                 </div>
               )}
               {canSendInvitations && (

@@ -1,13 +1,15 @@
+import { EventFormRenderer } from "@/shared/components/forms/event-form-renderer";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFetcher, useLoaderData } from "react-router";
 import { toast } from "sonner";
+import { createFormResponseSchema } from "~/domain/dtos/form-response.dto";
 import { Stepper } from "~/shared/components/common/stepper";
 import { Button } from "~/shared/components/ui/button";
+import { useFormAction } from "~/shared/hooks/use-form-action.hook";
 import type { LoaderData } from "~/shared/types";
 import type { InvitationData } from "../../api/get-invitation-data.loader";
 import { EventDetailsPanel } from "./event-details-panel";
-import { EventFormRenderer } from "./event-form-renderer";
 import { RegistrationForm } from "./registration-form";
 
 const STEPS = [
@@ -43,6 +45,10 @@ export function RegistrationFormHandler() {
   const formResponseFetcher = useFetcher();
   const registrationFetcher = useFetcher();
 
+  const { handleInputChange } = useFormAction({
+    zodSchema: createFormResponseSchema,
+  });
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: <not needed>
   useEffect(() => {
     if (formResponseFetcher.state === "idle" && formResponseFetcher.data) {
@@ -74,6 +80,10 @@ export function RegistrationFormHandler() {
     return <div>Error: No se pudo cargar la información del evento</div>;
   }
 
+  const action = hasResponse
+    ? "/api/update-form-response"
+    : "/api/form-response";
+
   return (
     <div className="max-w-7xl mx-auto bg-background rounded-2xl shadow-2xl overflow-hidden relative">
       <div className="flex flex-col md:flex-row relative">
@@ -92,14 +102,17 @@ export function RegistrationFormHandler() {
             {currentStep === 1 && (
               <div>
                 {eventForm && (
-                  <EventFormRenderer
-                    eventForm={eventForm}
-                    registrationId={registrationId}
-                    fetcher={formResponseFetcher}
-                    defaultValues={formAnswers ?? undefined}
-                    isUpdateForm={hasResponse}
-                    formResponseId={formAnswers?.id}
-                  />
+                  <formResponseFetcher.Form method="post" action={action}>
+                    <EventFormRenderer
+                      eventForm={eventForm}
+                      handleInputChange={handleInputChange}
+                      registrationId={registrationId}
+                      defaultValues={formAnswers ?? undefined}
+                      formResponseId={formAnswers?.id}
+                      isUpdateForm={hasResponse}
+                      isSubmitting={isFormResponseSubmitting}
+                    />
+                  </formResponseFetcher.Form>
                 )}
               </div>
             )}

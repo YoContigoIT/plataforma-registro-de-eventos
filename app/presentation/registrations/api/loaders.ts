@@ -149,8 +149,6 @@ export const registrationsLoader = async ({
     filters,
   );
 
-  console.log("registrations", data);
-
   return {
     registrations: data,
     pagination,

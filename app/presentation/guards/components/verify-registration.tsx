@@ -31,7 +31,7 @@ import { useEffect } from "react";
 import { useFetcher, useLoaderData } from "react-router";
 import { toast } from "sonner";
 
-export function RegistrationInfo() {
+export function VerifyRegistration() {
   const loaderData = useLoaderData();
   const { invite, event, user, qrCodeUrl } = loaderData?.data || {};
   const fetcher = useFetcher();

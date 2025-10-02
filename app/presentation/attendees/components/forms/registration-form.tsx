@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import {
-  AlertCircle,
   BadgeCheck,
   CheckCircle,
   ClipboardCheck,
@@ -12,21 +11,17 @@ import {
 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import type { FetcherWithComponents } from "react-router";
-import { toast } from "sonner";
-import { createUserSchema } from "~/domain/dtos/user.dto";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import type { UserEntity } from "~/domain/entities/user.entity";
 import { FormField } from "~/shared/components/common/form-field";
 import { SelectInput } from "~/shared/components/common/select-input";
 import { TextInput } from "~/shared/components/common/text-input";
-import { useFormAction } from "~/shared/hooks/use-form-action.hook";
-import type { ActionData } from "~/shared/types";
 
 interface RegistrationFormProps {
   event: EventEntity;
   user: UserEntity | null;
   fetcher: FetcherWithComponents<FormData>;
-  inviteToken?: string; // Add this line
+  inviteToken?: string;
 }
 
 export function RegistrationForm({
@@ -35,11 +30,7 @@ export function RegistrationForm({
   fetcher,
   inviteToken,
 }: RegistrationFormProps) {
-  const { errors, handleInputChange, isLoading } = useFormAction({
-    zodSchema: createUserSchema,
-  });
-
-  // Get submission state from fetcher instead of useFormAction
+  // Get submission state from fetcher
   const isSubmitting = fetcher.state === "submitting";
 
   const nameId = useId();
@@ -69,35 +60,16 @@ export function RegistrationForm({
     }
   }, [user]);
 
-  // Add effect to handle fetcher data (messages/errors)
-  useEffect(() => {
-    const actionData = fetcher.data as ActionData | undefined;
-
-    if (
-      actionData &&
-      !actionData.success &&
-      (actionData.error || actionData.message)
-    ) {
-      toast.error(actionData.error || actionData.message);
-    }
-
-    if (actionData && !actionData.success && actionData.errors) {
-      Object.entries(actionData.errors).forEach(([field, messages]) => {
-        if (messages && messages.length > 0) {
-          messages.forEach((message) => {
-            toast.error(`${field}: ${message}`);
-          });
-        }
-      });
-    }
-
-    if (actionData?.success && actionData.message) {
-      toast.success(actionData.message);
-    }
-  }, [fetcher.data]);
-
   const handleFieldBlur = (fieldName: string) => {
     setTouchedFields((prev) => ({ ...prev, [fieldName]: true }));
+  };
+
+  // Simple input change handler without validation (handled by parent)
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -161,7 +133,7 @@ export function RegistrationForm({
         {user && !user.name && (
           <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
             <div className="space-y-2">
-              <FormField id={nameId} error={errors.name}>
+              <FormField id={nameId}>
                 <TextInput
                   label="Nombre completo"
                   name="name"
@@ -171,7 +143,7 @@ export function RegistrationForm({
                   readOnly={!!user?.name}
                   defaultValue={user?.name ?? ""}
                   icon={<UserCircle size={20} className="text-gray-400" />}
-                  disabled={isSubmitting || isLoading}
+                  disabled={isSubmitting}
                   onChange={(e) => {
                     handleInputChange(e);
                     if (!touchedFields.name) {
@@ -180,17 +152,14 @@ export function RegistrationForm({
                     setFormData((prev) => ({ ...prev, name: e.target.value }));
                   }}
                   onBlur={() => handleFieldBlur("name")}
-                  aria-invalid={!!errors.name}
-                  aria-errormessage={errors.name ? "name-error" : undefined}
                   className={
-                    touchedFields.name && !errors.name && formData.name
+                    touchedFields.name && formData.name
                       ? "border-green-500 focus:ring-green-500 focus:border-green-500"
                       : ""
                   }
                 />
               </FormField>
-              {(user?.name ||
-                (touchedFields.name && !errors.name && formData.name)) && (
+              {(user?.name || (touchedFields.name && formData.name)) && (
                 <p className="text-green-600 text-xs flex items-center">
                   <CheckCircle size={14} className="mr-1" />
                   {user?.name ? "Precargado desde tu cuenta" : "Campo válido"}
@@ -202,7 +171,7 @@ export function RegistrationForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Correo */}
           <div className="space-y-2">
-            <FormField id={emailId} error={errors.email}>
+            <FormField id={emailId}>
               <TextInput
                 label="Correo electrónico"
                 name="email"
@@ -212,7 +181,7 @@ export function RegistrationForm({
                 readOnly
                 defaultValue={user?.email}
                 icon={<Mail size={20} className="text-gray-400" />}
-                disabled={isSubmitting || isLoading}
+                disabled={isSubmitting}
                 onChange={(e) => {
                   handleInputChange(e);
                   if (!touchedFields.email) {
@@ -224,17 +193,14 @@ export function RegistrationForm({
                   setFormData((prev) => ({ ...prev, email: e.target.value }));
                 }}
                 onBlur={() => handleFieldBlur("email")}
-                aria-invalid={!!errors.email}
-                aria-errormessage={errors.email ? "email-error" : undefined}
                 className={
-                  touchedFields.email && !errors.email && formData.email
+                  touchedFields.email && formData.email
                     ? "border-green-500 focus:ring-green-500 focus:border-green-500"
                     : ""
                 }
               />
             </FormField>
-            {(user?.email ||
-              (touchedFields.email && !errors.email && formData.email)) && (
+            {(user?.email || (touchedFields.email && formData.email)) && (
               <p className="text-green-600 text-xs flex items-center">
                 <CheckCircle size={14} className="mr-1" />
                 {user?.email ? "Precargado desde tu cuenta" : "Campo válido"}
@@ -244,22 +210,16 @@ export function RegistrationForm({
 
           {/* Teléfono */}
           <div className="space-y-2">
-            <FormField id={phoneId} error={errors.phone}>
+            <FormField id={phoneId}>
               <TextInput
-                label="Teléfono"
+                label="Teléfono (opcional)"
                 name="phone"
                 type="tel"
-                inputMode="tel"
+                placeholder="Ej. +1 234 567 8900"
                 defaultValue={user?.phone ?? ""}
-                placeholder="Ej. +34 600 123 456"
                 icon={<Phone size={20} className="text-gray-400" />}
-                disabled={isSubmitting || isLoading}
-                onChange={(e) => {
-                  handleInputChange(e);
-                }}
-                onBlur={() => handleFieldBlur("phone")}
-                aria-invalid={!!errors.phone}
-                aria-errormessage={errors.phone ? "phone-error" : undefined}
+                disabled={isSubmitting}
+                onChange={handleInputChange}
               />
             </FormField>
           </div>
@@ -268,7 +228,7 @@ export function RegistrationForm({
         <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
           {/* Cantidad de Tickets a reservar */}
           <div className="space-y-2">
-            <FormField id={quantityId} error={errors.quantity}>
+            <FormField id={quantityId}>
               <SelectInput
                 label="Número de invitaciones"
                 placeholder="Seleccione cantidad"
@@ -286,7 +246,7 @@ export function RegistrationForm({
                     label: (index + 1).toString(),
                   })
                 )}
-                disabled={isSubmitting || isLoading}
+                disabled={isSubmitting}
                 onValueChange={(value) => {
                   handleInputChange({
                     target: { name: "quantity", value },
@@ -303,26 +263,18 @@ export function RegistrationForm({
                     quantity: hasValue,
                   }));
                 }}
-                aria-invalid={!!errors.quantity}
-                aria-errormessage={
-                  errors.quantity ? "quantity-error" : undefined
-                }
                 className={
-                  touchedFields.quantity &&
-                  !errors.quantity &&
-                  formData.quantity
+                  touchedFields.quantity && formData.quantity
                     ? "border-green-500 focus:ring-green-500 focus:border-green-500"
                     : ""
                 }
               />
             </FormField>
-            {touchedFields.quantity &&
-              !errors.quantity &&
-              formData.quantity && (
-                <p className="text-green-600 text-xs flex items-center">
-                  <CheckCircle size={14} className="mr-1" /> Campo válido
-                </p>
-              )}
+            {touchedFields.quantity && formData.quantity && (
+              <p className="text-green-600 text-xs flex items-center">
+                <CheckCircle size={14} className="mr-1" /> Campo válido
+              </p>
+            )}
           </div>
         </div>
 
@@ -346,48 +298,49 @@ export function RegistrationForm({
             <div className="text-gray-600">Fecha:</div>
             <div className="font-medium text-right">
               {event?.start_date
-                ? new Date(event.start_date).toLocaleDateString("es-ES")
-                : "Fecha del evento"}
+                ? new Date(event.start_date).toLocaleDateString("es-ES", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })
+                : "Fecha por confirmar"}
+            </div>
+
+            <div className="text-gray-600">Hora:</div>
+            <div className="font-medium text-right">
+              {event?.start_date
+                ? new Date(event.start_date).toLocaleTimeString("es-ES", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "Hora por confirmar"}
             </div>
           </div>
         </div>
 
-        {/* Botón */}
-        <div className="flex justify-end pt-2">
+        {/* Botón de envío */}
+        <div className="flex justify-center pt-4">
           <Button
             type="submit"
-            className="bg-gradient-to-r from-primary to-secondary  hover:from-secondary hover:to-primary transition-all shadow-md hover:shadow-lg relative py-3 px-8 text-base rounded-lg"
-            disabled={isSubmitting || isLoading || !formData.quantity}
+            size="lg"
+            disabled={isSubmitting}
+            className="w-full md:w-auto min-w-[200px] bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Procesando reserva...
+                Confirmando asistencia...
               </>
             ) : (
               <>
                 <CheckCircle className="mr-2 h-5 w-5" />
-                Confirmar Asistencia
+                Confirmar asistencia
               </>
             )}
           </Button>
         </div>
       </fetcher.Form>
-
-      {/* Información adicional */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <div className="flex items-start">
-          <AlertCircle
-            size={16}
-            className="text-gray-500 mr-2 mt-0.5 flex-shrink-0"
-          />
-          <p className="text-sm text-gray-600">
-            Tus datos se utilizarán exclusivamente para gestionar tu asistencia
-            al evento. Recibirás un correo de confirmación con los detalles de
-            tu reserva.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
