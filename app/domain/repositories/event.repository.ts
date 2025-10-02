@@ -1,7 +1,11 @@
 import type { EventStatus } from "@prisma/client";
 import type { PaginatedResponse } from "~/shared/types";
 import type { CreateEventDTO, UpdateEventDTO } from "../dtos/event.dto";
-import type { EventEntity, EventEntityWithEventForm, EventEntityWithOrganizer } from "../entities/event.entity";
+import type {
+  EventEntity,
+  EventEntityWithEventForm,
+  EventEntityWithOrganizer,
+} from "../entities/event.entity";
 
 export interface EventFilters {
   organizerId?: string;
@@ -20,7 +24,6 @@ export interface EventFilters {
     min?: number;
     max?: number;
   };
-
 
   //Filtros de fechas
   /*  startDate?: {
@@ -73,10 +76,10 @@ export interface IEventRepository {
     status: EventStatus,
     dateRange?: { from?: Date; to?: Date },
     limit?: number,
-  ): Promise<EventEntity[]>;
+  ): Promise<EventEntityWithEventForm[]>;
   findUpcomingEvents(
     daysAhead: number,
     statuses?: EventStatus[],
     limit?: number,
-  ): Promise<EventEntity[]>;
+  ): Promise<EventEntityWithEventForm[]>;
 }

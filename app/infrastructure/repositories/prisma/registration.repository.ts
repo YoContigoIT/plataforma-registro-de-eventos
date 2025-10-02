@@ -291,7 +291,10 @@ export const PrismaRegistrationRepository = (
         },
       });
     },
-    findByEventId: async (eventId: string) => {
+
+    findByEventId: async (
+      eventId: string,
+    ): Promise<RegistrationWithRelations[]> => {
       return await prisma.registration.findMany({
         where: {
           eventId,
@@ -299,6 +302,42 @@ export const PrismaRegistrationRepository = (
         include: {
           user: true,
           event: true,
+          FormResponse: {
+            include: {
+              fieldResponses: {
+                include: {
+                  field: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    },
+
+    findByEmailAndEventId: async (
+      email: string,
+      eventId: string,
+    ): Promise<RegistrationWithFullRelations | null> => {
+      return await prisma.registration.findFirst({
+        where: {
+          eventId,
+          user: {
+            email,
+          },
+        },
+        include: {
+          user: true,
+          event: true,
+          FormResponse: {
+            include: {
+              fieldResponses: {
+                include: {
+                  field: true,
+                },
+              },
+            },
+          },
         },
       });
     },

@@ -87,9 +87,9 @@ export const PrismaFormResponseRepository = (
       data: CreateFormResponseDTO,
     ): Promise<FormResponseEntity> => {
 
-      return await prisma.$transaction(async (tx) => {
+      return await runInTransaction(async () => {
         // Create the form response first
-        const response = await tx.formResponse.create({
+        const response = await prisma.formResponse.create({
           data: {
             registrationId: data.registrationId,
             submittedAt: new Date(),
@@ -98,7 +98,7 @@ export const PrismaFormResponseRepository = (
 
         // Create all field responses
         if (data.fieldResponses && data.fieldResponses.length > 0) {
-          await tx.formFieldResponse.createMany({
+          await prisma.formFieldResponse.createMany({
             data: data.fieldResponses.map((fieldResponse) => ({
               responseId: response.id,
               fieldId: fieldResponse.fieldId,
@@ -108,7 +108,7 @@ export const PrismaFormResponseRepository = (
         }
 
         // Return response with field responses
-        return (await tx.formResponse.findUnique({
+        return (await prisma.formResponse.findUnique({
           where: { id: response.id },
           include: {
             fieldResponses: {

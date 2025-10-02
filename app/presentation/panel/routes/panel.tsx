@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLoaderData } from "react-router";
-import type { EventEntity } from "~/domain/entities/event.entity";
+import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import { EventDetailsSheet } from "~/presentation/events/components/event-details-sheet";
 import { PageHeader } from "~/shared/components/common/page-header";
 import { Badge } from "~/shared/components/ui/badge";
@@ -27,10 +27,11 @@ export default function Panel() {
   const { eventStats, ongoingEvents, upcomingEvents, userRole } =
     useLoaderData<typeof loader>();
 
-  const [selectedEvent, setSelectedEvent] = useState<EventEntity | null>(null);
+  const [selectedEvent, setSelectedEvent] =
+    useState<EventEntityWithEventForm | null>(null);
   const [isEventSheetOpen, setIsEventSheetOpen] = useState(false);
 
-  const handleOpenEventSheet = (event: EventEntity) => {
+  const handleOpenEventSheet = (event: EventEntityWithEventForm) => {
     setSelectedEvent(event);
     setIsEventSheetOpen(true);
   };
@@ -53,26 +54,39 @@ export default function Panel() {
           description="Administra invitaciones y registros"
         />
 
-        {/* Acciones rápidas */}
         <section className="space-y-4 md:col-span-2">
           <div className="flex items-center gap-2">
             <Zap className="size-6 text-primary" />
             <h2 className="text-2xl font-bold">Acciones rápidas</h2>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Link
-              to="/registro-invitado"
-              className="group flex flex-col items-center justify-center gap-3 rounded-2xl border p-6 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-accent/10"
+              to="/crear-registro"
+              className="flex flex-col items-center justify-center gap-3 rounded-2xl border p-6 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-accent/10"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
                 <Plus className="h-6 w-6 text-primary" />
               </div>
               <span className="text-lg font-medium text-center">
-                Crear nuevo asistente
+                Registrar sin invitación
               </span>
               <p className="text-sm text-muted-foreground text-center">
-                Registra invitados de forma rápida y sencilla
+                Registra a un asistente sin necesidad de invitación
+              </p>
+            </Link>
+            <Link
+              to="/actualizar-registro"
+              className="flex flex-col items-center justify-center gap-3 rounded-2xl border p-6 shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-accent/10"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <Plus className="h-6 w-6 text-primary" />
+              </div>
+              <span className="text-lg font-medium text-center">
+                Registrar con invitación
+              </span>
+              <p className="text-sm text-muted-foreground text-center">
+                Registra a un asistente con invitación
               </p>
             </Link>
           </div>
@@ -97,7 +111,7 @@ export default function Panel() {
           return (
             <Link
               key={status}
-              to={`/events?status=${status}`}
+              to={`/eventos?status=${status}`}
               className="block"
             >
               <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0">
