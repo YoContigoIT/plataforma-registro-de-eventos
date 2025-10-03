@@ -47,8 +47,6 @@ export function EventForm({
   const agendaId = useId();
   const formStatusSwitchId = useId();
 
-  console.log("isFormActive: ", eventData?.EventForm);
-
   const [isFormActive, setIsFormActive] = useState(
     eventData?.EventForm?.isActive ?? true
   );
@@ -212,6 +210,7 @@ export function EventForm({
                 name="maxTickets"
                 placeholder="Ingresa el máximo de tickets"
                 min={1}
+                required
                 allowNegative={false}
                 allowDecimals={false}
                 error={errors.maxTickets?.[0]}

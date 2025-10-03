@@ -43,7 +43,7 @@ export const createEventSchema = z.object({
   organizerId: z.uuid({
     message: "El ID del organizador debe ser un UUID válido",
   }),
-  formFields: z.array(createFormFieldSchema).optional(),
+  formFields: z.array(createFormFieldSchema).nullable().optional(),
 });
 
 export const updateEventSchema = createEventSchema.partial().extend({
