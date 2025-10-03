@@ -1,96 +1,15 @@
-import type { Route as ArchiveRoute } from ".react-router/types/app/presentation/events/routes/+types/archive";
 import type { Route as RouteList } from ".react-router/types/app/presentation/events/routes/+types/create";
 import { simplifyZodErrors } from "@/shared/lib/utils";
-import { EventStatus, RegistrationStatus, UserRole } from "@prisma/client";
-import {
-  type CreateFormFieldDTO,
-  type UpdateFormFieldDTO,
-  updateFormFieldSchema,
+import { EventStatus, RegistrationStatus } from "@prisma/client";
+import type {
+    CreateFormFieldDTO,
+    UpdateFormFieldDTO,
 } from "~/domain/dtos/event-form.dto";
-import { createEventSchema, updateEventSchema } from "~/domain/dtos/event.dto";
+import { updateEventSchema } from "~/domain/dtos/event.dto";
 import type { FormFieldEntity } from "~/domain/entities/event-form.entity";
 import { runInTransaction } from "~/infrastructure/db/prisma";
 import { handleServiceError } from "~/shared/lib/error-handler";
 import type { ActionData } from "~/shared/types";
-
-export const createEventAction = async ({
-  request,
-  context: { repositories, session },
-}: RouteList.ActionArgs): Promise<ActionData> => {
-  const formData = Object.fromEntries(await request.formData());
-  const userId = session.get("user")?.id;
-
-  if (!userId) {
-    return {
-      success: false,
-      error: "No se ha iniciado sesión",
-    };
-  }
-
-  const parsedData = {
-    ...formData,
-    capacity: formData.capacity ? Number(formData.capacity) : undefined,
-    maxTickets: formData.maxTickets ? Number(formData.maxTickets) : undefined,
-    status: formData.status || EventStatus.DRAFT,
-    organizerId: userId,
-    isActive: Boolean(formData.isActive),
-    formFields: (() => {
-      if (!formData.formFields) return undefined;
-
-      try {
-        const parsed = JSON.parse(formData.formFields.toString());
-
-        if (!Array.isArray(parsed)) {
-          return null;
-        }
-
-        const validatedFields = [];
-        for (const [field] of parsed.entries()) {
-          const result = updateFormFieldSchema.safeParse(field);
-          if (!result.success) {
-            return null;
-          }
-          validatedFields.push(result.data);
-        }
-
-        return validatedFields.length > 0 ? validatedFields : undefined;
-      } catch {
-        return null;
-      }
-    })(),
-    remainingCapacity: formData.capacity
-      ? Number(formData.capacity)
-      : undefined,
-  };
-
-  const { data, success, error } = createEventSchema.safeParse(parsedData);
-
-  if (!success) {
-    return {
-      success: false,
-      errors: simplifyZodErrors(error),
-    };
-  }
-
-  if ([EventStatus.CANCELLED, EventStatus.ENDED].includes(data.status as any)) {
-    return {
-      success: false,
-      error: "No se puede crear un evento como Cancelado o Finalizado.",
-    };
-  }
-
-  try {
-    await repositories.eventRepository.create(data);
-
-    return {
-      success: true,
-      message: "Evento creado exitosamente",
-      redirectTo: `/eventos`,
-    };
-  } catch (error) {
-    return handleServiceError(error);
-  }
-};
 
 export const updateEventAction = async ({
   request,
@@ -415,45 +334,5 @@ export const updateEventAction = async ({
     };
   } catch (error) {
     return handleServiceError(error);
-  }
-};
-
-export const archiveEventAction = async ({
-  params,
-  context: { repositories, session },
-}: ArchiveRoute.ActionArgs): Promise<ActionData> => {
-  const userId = session.get("user")?.id;
-  const userRole = session.get("user")?.role;
-  const eventId = params.id as string;
-
-  if (!userId) {
-    return {
-      success: false,
-      error: "No se ha iniciado sesión",
-    };
-  }
-
-  if (!userRole || userRole !== UserRole.ADMIN) {
-    return {
-      success: false,
-      error: "No tienes permisos para archivar eventos",
-    };
-  }
-
-  try {
-    await repositories.eventRepository.softDelete(eventId);
-
-    return {
-      success: true,
-      message: "Evento archivado exitosamente",
-      redirectTo: `/eventos`,
-    };
-  } catch (error) {
-    console.error("Error al archivar el evento:", error);
-    return {
-      success: false,
-      message:
-        error instanceof Error ? error.message : "Error al archivar el evento",
-    };
   }
 };

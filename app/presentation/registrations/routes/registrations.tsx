@@ -31,7 +31,7 @@ import {
   getStatusBadgeVariant,
   getStatusLabel,
 } from "~/shared/lib/utils";
-import { eventsLoader } from "../../events/api/loaders";
+import { eventsLoader } from "../../events/api/loaders/get-events.loader";
 import { EventDetailsSheet } from "../../events/components/event-details-sheet";
 import { registrationsLoader } from "../api/loaders";
 import { EventCombobox } from "../components/event-combobox";

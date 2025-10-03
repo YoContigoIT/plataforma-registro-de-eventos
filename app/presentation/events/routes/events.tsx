@@ -11,7 +11,7 @@ import {
   getEventStatusBadgeVariant,
   getEventStatusLabel,
 } from "~/shared/lib/utils";
-import { eventsLoader } from "../api/loaders";
+import { eventsLoader } from "../api/loaders/get-events.loader";
 import { EventDetailsSheet } from "../components/event-details-sheet";
 import { EventFilters } from "../components/event-filters";
 import { EventGridView } from "../components/event-grid-view";

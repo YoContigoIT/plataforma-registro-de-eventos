@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/common/page-header";
-import { createEventAction } from "../api/actions";
+import { createEventAction } from "../api/actions/create-event.api-action";
 import { EventForm } from "../components/event-form";
 
 export const action = createEventAction;

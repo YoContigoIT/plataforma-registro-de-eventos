@@ -1,9 +1,6 @@
 import type { EventStatus } from "@prisma/client";
-import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import type { EventFilters } from "~/domain/repositories/event.repository";
-import type { LoaderData } from "~/shared/types";
-import type { Route as DetailRoute } from "../routes/+types/detail";
-import type { Route } from "../routes/+types/events";
+import type { Route } from "../../routes/+types/events";
 
 export const eventsLoader = async ({
   request,
@@ -81,51 +78,5 @@ export const eventsLoader = async ({
   return {
     events: data,
     pagination,
-  };
-};
-
-/* export const eventDetailLoader = async ({
-  params,
-  context: { repositories },
-}: DetailRoute.LoaderArgs) => {
-  const event = await repositories.eventRepository.findUnique(params.id);
-
-  if (!event) {
-    throw new Response("Event not found", {
-      status: 404,
-      statusText: "Event not found",
-    });
-  }
-
-  return {
-    event,
-  };
-};
- */
-export const getEventByIdLoader = async ({
-  params,
-  context: { repositories },
-}: DetailRoute.LoaderArgs): Promise<LoaderData<EventEntityWithEventForm>> => {
-  const id = params.id;
-
-  if (!id) {
-    return {
-      success: false,
-      error: "Event ID is required",
-    };
-  }
-
-  const event = await repositories.eventRepository.findUnique(id);
-
-  if (!event) {
-    return {
-      success: false,
-      error: "Event not found",
-    };
-  }
-
-  return {
-    success: true,
-    data: event,
   };
 };

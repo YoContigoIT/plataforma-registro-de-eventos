@@ -21,7 +21,7 @@ function parseEmails(emailsString: string): string[] {
     .split(/[,;\n\r]+/)
     .map((email) => email.trim().toLowerCase())
     .filter(
-      (email) => email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      (email) => email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
     )
     .filter((email, index, arr) => arr.indexOf(email) === index);
 }
@@ -116,18 +116,6 @@ export const sendInvitationsAction = async ({
           };
         }
 
-        // Check remaining capacity validation by status
-        /* const statusCounts = await repositories.registrationRepository.countAllStatusesByEvent(eventId);
-        const registeredCount = (statusCounts.REGISTERED || 0) + (statusCounts.CHECKED_IN || 0);
-        const availableSpots = Math.max(0, event.capacity - registeredCount);
-
-        if (emailList.length > availableSpots) {
-          return {
-            success: false,
-            error: `No se pueden enviar ${emailList.length} invitaciones. Solo hay ${availableSpots} lugares disponibles (capacidad: ${event.capacity}, registrados: ${registeredCount})`,
-          };
-        } */
-
         const results = {
           successful: 0,
           failed: 0,
@@ -135,98 +123,108 @@ export const sendInvitationsAction = async ({
           errors: [] as string[],
         };
 
-        for (const email of emailList) {
-          try {
-            let user = await repositories.userRepository.findByEmail(email);
+        await runInTransaction(async () => {
+          for (const email of emailList) {
+            try {
+              let user = await repositories.userRepository.findByEmail(email);
 
-            if (!user) {
-              const newUserData: CreateUserDTO = {
-                email,
-                name: email.split("@")[0],
-                role: UserRole.ATTENDEE,
+              if (!user) {
+                const newUserData: CreateUserDTO = {
+                  email,
+                  name: email.split("@")[0],
+                  role: UserRole.ATTENDEE,
+                };
+
+                user = await repositories.userRepository.create(newUserData);
+              }
+
+              const existingRegistration =
+                await repositories.registrationRepository.registrationExists(
+                  eventId,
+                  user.id,
+                );
+
+              if (existingRegistration) {
+                results.alreadyInvited++;
+                continue;
+              }
+
+              const qrCode = generateQRCode(user.id, eventId);
+
+              const registrationData: CreateRegistrationDto = {
+                qrCode,
+                userId: user.id,
+                eventId,
+                status: RegistrationStatus.PENDING,
+                invitedAt: new Date(),
               };
 
-              user = await repositories.userRepository.create(newUserData);
-            }
-
-            const existingRegistration =
-              await repositories.registrationRepository.registrationExists(
-                eventId,
-                user.id
+              const eventDate = new Date(event.start_date).toLocaleDateString(
+                "es-MX",
+                {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                },
               );
 
-            if (existingRegistration) {
-              results.alreadyInvited++;
-              continue;
-            }
+              const eventTime = new Date(event.start_date).toLocaleTimeString(
+                "es-MX",
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                },
+              );
 
-            const qrCode = generateQRCode(user.id, eventId);
+              const invitationHash = encodeInvitationData(user.id, eventId);
 
-            const registrationData: CreateRegistrationDto = {
-              qrCode,
-              userId: user.id,
-              eventId,
-              status: RegistrationStatus.PENDING,
-              invitedAt: new Date(),
-            };
+              const invitationData: InvitationEmailDto = {
+                userName: user.name || email.split("@")[0],
+                userEmail: user.email || email,
+                eventName: event.name,
+                eventDescription:
+                  event.description || "Descripción por confirmar",
+                eventDate,
+                eventLocation: event.location || "Ubicación por confirmar",
+                eventTime,
+                eventCapacity: event.capacity,
+                customMessage:
+                  customMessage ||
+                  "Te invitamos a participar en este increíble evento. ¡Esperamos verte allí!",
+                supportEmail: "soporte@eventos.com",
+                inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/inscripcion/${invitationHash}`,
+              };
 
-            const eventDate = new Date(event.start_date).toLocaleDateString(
-              "es-MX",
-              {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
+              //create registration first
+              const createdRegistration =
+                await repositories.registrationRepository.create(registrationData);
+
+              try {
+                await services.emailService.sendInvitationEmail(invitationData, email);
+                results.successful++;
+              } catch (error) {
+                results.failed++;
+                results.errors.push(
+                  `Error al enviar invitación a ${email}: ${error instanceof Error ? error.message : "Error desconocido"}`
+                );
+                try {
+                  //then delete it if email send failed
+                  await repositories.registrationRepository.delete(createdRegistration.id);
+                } catch (deleteError) {
+                  results.errors.push(
+                    `No se pudo revertir registro para ${email}: ${deleteError instanceof Error ? deleteError.message : "Error desconocido"}`
+                  );
+                }
               }
-            );
-
-            const eventTime = new Date(event.start_date).toLocaleTimeString(
-              "es-MX",
-              {
-                hour: "2-digit",
-                minute: "2-digit",
-              }
-            );
-
-            const invitationHash = encodeInvitationData(user.id, eventId);
-
-            const invitationData: InvitationEmailDto = {
-              userName: user.name || email.split("@")[0],
-              userEmail: user.email || email,
-              eventName: event.name,
-              eventDescription:
-                event.description || "Descripción por confirmar",
-              eventDate,
-              eventLocation: event.location || "Ubicación por confirmar",
-              eventTime,
-              eventCapacity: event.capacity,
-              customMessage:
-                customMessage ||
-                "Te invitamos a participar en este increíble evento. ¡Esperamos verte allí!",
-              supportEmail: "soporte@eventos.com",
-              inviteUrl: `${process.env.APP_URL || "http://localhost:3000"}/inscripcion/${invitationHash}`,
-            };
-
-            // TODO: hmm this should work, i need to check it
-            await runInTransaction(async () => {
-              await repositories.registrationRepository.create(
-                registrationData
+            } catch (error) {
+              results.failed++;
+              results.errors.push(
+                `Error al procesar ${email}: ${error instanceof Error ? error.message : "Error desconocido"}`,
               );
-
-              await services.emailService.sendInvitationEmail(
-                invitationData,
-                email
-              );
-            });
-
-            results.successful++;
-          } catch (error) {
-            results.failed++;
-            results.errors.push(
-              `Error al procesar ${email}: ${error instanceof Error ? error.message : "Error desconocido"}`
-            );
+            }
           }
-        }
+        });
 
         const totalProcessed =
           results.successful + results.failed + results.alreadyInvited;
@@ -256,7 +254,7 @@ export const sendInvitationsAction = async ({
       },
       {
         timeout: 25000,
-      }
+      },
     );
   } catch (error) {
     return {
@@ -314,10 +312,10 @@ export const deleteRegistrationAction = async ({
         if (!registration) continue;
 
         const currentEvent = await repositories.eventRepository.findUnique(
-          registration.eventId
+          registration.eventId,
         );
         const user = await repositories.userRepository.findUnique(
-          registration.userId
+          registration.userId,
         );
 
         if (!currentEvent) continue;
@@ -357,7 +355,7 @@ export const deleteRegistrationAction = async ({
             eventDate: format(
               new Date(currentEvent.start_date),
               "PPP 'a las' p",
-              { locale: es }
+              { locale: es },
             ),
             customMessage: customMessage || undefined,
           });
@@ -437,7 +435,7 @@ export const resendInviteAction = async ({
     /* const newInviteToken = generateInviteToken(); */
     const encodedToken = encodeInvitationData(
       registration.userId,
-      registration.eventId
+      registration.eventId,
     );
 
     await repositories.registrationRepository.update({
@@ -458,7 +456,7 @@ export const resendInviteAction = async ({
 
     const emailResponse = await services.emailService.sendInvitationEmail(
       emailData,
-      registration.user.email
+      registration.user.email,
     );
 
     if (emailResponse.success) {
