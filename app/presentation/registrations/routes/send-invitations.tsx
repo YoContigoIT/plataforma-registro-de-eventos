@@ -1,6 +1,6 @@
 import { useLoaderData } from "react-router";
 import type { EventEntity } from "~/domain/entities/event.entity";
-import { getEventByIdLoader } from "~/presentation/events/api/loaders";
+import { getEventByIdLoader } from "~/presentation/events/api/loaders/get-event-by-id.loader";
 import { PageHeader } from "~/shared/components/common/page-header";
 import type { LoaderData } from "~/shared/types";
 import { sendInvitationsAction } from "../api/actions";

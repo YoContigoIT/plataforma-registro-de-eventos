@@ -29,7 +29,7 @@ import { toast } from "sonner";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import { ConfirmationDialog } from "~/shared/components/common/confirmation-dialog";
 import type { LoaderData } from "~/shared/types";
-import { getEventByIdLoader } from "../api/loaders";
+import { getEventByIdLoader } from "../api/loaders/get-event-by-id.loader";
 
 export const loader = getEventByIdLoader;
 

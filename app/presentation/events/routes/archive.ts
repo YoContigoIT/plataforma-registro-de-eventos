@@ -1,7 +1,3 @@
-import { archiveEventAction } from "../api/actions";
+import { archiveEventAction } from "../api/actions/archive-event.api-action";
 
 export const action = archiveEventAction;
-
-/* export const loader = () => {
-  redirect("/eventos")
-}; */
