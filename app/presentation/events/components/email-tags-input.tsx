@@ -65,7 +65,17 @@ const EmailTagsInput = React.forwardRef<HTMLDivElement, EmailTagsInputProps>(
     };
 
     const addTags = (emails: string[]) => {
-      const newTags = emails.map((email, index) => ({
+      // Limpia correos repetidos o vacíos
+      const uniqueNewEmails = emails
+        .map((email) => email.trim().toLowerCase())
+        .filter(
+          (email) =>
+            email && !tags.some((tag) => tag.value.toLowerCase() === email) // evita duplicados
+        );
+
+      if (uniqueNewEmails.length === 0) return;
+
+      const newTags = uniqueNewEmails.map((email, index) => ({
         id: `tag-${Date.now()}-${index}`,
         value: email,
       }));
