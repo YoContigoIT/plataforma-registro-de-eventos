@@ -1,15 +1,19 @@
 import { RegistrationStatus, UserRole } from "@prisma/client";
+import QRCode from "qrcode";
 import {
-    type CreateFormResponseDTO,
-    createFormResponseSchema,
+  type CreateFormResponseDTO,
+  createFormResponseSchema,
 } from "~/domain/dtos/form-response.dto";
 import type { CreateRegistrationDto } from "~/domain/dtos/registration.dto";
 import { type CreateGuestDTO, createGuestSchema } from "~/domain/dtos/user.dto";
 import { runInTransaction } from "~/infrastructure/db/prisma";
 import { handleServiceError } from "~/shared/lib/error-handler";
-import { generateQRCode, simplifyZodErrors } from "~/shared/lib/utils";
+import {
+  encodeInvitationData,
+  generateQRCode,
+  simplifyZodErrors,
+} from "~/shared/lib/utils";
 import type { Route as CreateRegistrationRoute } from "../routes/+types/create-registration";
-
 export const createRegistrationAction = async ({
   request,
   context: { repositories, session, services },
@@ -177,7 +181,7 @@ export const createRegistrationAction = async ({
           success: false,
           error: "Error de validación",
           errors: simplifyZodErrors<CreateFormResponseDTO>(
-            formResponseResult.error,
+            formResponseResult.error
           ),
         };
       }
@@ -196,10 +200,10 @@ export const createRegistrationAction = async ({
       });
 
       // Buscar registro final
-      /*  const finalRegistration =
+      const finalRegistration =
         await repositories.registrationRepository.findTickesPurchased(
           eventId,
-          user.id,
+          user.id
         );
 
       if (!finalRegistration) {
@@ -208,7 +212,7 @@ export const createRegistrationAction = async ({
 
       // Enviar QR por correo
       const qrCodeUrl = await QRCode.toDataURL(
-        `${process.env.APP_URL}/verificar-registro/${finalRegistration.qrCode}`,
+        `${process.env.APP_URL}/verificar-registro/${finalRegistration.qrCode}`
       );
 
       await services.emailService.sendRegistrationConfirmation(user.email, {
@@ -220,12 +224,12 @@ export const createRegistrationAction = async ({
         qrCode: finalRegistration.qrCode,
         qrCodeUrl,
         ticketsQuantity: finalRegistration.purchasedTickets || 0,
-      }); */
+      });
 
       return {
         success: true,
         message: "Asistente registrado exitosamente.",
-        redirectTo: "/registrar-asistente",
+        redirectTo: "/panel",
       };
     });
   } catch (error) {
