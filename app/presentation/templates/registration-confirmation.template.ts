@@ -120,7 +120,7 @@ export function generateRegistrationConfirmationTemplate(
           <td style="padding:0 30px 30px;">
             <div style="background-color:#e3f2fd; padding:20px; border-radius:12px; border-left:4px solid #1976d2;">
               <h4 style="margin-top:0; color:#1565c0;">Información importante</h4>
-              <p>${customMessage}</p>
+              <p>${customMessage || ""}</p>
               <ul style="margin:15px 0 0; padding-left:20px; color:#37474f;">
                 <li>Llega 15 minutos antes del evento</li>
                 <li>Trae una identificación válida</li>
