@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "~/shared/components/ui/card";
 import type { LoaderData } from "~/shared/types";
-/* import { createAttendeeAction } from "../api/create-attendee.action"; */
 import {
   getInvitationDataLoader,
   type InvitationData,
@@ -16,7 +15,6 @@ import {
 import { RegistrationFormHandler } from "../components/forms/registration-form-handler";
 
 export const loader = getInvitationDataLoader;
-/* export { createAttendeeAction as action }; */
 
 export default function JoinPage() {
   const { data, success } = useLoaderData<LoaderData<InvitationData>>();
