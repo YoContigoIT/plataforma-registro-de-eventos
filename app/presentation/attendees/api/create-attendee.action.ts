@@ -97,7 +97,7 @@ export const createAttendeeAction = async ({
     const userEventRegister =
       await repositories.registrationRepository.findTickesPurchased(
         eventId,
-        userId,
+        userId
       );
 
     if (!userEventRegister) {
@@ -111,7 +111,7 @@ export const createAttendeeAction = async ({
     if (userTickets + ticketsRequested > maxTickets) {
       return {
         success: false,
-        
+
         error: `Solo puedes comprar ${maxTickets} tickets como máximo. 
                 Actualmente tienes ${userTickets}, 
                 intentaste comprar ${ticketsRequested}.`,
@@ -174,7 +174,7 @@ export const createAttendeeAction = async ({
     const finalRegistrations =
       await repositories.registrationRepository.findTickesPurchased(
         eventId,
-        userId,
+        userId
       );
 
     if (!finalRegistrations) {
@@ -185,7 +185,7 @@ export const createAttendeeAction = async ({
     }
 
     const qrCodeUrl = await QRCode.toDataURL(
-      `${process.env.APP_URL}/verificar-registro/${finalRegistrations.qrCode}`,
+      `${process.env.APP_URL}/verificar-registro/${finalRegistrations.qrCode}`
     );
 
     await services.emailService.sendRegistrationConfirmation(user.email, {
