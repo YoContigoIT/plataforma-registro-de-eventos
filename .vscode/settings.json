@@ -8,5 +8,8 @@
   "editor.defaultFormatter": "biomejs.biome",
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
   }
 }
