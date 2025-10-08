@@ -14,9 +14,11 @@ import {
   Calendar,
   CalendarCheck,
   Clock,
+  Copy,
   Edit,
   FileText,
   FormInput,
+  Link2,
   List,
   Loader2,
   MapPin,
@@ -30,6 +32,7 @@ import { useEffect, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { toast } from "sonner";
 import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
+import { env } from "~/infrastructure/config/env";
 import { ConfirmationDialog } from "~/shared/components/common/confirmation-dialog";
 import { Card, CardContent } from "~/shared/components/ui/card";
 import {
@@ -119,6 +122,22 @@ export function EventDetailsSheet({
 
   const handleArchiveClick = () => {
     setIsArchiveDialogOpen(true);
+  };
+
+  // Generate full public invite URL if available
+  const publicInviteUrl =
+    event.isPublic && event.publicInviteToken
+      ? `${env.APP_URL}/invitacion/${event.publicInviteToken}`
+      : "";
+
+  const handleCopyPublicInvite = async () => {
+    if (!publicInviteUrl) return;
+    try {
+      await navigator.clipboard.writeText(publicInviteUrl);
+      toast.success("Enlace de invitación copiado");
+    } catch {
+      toast.error("No se pudo copiar el enlace");
+    }
   };
 
   const handleConfirmArchive = () => {
@@ -399,6 +418,36 @@ export function EventDetailsSheet({
                         </p>
                       </div>
                     </div>
+
+                    {/* Public invite token visualization + copy URL */}
+                    {event.isPublic && event.publicInviteToken && (
+                      <div className="flex items-center gap-3">
+                        <Link2 className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">
+                              Invitación pública
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {event.publicInviteToken}
+                            </Badge>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleCopyPublicInvite}
+                              className="h-7 px-2"
+                              type="button"
+                            >
+                              <Copy className="h-3 w-3 mr-1" />
+                              Copiar URL
+                            </Button>
+                          </div>
+                          <span className="text-xs text-muted-foreground mt-1">
+                            {publicInviteUrl}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

@@ -10,7 +10,7 @@ import { Label } from "@/ui/label";
 import { Switch } from "@/ui/switch";
 import { EventStatus } from "@prisma/client";
 import { Calendar, MapPin, Users } from "lucide-react";
-import { useId, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import { Form, Link } from "react-router";
 import { createEventSchema, updateEventSchema } from "~/domain/dtos/event.dto";
 import type { FormFieldEntity } from "~/domain/entities/event-form.entity";
@@ -20,6 +20,7 @@ import { DateInput } from "~/shared/components/common/date-input";
 import { NumberInput } from "~/shared/components/common/number-input";
 import { SelectInput } from "~/shared/components/common/select-input";
 import { TextInput } from "~/shared/components/common/text-input";
+import { Textarea } from "~/shared/components/ui/textarea";
 import { useFormAction } from "~/shared/hooks/use-form-action.hook";
 import { FormBuilder } from "./form-builder";
 
@@ -46,10 +47,16 @@ export function EventForm({
   const descriptionId = useId();
   const agendaId = useId();
   const formStatusSwitchId = useId();
+  const requiresSignatureSwitchId = useId();
+  const publicSwitchId = useId();
 
   const [isFormActive, setIsFormActive] = useState(
     eventData?.EventForm?.isActive ?? true
   );
+  const [requiresSignature, setRequiresSignature] = useState(
+    eventData?.requiresSignature ?? false
+  );
+  const [isPublic, setIsPublic] = useState(eventData?.isPublic ?? false);
 
   const initialFormFields: FormFieldEntity[] = (() => {
     return isEditing && eventData?.EventForm?.fields
@@ -70,9 +77,8 @@ export function EventForm({
   })();
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
 
-  const getAllowedStatusOptions = () => {
+  const getAllowedStatusOptions = useCallback(() => {
     if (!isEditing) {
-      // Creación: no permitir Cancelado ni Finalizado
       return statusOptions.filter(
         (opt) =>
           opt.value === EventStatus.DRAFT ||
@@ -82,7 +88,6 @@ export function EventForm({
     }
 
     if (eventData?.status === EventStatus.ONGOING) {
-      // Si está en curso: solo permitir Finalizado
       return statusOptions.filter(
         (opt) =>
           opt.value === EventStatus.ENDED || opt.value === EventStatus.ONGOING
@@ -90,11 +95,10 @@ export function EventForm({
     }
 
     if (eventData?.status === EventStatus.ENDED) {
-      // Si ya terminó: no permitir cambios → mantener solo el actual
       return statusOptions.filter((opt) => opt.value === EventStatus.ENDED);
     }
     return statusOptions;
-  };
+  }, [isEditing, eventData?.status]);
 
   return (
     <>
@@ -103,7 +107,7 @@ export function EventForm({
           <CardHeader>
             <CardTitle>Información del evento</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             {isEditing && eventData?.id && (
               <input type="hidden" name="id" defaultValue={eventData?.id} />
             )}
@@ -115,9 +119,7 @@ export function EventForm({
               />
             )}
 
-            {/* All form fields in a single grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Name and Location */}
               <TextInput
                 label="Nombre del evento"
                 name="name"
@@ -137,8 +139,9 @@ export function EventForm({
                 onChange={handleInputChange}
                 defaultValue={eventData?.location || ""}
               />
+            </div>
 
-              {/* Dates */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <DateInput
                 label="Fecha y hora de inicio"
                 name="start_date"
@@ -183,8 +186,9 @@ export function EventForm({
                   } as React.ChangeEvent<HTMLInputElement>);
                 }}
               />
+            </div>
 
-              {/* Capacity and Tickets */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <NumberInput
                 label="Capacidad"
                 name="capacity"
@@ -224,8 +228,9 @@ export function EventForm({
                   } as React.ChangeEvent<HTMLInputElement>);
                 }}
               />
+            </div>
 
-              {/* Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <SelectInput
                 label="Estado"
                 name="status"
@@ -245,13 +250,56 @@ export function EventForm({
               />
             </div>
 
-            {/* Description and Agenda (full width) */}
+            <div className="flex items-center gap-6">
+              <div className="flex items-center space-x-2">
+                <Label
+                  htmlFor={requiresSignatureSwitchId}
+                  className="text-sm font-medium"
+                >
+                  Requiere firma
+                </Label>
+                <Switch
+                  id={requiresSignatureSwitchId}
+                  checked={requiresSignature}
+                  onCheckedChange={setRequiresSignature}
+                />
+                <input
+                  type="hidden"
+                  name="requiresSignature"
+                  value={requiresSignature.toString()}
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Label htmlFor={publicSwitchId} className="text-sm font-medium">
+                  Invitación pública
+                </Label>
+                <Switch
+                  id={publicSwitchId}
+                  checked={isPublic}
+                  onCheckedChange={setIsPublic}
+                />
+                <input
+                  type="hidden"
+                  name="isPublic"
+                  value={isPublic.toString()}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Descripción y agenda</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
               <div className="space-y-1.5">
-                <label htmlFor="description" className="text-sm font-medium">
+                <Label htmlFor="description" className="text-sm font-medium">
                   Descripción
-                </label>
-                <textarea
+                </Label>
+                <Textarea
                   id={descriptionId}
                   name="description"
                   className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -266,10 +314,10 @@ export function EventForm({
                 )}
               </div>
               <div className="space-y-1.5">
-                <label htmlFor="agenda" className="text-sm font-medium">
+                <Label htmlFor="agenda" className="text-sm font-medium">
                   Agenda
-                </label>
-                <textarea
+                </Label>
+                <Textarea
                   id={agendaId}
                   name="agenda"
                   className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"

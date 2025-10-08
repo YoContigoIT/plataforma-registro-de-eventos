@@ -106,7 +106,8 @@ model Event {
     organizerId       String      @db.Uuid
     organizer         User        @relation("EventsByOrganizer", fields: [organizerId], references: [id])
     requiresSignature Boolean     @default(false)
-    publicInviteLink  String?     @unique
+    isPublic          Boolean     @default(false)
+    publicInviteToken String?     @unique
 
     archived Boolean? @default(false)
 

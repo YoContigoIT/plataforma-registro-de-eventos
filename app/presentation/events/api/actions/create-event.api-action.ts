@@ -1,5 +1,8 @@
 import type { Route as RouteList } from ".react-router/types/app/presentation/events/routes/+types/create";
-import { simplifyZodErrors } from "@/shared/lib/utils";
+import {
+  generatePublicInviteToken,
+  simplifyZodErrors,
+} from "@/shared/lib/utils";
 import { EventStatus } from "@prisma/client";
 import { updateFormFieldSchema } from "~/domain/dtos/event-form.dto";
 import { createEventSchema } from "~/domain/dtos/event.dto";
@@ -26,6 +29,8 @@ export const createEventAction = async ({
     maxTickets: formData.maxTickets ? Number(formData.maxTickets) : undefined,
     status: formData.status || EventStatus.DRAFT,
     organizerId: userId,
+    isPublic: Boolean(formData.isPublic),
+    requiresSignature: Boolean(formData.requiresSignature),
     isActive: Boolean(formData.isActive),
     formFields: (() => {
       if (!formData.formFields) return undefined;
@@ -58,8 +63,6 @@ export const createEventAction = async ({
 
   const { data, success, error } = createEventSchema.safeParse(parsedData);
 
-  console.log("validated form fields: ", data?.formFields);
-
   if (!success) {
     return {
       success: false,
@@ -67,7 +70,10 @@ export const createEventAction = async ({
     };
   }
 
-  if ([EventStatus.CANCELLED, EventStatus.ENDED].includes(data.status as any)) {
+  if (
+    data.status === EventStatus.CANCELLED ||
+    data.status === EventStatus.ENDED
+  ) {
     return {
       success: false,
       error: "No se puede crear un evento como Cancelado o Finalizado.",
@@ -77,8 +83,33 @@ export const createEventAction = async ({
   try {
     const { formFields, ...eventData } = data;
 
+    //we need a unique public invite token if the event is public
+    let publicInviteToken: string | undefined;
+    if (eventData.isPublic) {
+      let attempts = 0;
+      while (attempts < 5) {
+        const candidate = generatePublicInviteToken();
+        const existing =
+          await repositories.eventRepository.findByPublicInviteToken(candidate);
+        if (!existing) {
+          publicInviteToken = candidate;
+          break;
+        }
+        attempts++;
+      }
+      if (!publicInviteToken) {
+        return {
+          success: false,
+          error:
+            "No se pudo generar un token público único. Intente nuevamente.",
+        };
+      }
+    }
+
     const createdEvent = await repositories.eventRepository.create({
       ...eventData,
+      publicInviteToken,
+      remainingCapacity: data.capacity || undefined,
     });
 
     if (formFields && formFields.length > 0) {

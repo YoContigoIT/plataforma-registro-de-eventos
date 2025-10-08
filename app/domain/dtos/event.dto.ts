@@ -43,6 +43,9 @@ export const createEventSchema = z.object({
   organizerId: z.uuid({
     message: "El ID del organizador debe ser un UUID válido",
   }),
+  isPublic: z.boolean().default(false),
+  requiresSignature: z.boolean().default(false),
+  publicInviteToken: z.string().trim().nullable().optional(),
   formFields: z.array(createFormFieldSchema).nullable().optional(),
 });
 

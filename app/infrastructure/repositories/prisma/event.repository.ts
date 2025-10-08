@@ -144,6 +144,23 @@ export function PrismaEventRepository(prisma: PrismaClient): IEventRepository {
       });
     },
 
+    findByPublicInviteToken: async (token) => {
+      return await prisma.event.findUnique({
+        where: { publicInviteToken: token },
+        include: {
+          EventForm: {
+            include: {
+              fields: {
+                orderBy: {
+                  order: "asc",
+                },
+              },
+            },
+          },
+        },
+      });
+    },
+
     create: async (data) => {
       return await prisma.event.create({
         data,

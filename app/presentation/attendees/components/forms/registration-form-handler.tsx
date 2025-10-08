@@ -34,7 +34,7 @@ export function RegistrationFormHandler() {
     eventForm,
     hasResponse,
     formResponse: formAnswers,
-    inviteToken,
+    token,
   } = loaderData.data || {};
   const [showEventDetails, setShowEventDetails] = useState(true);
   const [currentStep, setCurrentStep] = useState(hasResponse ? 2 : 1);
@@ -123,7 +123,7 @@ export function RegistrationFormHandler() {
                   event={event}
                   user={user}
                   fetcher={registrationFetcher}
-                  inviteToken={inviteToken}
+                  inviteToken={token}
                 />
               </div>
             )}
