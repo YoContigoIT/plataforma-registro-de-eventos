@@ -148,6 +148,7 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
                       label="Teléfono"
                       id="phone"
                       name="phone"
+                      maxLength={10}
                       type="tel"
                       placeholder="+52 123 456 7890"
                       disabled={isSubmitting}

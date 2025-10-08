@@ -35,6 +35,26 @@ export const updateUserAction = async ({
       };
     }
 
+    if (result.data.password) {
+      result.data.password =
+        await repositories.encryptorRepository.hashPassword(
+          result.data.password
+        );
+    }
+    // Verificar que no este en uso el email
+    if (result.data.email) {
+      // 🔑
+      const existingUser = await repositories.userRepository.findByEmail(
+        result.data.email
+      );
+      if (existingUser && existingUser.email === result.data.email) {
+        return {
+          error: "El correo electrónico ya está en uso.",
+          errors: { email: "El correo electrónico ya está en uso." },
+        };
+      }
+    }
+
     await repositories.userRepository.update(userId, result.data);
 
     return {
