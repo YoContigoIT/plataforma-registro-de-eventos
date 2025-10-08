@@ -10,8 +10,9 @@ import {
   RefreshCw,
   UserPlus,
 } from "lucide-react";
-import { useCallback, useState } from "react";
-import { Link, useLoaderData } from "react-router";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useFetcher, useLoaderData } from "react-router";
+import { toast } from "sonner";
 import { SearchBar } from "~/shared/components/common/search-bar";
 import { Card, CardContent } from "~/shared/components/ui/card";
 import {
@@ -33,6 +34,7 @@ import {
 } from "~/shared/lib/utils";
 import { eventsLoader } from "../../events/api/loaders/get-events.loader";
 import { EventDetailsSheet } from "../../events/components/event-details-sheet";
+import { exportXLSXAction } from "../api/actions";
 import { registrationsLoader } from "../api/loaders";
 import { EventCombobox } from "../components/event-combobox";
 import { MassActions } from "../components/mass-actions";
@@ -79,14 +81,22 @@ export const loader = async (args: Route.LoaderArgs) => {
   };
 };
 
+export const action = exportXLSXAction;
 export default function Registrations() {
   const { registrations, pagination, events, selectedEvent, statusCounts } =
     useLoaderData<typeof loader>();
-  const { updateMultipleParams, getParamValue, resetAllParams } =
-    useSearchParamsManager();
+  const {
+    updateMultipleParams,
+    getParamValue,
+    resetAllParams,
+    handleSearchParams,
+  } = useSearchParamsManager();
   const [selectedRegistrations, setSelectedRegistrations] = useState<string[]>(
     []
   );
+
+  const [selectAllAcrossPages, setSelectAllAcrossPages] = useState(false);
+
   const [isEventSheetOpen, setIsEventSheetOpen] = useState(false);
 
   const { sort, handleSort } = useTableSorting("invitedAt", "desc");
@@ -105,8 +115,13 @@ export default function Registrations() {
     resetAllParams();
   }, [resetAllParams]);
 
+  const fetcherExport = useFetcher();
+
   const handleSelectAll = useCallback(
     (checked: boolean) => {
+      // Crear parametro para seleccionar todos los registros a través de todas las páginas
+      handleSearchParams("selectAll", checked ? "true" : "false");
+      setSelectAllAcrossPages(checked);
       setSelectedRegistrations(checked ? registrations.map((r) => r.id) : []);
     },
     [registrations]
@@ -122,6 +137,49 @@ export default function Registrations() {
     },
     []
   );
+
+  const handleExport = async () => {
+    if (!selectedEvent?.id) return;
+
+    fetcherExport.submit(
+      {
+        eventId: selectedEvent.id,
+        selectAll: selectAllAcrossPages,
+        selectedRegistrations,
+      },
+      { method: "post" }
+    );
+  };
+
+  useEffect(() => {
+    if (fetcherExport.state === "idle" && fetcherExport.data) {
+      const data = fetcherExport.data;
+
+      if (data.success && data.message) {
+        // Convertir base64 a Blob
+        const byteCharacters = atob(data.message);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = data.filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
+
+        toast.success("Archivo XLSX generado correctamente");
+      } else if (!data.success) {
+        toast.error(data.error || "Error exportando XLSX");
+      }
+    }
+  }, [fetcherExport.state, fetcherExport.data]);
 
   const handleOpenEventSheet = () => {
     setIsEventSheetOpen(true);
@@ -230,9 +288,13 @@ export default function Registrations() {
               </div>
               {selectedRegistrations.length > 0 && (
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={handleExport}>
                     <Download className="size-5 mr-2" />
-                    Exportar ({selectedRegistrations.length})
+                    Exportar (
+                    {selectAllAcrossPages
+                      ? pagination.totalItems
+                      : selectedRegistrations.length}
+                    )
                   </Button>
                   <MassActions
                     selectedRegistrations={selectedRegistrations}
@@ -240,6 +302,7 @@ export default function Registrations() {
                   />
                 </div>
               )}
+
               {canSendInvitations && (
                 <Link to={`/registros/enviar-invitaciones/${selectedEvent.id}`}>
                   <Button size="sm">
