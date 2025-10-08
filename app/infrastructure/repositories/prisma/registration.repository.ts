@@ -8,6 +8,7 @@ import type {
 } from "~/domain/entities/registration.entity";
 import type {
   IRegistrationRepository,
+  RegistrationExportFilter,
   RegistrationFilters,
 } from "~/domain/repositories/registration.repository";
 
@@ -15,7 +16,7 @@ const createOrderByClause = (
   defaultSortBy: string,
   sortBy?: string,
   sortOrder?: "asc" | "desc" | null,
-  defaultSortOrder?: "asc" | "desc",
+  defaultSortOrder?: "asc" | "desc"
 ) => {
   if (!sortBy || !sortOrder) {
     return { [defaultSortBy]: defaultSortOrder };
@@ -33,7 +34,7 @@ const createOrderByClause = (
 };
 
 export const PrismaRegistrationRepository = (
-  prisma: PrismaClient,
+  prisma: PrismaClient
 ): IRegistrationRepository => {
   return {
     findMany: async (
@@ -43,7 +44,7 @@ export const PrismaRegistrationRepository = (
         sortBy?: string;
         sortDirection?: "asc" | "desc";
       },
-      filters?: RegistrationFilters,
+      filters?: RegistrationFilters
     ): Promise<PaginatedResponse<RegistrationWithFullRelations>> => {
       const { page, limit, sortBy, sortDirection } = params;
       const offset = (page - 1) * limit;
@@ -171,12 +172,12 @@ export const PrismaRegistrationRepository = (
                   gte: filters.respondedWithin.days
                     ? new Date(
                         Date.now() -
-                          filters.respondedWithin.days * 24 * 60 * 60 * 1000,
+                          filters.respondedWithin.days * 24 * 60 * 60 * 1000
                       )
                     : filters.respondedWithin.hours
                       ? new Date(
                           Date.now() -
-                            filters.respondedWithin.hours * 60 * 60 * 1000,
+                            filters.respondedWithin.hours * 60 * 60 * 1000
                         )
                       : new Date(),
                 },
@@ -205,7 +206,7 @@ export const PrismaRegistrationRepository = (
         "invitedAt",
         sortBy,
         sortDirection,
-        "desc",
+        "desc"
       );
 
       const [registrations, total] = await Promise.all([
@@ -239,7 +240,7 @@ export const PrismaRegistrationRepository = (
     },
     findExactInvitation: async (
       eventId: string,
-      userId: string,
+      userId: string
     ): Promise<RegistrationWithRelations | null> => {
       return await prisma.registration.findFirst({
         where: {
@@ -254,7 +255,7 @@ export const PrismaRegistrationRepository = (
     },
     registrationExists: async (
       eventId: string,
-      userId: string,
+      userId: string
     ): Promise<boolean> => {
       const count = await prisma.registration.count({
         where: {
@@ -293,7 +294,7 @@ export const PrismaRegistrationRepository = (
     },
 
     findByEventId: async (
-      eventId: string,
+      eventId: string
     ): Promise<RegistrationWithRelations[]> => {
       return await prisma.registration.findMany({
         where: {
@@ -317,7 +318,7 @@ export const PrismaRegistrationRepository = (
 
     findByEmailAndEventId: async (
       email: string,
-      eventId: string,
+      eventId: string
     ): Promise<RegistrationWithFullRelations | null> => {
       return await prisma.registration.findFirst({
         where: {
@@ -386,7 +387,7 @@ export const PrismaRegistrationRepository = (
           acc[item.status] = item._count.status;
           return acc;
         },
-        {} as Record<RegistrationStatus, number>,
+        {} as Record<RegistrationStatus, number>
       );
     },
 
@@ -406,6 +407,196 @@ export const PrismaRegistrationRepository = (
         where: {
           eventId,
           userId,
+        },
+      });
+    },
+
+    countByEventId: async (eventId: string, filters?: RegistrationFilters) => {
+      const where = buildWhereClause(filters?.search, {
+        searchFields: [
+          { field: "user.name" },
+          { field: "user.email" },
+          { field: "qrCode" },
+        ],
+        exactFilters: {
+          ...(filters?.userId && { userId: filters.userId }),
+          ...(eventId && { eventId }),
+          ...(filters?.status && { status: filters.status }),
+        },
+        customFilters: {
+          // Multiple statuses filter
+          ...(filters?.statuses && {
+            status: { in: filters.statuses },
+          }),
+
+          // Date filters - simplified to match event repository pattern
+          ...(filters?.invitedAt && {
+            invitedAt: { gte: new Date(filters.invitedAt) },
+          }),
+          ...(filters?.respondedAt && {
+            respondedAt: { gte: new Date(filters.respondedAt) },
+          }),
+          ...(filters?.registeredAt && {
+            registeredAt: { gte: new Date(filters.registeredAt) },
+          }),
+          ...(filters?.checkedInAt && {
+            checkedInAt: { gte: new Date(filters.checkedInAt) },
+          }),
+
+          // System date filters
+          ...(filters?.createdAt && {
+            createdAt: {
+              ...(filters.createdAt.from && { gte: filters.createdAt.from }),
+              ...(filters.createdAt.to && { lte: filters.createdAt.to }),
+            },
+          }),
+          ...(filters?.updatedAt && {
+            updatedAt: {
+              ...(filters.updatedAt.from && { gte: filters.updatedAt.from }),
+              ...(filters.updatedAt.to && { lte: filters.updatedAt.to }),
+            },
+          }),
+
+          // Boolean filters
+          ...(filters?.hasResponded !== undefined && {
+            respondedAt: filters.hasResponded ? { not: null } : null,
+          }),
+          ...(filters?.isCheckedIn !== undefined && {
+            checkedInAt: filters.isCheckedIn ? { not: null } : null,
+          }),
+
+          // Status convenience filters
+          ...(filters?.isPending && { status: "PENDING" }),
+          ...(filters?.isRegistered && { status: "REGISTERED" }),
+          ...(filters?.isWaitlisted && { status: "WAITLISTED" }),
+          ...(filters?.isCancelled && { status: "CANCELLED" }),
+          ...(filters?.isDeclined && { status: "DECLINED" }),
+
+          /* Event-related filters - commented out as we don't filter by events right now
+          ...(filters?.eventStatus && {
+            event: { status: filters.eventStatus },
+          }),
+          ...(filters?.eventOrganizerId && {
+            event: { organizerId: filters.eventOrganizerId },
+          }),
+
+          // Time-based event filters
+          ...(filters?.isUpcomingEvent && {
+            event: {
+              start_date: { gte: new Date() },
+            },
+          }),
+          ...(filters?.isPastEvent && {
+            event: {
+              end_date: { lt: new Date() },
+            },
+          }),
+          ...(filters?.isActiveEvent && {
+            event: {
+              AND: [
+                { start_date: { lte: new Date() } },
+                { end_date: { gte: new Date() } },
+              ],
+            },
+          }), */
+
+          /* Event date filters - commented out as we don't filter by events right now
+          ...(filters?.eventStartDate && {
+            event: {
+              start_date: {
+                ...(filters.eventStartDate.from && {
+                  gte: filters.eventStartDate.from,
+                }),
+                ...(filters.eventStartDate.to && {
+                  lte: filters.eventStartDate.to,
+                }),
+              },
+            },
+          }),
+          ...(filters?.eventEndDate && {
+            event: {
+              end_date: {
+                ...(filters.eventEndDate.from && {
+                  gte: filters.eventEndDate.from,
+                }),
+                ...(filters.eventEndDate.to && {
+                  lte: filters.eventEndDate.to,
+                }),
+              },
+            },
+          }), */
+
+          // Response time filters
+          ...(filters?.respondedWithin && {
+            AND: [
+              { respondedAt: { not: null } },
+              {
+                respondedAt: {
+                  gte: filters.respondedWithin.days
+                    ? new Date(
+                        Date.now() -
+                          filters.respondedWithin.days * 24 * 60 * 60 * 1000
+                      )
+                    : filters.respondedWithin.hours
+                      ? new Date(
+                          Date.now() -
+                            filters.respondedWithin.hours * 60 * 60 * 1000
+                        )
+                      : new Date(),
+                },
+              },
+            ],
+          }),
+
+          // Invite management filters
+          ...(filters?.pendingInvites && {
+            status: "PENDING",
+          }),
+          ...(filters?.expiredInvites && {
+            AND: [
+              { status: "PENDING" },
+              {
+                invitedAt: {
+                  lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                },
+              },
+            ],
+          }),
+        },
+      });
+      return await prisma.registration.count({
+        where: where,
+      });
+    },
+
+    findForExport: async (
+      eventId: string,
+      filters?: RegistrationExportFilter
+    ): Promise<RegistrationWithFullRelations[]> => {
+      const where = {
+        eventId,
+        ...(filters?.selectedRegistrations && {
+          id: { in: filters.selectedRegistrations },
+        }),
+      };
+
+      return await prisma.registration.findMany({
+        where,
+        include: {
+          user: true,
+          event: true,
+          FormResponse: {
+            include: {
+              fieldResponses: {
+                include: {
+                  field: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          invitedAt: "desc",
         },
       });
     },
