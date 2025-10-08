@@ -90,12 +90,14 @@ export default function Registrations() {
     getParamValue,
     resetAllParams,
     handleSearchParams,
+    removeParam,
   } = useSearchParamsManager();
   const [selectedRegistrations, setSelectedRegistrations] = useState<string[]>(
     []
   );
 
   const [selectAllAcrossPages, setSelectAllAcrossPages] = useState(false);
+  const [loadingExport, setLoadingExport] = useState(false);
 
   const [isEventSheetOpen, setIsEventSheetOpen] = useState(false);
 
@@ -120,7 +122,11 @@ export default function Registrations() {
   const handleSelectAll = useCallback(
     (checked: boolean) => {
       // Crear parametro para seleccionar todos los registros a través de todas las páginas
-      handleSearchParams("selectAll", checked ? "true" : "false");
+      if (checked) {
+        handleSearchParams("selectAll", "true");
+      } else {
+        removeParam("selectAll");
+      }
       setSelectAllAcrossPages(checked);
       setSelectedRegistrations(checked ? registrations.map((r) => r.id) : []);
     },
@@ -141,6 +147,7 @@ export default function Registrations() {
   const handleExport = async () => {
     if (!selectedEvent?.id) return;
 
+    setLoadingExport(true);
     fetcherExport.submit(
       {
         eventId: selectedEvent.id,
@@ -173,6 +180,11 @@ export default function Registrations() {
         a.download = data.filename;
         a.click();
         window.URL.revokeObjectURL(url);
+
+        setLoadingExport(false);
+        setSelectedRegistrations([]);
+        removeParam("selectAll");
+        setSelectAllAcrossPages(false);
 
         toast.success("Archivo XLSX generado correctamente");
       } else if (!data.success) {
@@ -288,9 +300,14 @@ export default function Registrations() {
               </div>
               {selectedRegistrations.length > 0 && (
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={handleExport}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExport}
+                    disabled={loadingExport}
+                  >
                     <Download className="size-5 mr-2" />
-                    Exportar (
+                    {loadingExport ? "Exportando..." : "Exportar"} (
                     {selectAllAcrossPages
                       ? pagination.totalItems
                       : selectedRegistrations.length}
