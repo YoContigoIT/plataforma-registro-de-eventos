@@ -61,6 +61,7 @@ export interface IEventRepository {
   ): Promise<PaginatedResponse<EventEntityWithEventForm>>;
   findUnique(id: string): Promise<EventEntityWithEventForm | null>;
   findByOrganizerId(organizerId: string): Promise<EventEntityWithOrganizer[]>;
+  findByPublicInviteToken(token: string): Promise<EventEntityWithEventForm | null>;
   create(data: CreateEventDTO): Promise<EventEntity>;
   update(data: UpdateEventDTO): Promise<EventEntity>;
   delete(id: string): Promise<void>;

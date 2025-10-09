@@ -39,8 +39,6 @@ export function FormBuilder({
     collisionDetection,
   } = useFormBuilder({ initialFields, handleInputChange });
 
-  console.log("isActive", isActive);
-
   const dndId = useId();
 
   return (

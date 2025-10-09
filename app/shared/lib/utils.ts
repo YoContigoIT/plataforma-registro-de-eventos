@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 import type { ZodError } from "zod";
 import type { UserEntity } from "~/domain/entities/user.entity";
+import type { TokenClassification } from "../types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -140,7 +141,7 @@ export {
   getPayrollStatusBadge,
   getPurchaseOrderStatusBadge,
   getSessionStatusBadge,
-  getUserRoleBadge,
+  getUserRoleBadge
 } from "./badge-utils";
 
 // Legacy function for backward compatibility - deprecated
@@ -204,7 +205,7 @@ export function formatDateShortTemporal(date: Date | string): string {
 
 // Parse date string safely using Temporal API
 export function parseDate(
-  dateString: string | undefined | null
+  dateString: string | undefined | null,
 ): Date | undefined {
   if (!dateString || dateString === "") {
     return undefined;
@@ -256,7 +257,7 @@ export interface WhereClauseConfig {
  */
 export function buildWhereClause(
   searchTerm?: string,
-  config: WhereClauseConfig = {}
+  config: WhereClauseConfig = {},
 ): Record<string, unknown> {
   const where: Record<string, unknown> = {};
 
@@ -342,7 +343,7 @@ export function buildWhereClause(
 export function calculatePaginationInfo(
   page: number,
   limit: number,
-  totalItems: number
+  totalItems: number,
 ) {
   const totalPages = Math.ceil(totalItems / limit);
 
@@ -355,7 +356,7 @@ export function calculatePaginationInfo(
 }
 
 export function simplifyZodErrors<T>(
-  error: ZodError<T>
+  error: ZodError<T>,
 ): Record<string, string[]> {
   const errors: Record<string, string[]> = {};
   if (error.issues) {
@@ -371,7 +372,7 @@ export function simplifyZodErrors<T>(
 }
 // Formatear iniciales del user
 export function getUserInitials(
-  user: Partial<UserEntity> | Omit<UserEntity, "password">
+  user: Partial<UserEntity> | Omit<UserEntity, "password">,
 ): string {
   if (!user.name) {
     return "NN"; // Nombre no disponible
@@ -387,7 +388,7 @@ export function getUserInitials(
 
 //Funcion para formatear nombre del user
 export function formatName(
-  user: Partial<UserEntity> | Omit<UserEntity, "password">
+  user: Partial<UserEntity> | Omit<UserEntity, "password">,
 ): string {
   if (!user) {
     return "No hay información del usuario";
@@ -460,14 +461,14 @@ export function encodeInvitationData(userId: string, eventId: string): string {
 
   // Encode data + timestamp + hash together
   const payload = Buffer.from(`${data}:${timestamp}:${hash}`).toString(
-    "base64url"
+    "base64url",
   );
   return payload;
 }
 
 // Decode and verify invitation data
 export function decodeInvitationData(
-  encodedData: string
+  encodedData: string,
 ): { userId: string; eventId: string } | null {
   try {
     const secret = process.env.INVITATION_SECRET || "default-secret-key";
@@ -479,7 +480,7 @@ export function decodeInvitationData(
     }
 
     // Verify timestamp is not too old (30 days)
-    const inviteTime = parseInt(timestamp);
+    const inviteTime = parseInt(timestamp, 10);
     const now = Date.now();
     const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
 
@@ -503,6 +504,16 @@ export function decodeInvitationData(
     return null;
   }
 }
+
+export const generatePublicInviteToken = () => {
+  const alphabet = "abcdefghjkmnpqrstuvwxyz23456789";
+  const segment = () =>
+    Array.from({ length: 3 }, () => {
+      const idx = Math.floor(Math.random() * alphabet.length);
+      return alphabet[idx];
+    }).join("");
+  return `${segment()}-${segment()}-${segment()}`;
+};
 
 export const getStatusBadgeVariant = (status: string) => {
   switch (status) {
@@ -590,3 +601,12 @@ export const copyToClipboard = async (text: string, label: string) => {
     toast.error(`Error al copiar ${label.toLowerCase()}`);
   }
 };
+
+
+export function classifyInvitationToken(token: string): TokenClassification {
+  const decoded = decodeInvitationData(token);
+  if (decoded) {
+    return { type: "private", payload: decoded };
+  }
+  return { type: "public" };
+}

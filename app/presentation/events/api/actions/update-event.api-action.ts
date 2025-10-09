@@ -1,9 +1,12 @@
 import type { Route as RouteList } from ".react-router/types/app/presentation/events/routes/+types/create";
-import { simplifyZodErrors } from "@/shared/lib/utils";
+import {
+  generatePublicInviteToken,
+  simplifyZodErrors,
+} from "@/shared/lib/utils";
 import { EventStatus, RegistrationStatus } from "@prisma/client";
 import type {
-    CreateFormFieldDTO,
-    UpdateFormFieldDTO,
+  CreateFormFieldDTO,
+  UpdateFormFieldDTO,
 } from "~/domain/dtos/event-form.dto";
 import { updateEventSchema } from "~/domain/dtos/event.dto";
 import type { FormFieldEntity } from "~/domain/entities/event-form.entity";
@@ -17,8 +20,6 @@ export const updateEventAction = async ({
 }: RouteList.ActionArgs): Promise<ActionData> => {
   const formData = Object.fromEntries(await request.formData());
   const userId = session.get("user")?.id;
-
-  console.log("isActive:", formData.isActive === "true");
 
   if (!userId) {
     return {
@@ -49,11 +50,20 @@ export const updateEventAction = async ({
     maxTickets: formData.maxTickets ? Number(formData.maxTickets) : undefined,
     status: formData.status || EventStatus.DRAFT,
     organizerId: userId,
+    isPublic: formData.isPublic === "true",
+    requiresSignature: formData.requiresSignature === "true",
+    publicInviteToken: formData.publicInviteToken || undefined,
+    regeneratePublicInviteToken:
+      formData.regeneratePublicInviteToken === "true",
     formFields: formFields,
     remainingCapacity: formData.capacity
       ? Number(formData.capacity)
       : undefined,
   };
+
+  console.log("public token: ", {
+    publicInviteToken: parsedData.publicInviteToken,
+  });
 
   const { data, success, error } = updateEventSchema.safeParse(parsedData);
 
@@ -118,11 +128,68 @@ export const updateEventAction = async ({
       eventCapacity - registeredCount,
     );
 
-    const { formFields, ...eventData } = data;
+    const { formFields, regeneratePublicInviteToken, ...eventData } = data;
+
+    let publicInviteTokenToPersist: string | null | undefined =
+      existingEvent.publicInviteToken ?? undefined;
+
+    if (!data.isPublic) {
+      publicInviteTokenToPersist = null;
+    } else if (regeneratePublicInviteToken) {
+      const incoming = data.publicInviteToken;
+
+      if (incoming && incoming !== existingEvent.publicInviteToken) {
+        const collision =
+          await repositories.eventRepository.findByPublicInviteToken(incoming);
+        if (!collision || collision.id === existingEvent.id) {
+          publicInviteTokenToPersist = incoming;
+        } else {
+          let candidate: string | undefined;
+          for (let i = 0; i < 5; i++) {
+            candidate = generatePublicInviteToken();
+            const newCollision =
+              await repositories.eventRepository.findByPublicInviteToken(
+                candidate,
+              );
+            if (!newCollision) {
+              publicInviteTokenToPersist = candidate;
+              break;
+            }
+          }
+        }
+      } else {
+        let candidate: string | undefined;
+        for (let i = 0; i < 5; i++) {
+          candidate = generatePublicInviteToken();
+          const collision =
+            await repositories.eventRepository.findByPublicInviteToken(
+              candidate,
+            );
+          if (!collision) {
+            publicInviteTokenToPersist = candidate;
+            break;
+          }
+        }
+      }
+    } else if (!publicInviteTokenToPersist) {
+      let candidate: string | undefined;
+      for (let i = 0; i < 5; i++) {
+        candidate = generatePublicInviteToken();
+        const collision =
+          await repositories.eventRepository.findByPublicInviteToken(candidate);
+        if (!collision) {
+          publicInviteTokenToPersist = candidate;
+          break;
+        }
+      }
+    }
 
     const updatedEvent = await repositories.eventRepository.update({
       ...eventData,
       remainingCapacity: calculatedRemainingCapacity,
+      ...(publicInviteTokenToPersist !== undefined && {
+        publicInviteToken: publicInviteTokenToPersist,
+      }),
     });
 
     if (data.status === EventStatus.CANCELLED) {
@@ -151,12 +218,10 @@ export const updateEventAction = async ({
       }
     }
 
-    // Check if we have an existing form
     const existingForm = await repositories.eventFormRepository.findByEventId(
       data.id,
     );
 
-    // Handle form logic based on isActive state and form fields
     const isFormActive = formData.isActive === "true";
 
     if (existingForm) {

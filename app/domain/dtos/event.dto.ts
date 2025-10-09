@@ -54,7 +54,11 @@ export const createEventSchema = z
     organizerId: z.uuid({
       message: "El ID del organizador debe ser un UUID válido",
     }),
-    formFields: z.array(createFormFieldSchema).nullable().optional(),
+    isPublic: z.boolean().default(false),
+  requiresSignature: z.boolean().default(false),
+  publicInviteToken: z.string().trim().nullable().optional(),
+  regeneratePublicInviteToken: z.boolean().default(false),
+  formFields: z.array(createFormFieldSchema).nullable().optional(),
   })
   .refine((data) => data.end_date >= data.start_date, {
     message: "La fecha de fin debe ser posterior o igual a la fecha de inicio",

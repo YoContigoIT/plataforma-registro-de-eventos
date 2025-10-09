@@ -5,14 +5,15 @@ import {
   createUserSchema,
   type UpdateUserDTO,
 } from "~/domain/dtos/user.dto";
+import type { UserEntity } from "~/domain/entities/user.entity";
 import { handleServiceError } from "~/shared/lib/error-handler";
 import {
-  decodeInvitationData,
+  classifyInvitationToken,
   generateQRCode,
   simplifyZodErrors,
 } from "~/shared/lib/utils";
 import type { ActionData } from "~/shared/types";
-import type { Route } from "../routes/+types/join";
+import type { Route } from "../../routes/+types/create-attendee";
 
 export const createAttendeeAction = async ({
   request,
@@ -24,17 +25,11 @@ export const createAttendeeAction = async ({
     const data = Object.fromEntries(formData);
     const { inviteToken } = params;
 
-    console.log(data);
-
-    const decodedData = decodeInvitationData(inviteToken);
-    if (!decodedData) {
-      return {
-        success: false,
-        error: "Invitación no válida o expirada.",
-      };
-    }
-
-    const { userId, eventId } = decodedData;
+    const tokenClassification = classifyInvitationToken(inviteToken);
+    const privateInvitationToken =
+      tokenClassification.type === "private"
+        ? tokenClassification.payload
+        : { userId: "", eventId: "" };
 
     const result = createUserSchema.safeParse({
       email: data.email,
@@ -56,76 +51,67 @@ export const createAttendeeAction = async ({
       };
     }
 
-    let user = null;
+    //we resolve eventId and event for both public and private flows
+    let eventId = privateInvitationToken.eventId;
+    const event =
+      tokenClassification.type === "public"
+        ? await repositories.eventRepository.findByPublicInviteToken(
+            inviteToken,
+          )
+        : await repositories.eventRepository.findUnique(eventId);
 
-    // Verificar si el email ya existe
-    user = await repositories.userRepository.findUnique(userId);
+    if (!event) {
+      return { error: "Evento no encontrado" };
+    }
+
+    if (tokenClassification.type === "public") {
+      eventId = event.id;
+    }
+
+    let user = null as UserEntity | null;
+    const isPrivate = tokenClassification.type === "private";
+
+    user = isPrivate
+      ? await repositories.userRepository.findUnique(
+          privateInvitationToken.userId,
+        )
+      : await repositories.userRepository.findByEmail(result.data.email);
+
     if (!user) {
+      //we need to create if user not found
       user = await repositories.userRepository.create(result.data);
     } else {
       const updateData: UpdateUserDTO = {};
-
-      // Actualizar nombre si se proporciona y es diferente
       if (result.data.name && result.data.name !== user.name) {
         updateData.name = result.data.name;
       }
-
-      // Actualizar teléfono si se proporciona y es diferente
       if (result.data.phone && result.data.phone !== user.phone) {
         updateData.phone = result.data.phone;
       }
-
-      // Solo actualizar si hay campos para actualizar
       if (Object.keys(updateData).length > 0) {
         user = await repositories.userRepository.update(user.id, updateData);
       }
     }
 
-    //Obtener evento
-    const event = await repositories.eventRepository.findUnique(eventId);
-    if (!event) {
-      return {
-        error: "Evento no encontrado",
-      };
-    }
-
-    console.log(event);
-
     const maxTickets = event.maxTickets || 0;
 
-    // Contar cuántos tickets ya tiene el usuario en ese event
-    const userEventRegister =
+    let registration =
       await repositories.registrationRepository.findTickesPurchased(
         eventId,
-        userId
+        user.id,
       );
 
-    if (!userEventRegister) {
-      return {
-        success: false,
-        error: "No tienes un registro para este evento.",
-      };
-    }
-
-    const userTickets = userEventRegister.purchasedTickets || 0;
+    const userTickets = registration?.purchasedTickets || 0;
     if (userTickets + ticketsRequested > maxTickets) {
       return {
         success: false,
-
         error: `Solo puedes comprar ${maxTickets} tickets como máximo. 
                 Actualmente tienes ${userTickets}, 
                 intentaste comprar ${ticketsRequested}.`,
       };
     }
 
-    console.log({
-      maxTickets,
-      userTickets,
-      ticketsRequested,
-    });
-
     const remainingTickets = event.remainingCapacity || 0;
-
     if (ticketsRequested > remainingTickets) {
       return {
         error: `No hay suficientes tickets disponibles. 
@@ -134,50 +120,38 @@ export const createAttendeeAction = async ({
       };
     }
 
-    console.log({
-      remainingTickets,
-    });
+    // Create or update registration depending on existence
+    if (!registration) {
+      // Public flow or no prior registration: create a new one
+      registration = await repositories.registrationRepository.create({
+        userId: user.id,
+        eventId,
+        status: RegistrationStatus.REGISTERED,
+        qrCode: generateQRCode(user.id, eventId),
+        purchasedTickets: ticketsRequested,
+        registeredAt: new Date(),
+        respondedAt: new Date(),
+      });
+    } else {
+      // Private flow or existing public registration: update quantities
+      registration = await repositories.registrationRepository.update({
+        id: registration.id,
+        userId: user.id,
+        eventId,
+        status: RegistrationStatus.REGISTERED,
+        qrCode: generateQRCode(user.id, eventId),
+        purchasedTickets: userTickets + ticketsRequested,
+        registeredAt: new Date(),
+        respondedAt: new Date(),
+      });
+    }
 
-    //Actualizar registro
-    await repositories.registrationRepository.update({
-      id: userEventRegister.id,
-      userId: user.id,
-      eventId,
-      status: RegistrationStatus.REGISTERED,
-      qrCode: generateQRCode(user.id, eventId),
-      purchasedTickets:
-        (userEventRegister?.purchasedTickets || 0) + ticketsRequested,
-      registeredAt: new Date(),
-      respondedAt: new Date(),
-    });
-
-    //Actualizar evento
     await repositories.eventRepository.update({
       id: event.id,
       remainingCapacity: remainingTickets - ticketsRequested,
     });
 
-    // const qrCode = generateQRCode(user.id, eventId);
-    // const registrations: CreateRegistrationDto[] = Array.from({
-    //   length: ticketsRequested,
-    // }).map(() => ({
-    //   qrCode,
-    //   userId: user.id,
-    //   eventId,
-    //   status: RegistrationStatus.REGISTERED,
-    // }));
-
-    // await Promise.all(
-    //   registrations.map((r) => repositories.registrationRepository.create(r))
-    // );
-
-    const finalRegistrations =
-      await repositories.registrationRepository.findTickesPurchased(
-        eventId,
-        userId
-      );
-
-    if (!finalRegistrations) {
+    if (!registration) {
       return {
         error: "Error al registrar el asistente.",
         success: false,
@@ -185,7 +159,7 @@ export const createAttendeeAction = async ({
     }
 
     const qrCodeUrl = await QRCode.toDataURL(
-      `${process.env.APP_URL}/verificar-registro/${finalRegistrations.qrCode}`
+      `${process.env.APP_URL}/verificar-registro/${registration.qrCode}`,
     );
 
     await services.emailService.sendRegistrationConfirmation(user.email, {
@@ -194,15 +168,15 @@ export const createAttendeeAction = async ({
       eventDate: event.start_date.toISOString().split("T")[0],
       eventLocation: event.location,
       eventTime: event.start_date.toISOString().split("T")[1],
-      qrCode: finalRegistrations.qrCode,
+      qrCode: registration.qrCode,
       qrCodeUrl,
-      ticketsQuantity: finalRegistrations.purchasedTickets || 0,
+      ticketsQuantity: registration.purchasedTickets || 0,
     });
 
     return {
       success: true,
       message: "Asistente registrado exitosamente.",
-      redirectTo: "/registro-existoso",
+      redirectTo: "/registro-exitoso",
     };
   } catch (error) {
     return handleServiceError(error, "Error al registrar el asistente.");

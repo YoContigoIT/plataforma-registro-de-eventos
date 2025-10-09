@@ -32,3 +32,7 @@ export interface SortOptions {
   sortBy: string;
   sortDirection: "asc" | "desc";
 }
+
+export type TokenClassification =
+  | { type: "private"; payload: { userId: string; eventId: string } }
+  | { type: "public" };

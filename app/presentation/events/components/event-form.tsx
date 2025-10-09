@@ -8,10 +8,21 @@ import {
 } from "@/ui/card";
 import { Label } from "@/ui/label";
 import { Switch } from "@/ui/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip";
 import { EventStatus } from "@prisma/client";
-import { Calendar, MapPin, Users } from "lucide-react";
-import { useId, useState } from "react";
+import {
+  Calendar,
+  Copy,
+  FileSignature,
+  Info,
+  Link2,
+  MapPin,
+  RefreshCw,
+  Users,
+} from "lucide-react";
+import { useCallback, useId, useState } from "react";
 import { Form, Link } from "react-router";
+import { toast } from "sonner";
 import { createEventSchema, updateEventSchema } from "~/domain/dtos/event.dto";
 import type { FormFieldEntity } from "~/domain/entities/event-form.entity";
 import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
@@ -20,7 +31,9 @@ import { DateInput } from "~/shared/components/common/date-input";
 import { NumberInput } from "~/shared/components/common/number-input";
 import { SelectInput } from "~/shared/components/common/select-input";
 import { TextInput } from "~/shared/components/common/text-input";
+import { Textarea } from "~/shared/components/ui/textarea";
 import { useFormAction } from "~/shared/hooks/use-form-action.hook";
+import { generatePublicInviteToken } from "~/shared/lib/utils";
 import { FormBuilder } from "./form-builder";
 
 const statusOptions = [
@@ -46,10 +59,52 @@ export function EventForm({
   const descriptionId = useId();
   const agendaId = useId();
   const formStatusSwitchId = useId();
+  const requiresSignatureSwitchId = useId();
+  const publicSwitchId = useId();
 
   const [isFormActive, setIsFormActive] = useState(
-    eventData?.EventForm?.isActive ?? true
+    eventData?.EventForm?.isActive ?? false
   );
+  const [requiresSignature, setRequiresSignature] = useState(
+    eventData?.requiresSignature ?? true
+  );
+  const [isPublic, setIsPublic] = useState(eventData?.isPublic ?? true);
+
+  // Estado local para mostrar/previsualizar el token y marcar el flag
+  const [publicTokenPreview, setPublicTokenPreview] = useState(
+    eventData?.publicInviteToken || ""
+  );
+  const [regeneratePublicInviteToken, setRegeneratePublicInviteToken] =
+    useState(false);
+
+  const handleRegenerateToken = () => {
+    const newToken = generatePublicInviteToken();
+    setPublicTokenPreview(newToken);
+    setRegeneratePublicInviteToken(true);
+    // Actualiza el controlador para que el submit incluya el valor
+    handleInputChange({
+      target: { name: "publicInviteToken", value: newToken },
+    } as React.ChangeEvent<HTMLInputElement>);
+
+    toast.success("Token regenerado, estará activo al actualizar el evento");
+  };
+
+  const publicInviteUrl =
+    typeof window !== "undefined" && publicTokenPreview
+      ? `${window.location.origin}/invitacion/${publicTokenPreview}`
+      : publicTokenPreview
+        ? `/invitacion/${publicTokenPreview}`
+        : "";
+
+  const handleCopyPublicInvite = async () => {
+    if (!publicInviteUrl) return;
+    try {
+      await navigator.clipboard.writeText(publicInviteUrl);
+      toast.success("Enlace copiado al portapapeles");
+    } catch {
+      toast.error("No se pudo copiar el enlace");
+    }
+  };
 
   const initialFormFields: FormFieldEntity[] = (() => {
     return isEditing && eventData?.EventForm?.fields
@@ -70,9 +125,8 @@ export function EventForm({
   })();
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
 
-  const getAllowedStatusOptions = () => {
+  const getAllowedStatusOptions = useCallback(() => {
     if (!isEditing) {
-      // Creación: no permitir Cancelado ni Finalizado
       return statusOptions.filter(
         (opt) =>
           opt.value === EventStatus.DRAFT ||
@@ -82,7 +136,6 @@ export function EventForm({
     }
 
     if (eventData?.status === EventStatus.ONGOING) {
-      // Si está en curso: solo permitir Finalizado
       return statusOptions.filter(
         (opt) =>
           opt.value === EventStatus.ENDED || opt.value === EventStatus.ONGOING
@@ -90,20 +143,21 @@ export function EventForm({
     }
 
     if (eventData?.status === EventStatus.ENDED) {
-      // Si ya terminó: no permitir cambios → mantener solo el actual
       return statusOptions.filter((opt) => opt.value === EventStatus.ENDED);
     }
     return statusOptions;
-  };
+  }, [isEditing, eventData?.status]);
 
   return (
     <>
       <Form method="POST" replace className="space-y-6">
+        {/* Información del evento */}
         <Card className="mt-4">
           <CardHeader>
             <CardTitle>Información del evento</CardTitle>
+            <CardDescription>Detalles básicos de tu evento</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             {isEditing && eventData?.id && (
               <input type="hidden" name="id" defaultValue={eventData?.id} />
             )}
@@ -115,9 +169,7 @@ export function EventForm({
               />
             )}
 
-            {/* All form fields in a single grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Name and Location */}
               <TextInput
                 label="Nombre del evento"
                 name="name"
@@ -137,8 +189,9 @@ export function EventForm({
                 onChange={handleInputChange}
                 defaultValue={eventData?.location || ""}
               />
+            </div>
 
-              {/* Dates */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <DateInput
                 label="Fecha y hora de inicio"
                 name="start_date"
@@ -183,8 +236,20 @@ export function EventForm({
                   } as React.ChangeEvent<HTMLInputElement>);
                 }}
               />
+            </div>
+          </CardContent>
+        </Card>
 
-              {/* Capacity and Tickets */}
+        {/* Capacidad y límites */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Capacidad y límites</CardTitle>
+            <CardDescription>
+              Controla la cantidad de asistentes
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <NumberInput
                 label="Capacidad"
                 name="capacity"
@@ -224,8 +289,9 @@ export function EventForm({
                   } as React.ChangeEvent<HTMLInputElement>);
                 }}
               />
+            </div>
 
-              {/* Status */}
+            <div className="grid grid-cols-1 gap-6">
               <SelectInput
                 label="Estado"
                 name="status"
@@ -244,14 +310,170 @@ export function EventForm({
                 }}
               />
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Description and Agenda (full width) */}
+        {/* Configuración de acceso */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Configuración de acceso</CardTitle>
+            <CardDescription>
+              Controla cómo los usuarios pueden unirse al evento
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 gap-6">
+              {/* Requiere firma */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label
+                    htmlFor={requiresSignatureSwitchId}
+                    className="text-sm font-medium flex items-center gap-2"
+                  >
+                    <FileSignature className="h-4 w-4 text-muted-foreground" />
+                    Requiere firma
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent sideOffset={8}>
+                        Los asistentes deberán proporcionar su firma digital
+                        durante el registro.
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
+                  <Switch
+                    id={requiresSignatureSwitchId}
+                    checked={requiresSignature}
+                    onCheckedChange={setRequiresSignature}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Los asistentes deberán proporcionar su firma digital
+                </p>
+                <input
+                  type="hidden"
+                  name="requiresSignature"
+                  value={requiresSignature.toString()}
+                />
+              </div>
+
+              {/* Link de invitación compartible */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label
+                    htmlFor={publicSwitchId}
+                    className="text-sm font-medium flex items-center gap-2"
+                  >
+                    <Link2 className="h-4 w-4 text-muted-foreground" />
+                    Link de invitación compartible
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent sideOffset={8}>
+                        Permite que cualquiera con el enlace se una al evento.
+                        Podrás copiar el link y regenerar el token si es
+                        necesario.
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
+                  <Switch
+                    id={publicSwitchId}
+                    checked={isPublic}
+                    onCheckedChange={setIsPublic}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Permite que cualquiera con el enlace se una al evento
+                </p>
+                <input
+                  type="hidden"
+                  name="isPublic"
+                  value={isPublic.toString()}
+                />
+              </div>
+            </div>
+
+            {isEditing && isPublic && (
+              <>
+                {/* Link compartible */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    Link compartible
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      readOnly
+                      value={publicInviteUrl}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={handleCopyPublicInvite}
+                      title="Copiar URL"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Comparte este link para que las personas puedan unirse al
+                    evento
+                  </p>
+                </div>
+
+                {/* Token y regeneración */}
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-sm font-medium">
+                      Token de acceso
+                    </Label>
+                    <div className="inline-flex items-center rounded-md border border-input bg-muted px-3 py-1 text-sm">
+                      {publicTokenPreview || "—"}
+                    </div>
+                  </div>
+                  <div className="flex items-end">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="hover:bg-muted-foreground/10 hover:cursor-pointer"
+                      onClick={handleRegenerateToken}
+                    >
+                      <RefreshCw className="size-4 text-muted-foreground" />
+                      Generar nuevo
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Hidden inputs para enviar token y flag al backend */}
+                <input
+                  type="hidden"
+                  name="publicInviteToken"
+                  value={publicTokenPreview}
+                />
+                <input
+                  type="hidden"
+                  name="regeneratePublicInviteToken"
+                  value={regeneratePublicInviteToken.toString()}
+                />
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Descripción y agenda */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Descripción y agenda</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
               <div className="space-y-1.5">
-                <label htmlFor="description" className="text-sm font-medium">
+                <Label htmlFor="description" className="text-sm font-medium">
                   Descripción
-                </label>
-                <textarea
+                </Label>
+                <Textarea
                   id={descriptionId}
                   name="description"
                   className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -266,10 +488,10 @@ export function EventForm({
                 )}
               </div>
               <div className="space-y-1.5">
-                <label htmlFor="agenda" className="text-sm font-medium">
+                <Label htmlFor="agenda" className="text-sm font-medium">
                   Agenda
-                </label>
-                <textarea
+                </Label>
+                <Textarea
                   id={agendaId}
                   name="agenda"
                   className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
