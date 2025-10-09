@@ -11,7 +11,7 @@ import type { LoaderData } from "~/shared/types";
 import {
   getInvitationDataLoader,
   type InvitationData,
-} from "../api/get-invitation-data.loader";
+} from "../api/loaders/get-invitation-data.loader";
 import { RegistrationFormHandler } from "../components/forms/registration-form-handler";
 
 export const loader = getInvitationDataLoader;

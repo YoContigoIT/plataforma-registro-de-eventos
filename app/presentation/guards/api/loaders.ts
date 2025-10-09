@@ -1,5 +1,5 @@
 import QRCode from "qrcode";
-import type { Route as RegisterAttendeeRoute } from "../routes/+types/register-attendee-handler";
+import type { Route as RegisterAttendeeRoute } from "../routes/+types/create-registration";
 import type { Route as VerifyRoute } from "../routes/+types/verify";
 
 export const registrationByTokenLoader = async ({

@@ -134,11 +134,8 @@ export const updateEventAction = async ({
       existingEvent.publicInviteToken ?? undefined;
 
     if (!data.isPublic) {
-      // Si no es público, se limpia el token
       publicInviteTokenToPersist = null;
     } else if (regeneratePublicInviteToken) {
-      // Si se pidió regenerar en el front, intentamos usar el token enviado si difiere,
-      // validando colisión; si hay colisión o no se envió, generamos uno nuevo server-side
       const incoming = data.publicInviteToken;
 
       if (incoming && incoming !== existingEvent.publicInviteToken) {
@@ -161,7 +158,6 @@ export const updateEventAction = async ({
           }
         }
       } else {
-        // No llegó token nuevo o es igual al actual: genera uno único del lado servidor
         let candidate: string | undefined;
         for (let i = 0; i < 5; i++) {
           candidate = generatePublicInviteToken();
@@ -176,7 +172,6 @@ export const updateEventAction = async ({
         }
       }
     } else if (!publicInviteTokenToPersist) {
-      // Evento público sin token: genera uno
       let candidate: string | undefined;
       for (let i = 0; i < 5; i++) {
         candidate = generatePublicInviteToken();

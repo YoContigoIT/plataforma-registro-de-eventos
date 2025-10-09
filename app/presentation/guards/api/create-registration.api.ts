@@ -9,9 +9,8 @@ import { type CreateGuestDTO, createGuestSchema } from "~/domain/dtos/user.dto";
 import { runInTransaction } from "~/infrastructure/db/prisma";
 import { handleServiceError } from "~/shared/lib/error-handler";
 import {
-  encodeInvitationData,
   generateQRCode,
-  simplifyZodErrors,
+  simplifyZodErrors
 } from "~/shared/lib/utils";
 import type { Route as CreateRegistrationRoute } from "../routes/+types/create-registration";
 export const createRegistrationAction = async ({
@@ -99,50 +98,6 @@ export const createRegistrationAction = async ({
         };
       }
 
-      // Buscar registro previo del usuario en este evento
-      /*  const existingRegistration =
-        await repositories.registrationRepository.findTickesPurchased(
-          eventId,
-          user.id,
-        );
-
-      
-
-      // 🔹 Caso 1: Usuario invitado pendiente
-      if (existingRegistration?.status === RegistrationStatus.PENDING) {
-        await repositories.registrationRepository.update({
-          id: existingRegistration.id,
-          qrCode: generateQRCode(user.id, eventId),
-          status: RegistrationStatus.CHECKED_IN,
-          checkedInAt: new Date(),
-          registeredAt: new Date(),
-          purchasedTickets: ticketsRequested,
-        });
-
-        return {
-          success: true,
-          message:
-            "Usuario invitado pendiente ahora está registrado y en check-in.",
-          redirectTo: "/panel",
-        };
-      }
-
-      // 🔹 Caso 2: Usuario ya registrado
-      if (existingRegistration?.status === RegistrationStatus.REGISTERED) {
-        await repositories.registrationRepository.update({
-          id: existingRegistration.id,
-          status: RegistrationStatus.CHECKED_IN,
-          checkedInAt: new Date(),
-        });
-
-        return {
-          success: true,
-          message: "El usuario ya estaba registrado y en check-in.",
-          redirectTo: "/panel",
-        };
-      } */
-
-      // 🔹 Caso 3: Usuario nuevo
       const registration: CreateRegistrationDto = {
         qrCode: generateQRCode(user.id, eventId),
         eventId,

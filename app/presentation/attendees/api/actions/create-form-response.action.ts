@@ -1,6 +1,6 @@
 import { createFormResponseSchema } from "~/domain/dtos/form-response.dto";
 import { simplifyZodErrors } from "~/shared/lib/utils";
-import type { Route } from "../routes/+types/join";
+import type { Route } from "../../routes/+types/join";
 
 export const createFormResponseAction = async ({
   request,

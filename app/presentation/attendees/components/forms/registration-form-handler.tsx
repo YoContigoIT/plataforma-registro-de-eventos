@@ -1,12 +1,12 @@
 import { EventFormRenderer } from "@/shared/components/forms/event-form-renderer";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useFetcher, useLoaderData } from "react-router";
-import { toast } from "sonner";
+import { useLoaderData } from "react-router";
 import { createFormResponseSchema } from "~/domain/dtos/form-response.dto";
+import { createUserSchema } from "~/domain/dtos/user.dto";
 import { Stepper } from "~/shared/components/common/stepper";
 import { Button } from "~/shared/components/ui/button";
-import { useFormAction } from "~/shared/hooks/use-form-action.hook";
+import { useFetcherForm } from "~/shared/hooks/use-fetcher-form.hook";
 import type { LoaderData } from "~/shared/types";
 import type { InvitationData } from "../../api/get-invitation-data.loader";
 import { EventDetailsPanel } from "./event-details-panel";
@@ -42,30 +42,32 @@ export function RegistrationFormHandler() {
     hasResponse || false
   );
 
-  // Consider the form present only if active and with at least one field
   const hasEventForm =
     !!eventForm &&
     eventForm.isActive === true &&
     (eventForm.fields?.length ?? 0) > 0;
 
-  const formResponseFetcher = useFetcher();
-  const registrationFetcher = useFetcher();
+  const {
+    fetcher: formResponseFetcher,
+    isSubmitting: isFormResponseSubmitting,
+    handleInputChange: handleFormResponseInput,
+    isSuccess: formResponseSuccess,
+    data: formResponseData,
+  } = useFetcherForm({ zodSchema: createFormResponseSchema });
 
-  const { handleInputChange } = useFormAction({
-    zodSchema: createFormResponseSchema,
-  });
+  const {
+    fetcher: registrationFetcher,
+    isSubmitting: isRegistrationSubmitting,
+    handleInputChange: handleRegistrationInput,
+  } = useFetcherForm({ zodSchema: createUserSchema });
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <not needed>
   useEffect(() => {
-    if (formResponseFetcher.state === "idle" && formResponseFetcher.data) {
-      if (formResponseFetcher.data.success) {
-        setFormResponseCompleted(true);
-        handleNextStep();
-      } else if (formResponseFetcher.data.error) {
-        toast.error(formResponseFetcher.data.error);
-      }
+    if (formResponseSuccess) {
+      setFormResponseCompleted(true);
+      handleNextStep();
     }
-  }, [formResponseFetcher.state, formResponseFetcher.data]);
+  }, [formResponseSuccess, formResponseData]);
 
   const handleNextStep = () => {
     if (currentStep < STEPS.length) {
@@ -79,14 +81,10 @@ export function RegistrationFormHandler() {
     }
   };
 
-  const isFormResponseSubmitting = formResponseFetcher.state === "submitting";
-  const isRegistrationSubmitting = registrationFetcher.state === "submitting";
-
   if (!event) {
     return <div>Error: No se pudo cargar la información del evento</div>;
   }
 
-  // If there's no event form, render only the registration form (skip steps entirely)
   if (!hasEventForm) {
     return (
       <div className="max-w-7xl mx-auto bg-background rounded-2xl shadow-2xl overflow-hidden relative">
@@ -96,12 +94,14 @@ export function RegistrationFormHandler() {
             isVisible={showEventDetails}
             onToggle={() => setShowEventDetails(!showEventDetails)}
           />
-          <div>
+          <div className="flex-1">
             <RegistrationForm
               event={event}
               user={user || null}
               fetcher={registrationFetcher}
+              isSubmitting={isRegistrationSubmitting}
               inviteToken={token}
+              handleInputChange={handleRegistrationInput}
             />
           </div>
         </div>
@@ -134,7 +134,7 @@ export function RegistrationFormHandler() {
                   <formResponseFetcher.Form method="post" action={action}>
                     <EventFormRenderer
                       eventForm={eventForm}
-                      handleInputChange={handleInputChange}
+                      handleInputChange={handleFormResponseInput}
                       registrationId={registrationId || undefined}
                       defaultValues={formAnswers ?? undefined}
                       formResponseId={formAnswers?.id}
@@ -152,7 +152,9 @@ export function RegistrationFormHandler() {
                   event={event}
                   user={user || null}
                   fetcher={registrationFetcher}
+                  isSubmitting={isRegistrationSubmitting}
                   inviteToken={token}
+                  handleInputChange={handleRegistrationInput}
                 />
               </div>
             )}

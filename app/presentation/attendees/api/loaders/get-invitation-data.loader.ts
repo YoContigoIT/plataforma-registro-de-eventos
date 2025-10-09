@@ -4,9 +4,9 @@ import type { EventEntity } from "~/domain/entities/event.entity";
 import type { FormResponseAnswers } from "~/domain/entities/form-response.entity";
 import type { UserEntity } from "~/domain/entities/user.entity";
 import { handleServiceError } from "~/shared/lib/error-handler";
-import { decodeInvitationData } from "~/shared/lib/utils";
+import { classifyInvitationToken } from "~/shared/lib/utils";
 import type { LoaderData } from "~/shared/types";
-import type { Route } from "../routes/+types/join";
+import type { Route } from "../../routes/+types/join";
 
 export type InvitationData = {
   event: EventEntity;
@@ -18,25 +18,11 @@ export type InvitationData = {
   token: string;
 };
 
-type TokenClassification =
-  | { type: "private"; payload: { userId: string; eventId: string } }
-  | { type: "public" };
-
-function classifyInvitationToken(token: string): TokenClassification {
-  const decoded = decodeInvitationData(token);
-  if (decoded) {
-    return { type: "private", payload: decoded };
-  }
-  return { type: "public" };
-}
-
 export async function getInvitationDataLoader({
   params,
   context: { repositories },
 }: Route.LoaderArgs): Promise<LoaderData<InvitationData>> {
   const { token } = params;
-
-  console.log("token", token);
 
   if (!token) {
     return {
@@ -51,14 +37,10 @@ export async function getInvitationDataLoader({
       ? tokenClassification.payload
       : { userId: "", eventId: "" };
 
-  console.log("tokenClassification", tokenClassification);
-
   try {
     if (tokenClassification.type === "public") {
       const publicEvent =
         await repositories.eventRepository.findByPublicInviteToken(token);
-
-      console.log("publicEvent", publicEvent);
 
       if (!publicEvent) {
         return {

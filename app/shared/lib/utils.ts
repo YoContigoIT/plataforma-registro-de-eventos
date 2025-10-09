@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 import type { ZodError } from "zod";
 import type { UserEntity } from "~/domain/entities/user.entity";
+import type { TokenClassification } from "../types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -140,7 +141,7 @@ export {
   getPayrollStatusBadge,
   getPurchaseOrderStatusBadge,
   getSessionStatusBadge,
-  getUserRoleBadge,
+  getUserRoleBadge
 } from "./badge-utils";
 
 // Legacy function for backward compatibility - deprecated
@@ -600,3 +601,12 @@ export const copyToClipboard = async (text: string, label: string) => {
     toast.error(`Error al copiar ${label.toLowerCase()}`);
   }
 };
+
+
+export function classifyInvitationToken(token: string): TokenClassification {
+  const decoded = decodeInvitationData(token);
+  if (decoded) {
+    return { type: "private", payload: decoded };
+  }
+  return { type: "public" };
+}
