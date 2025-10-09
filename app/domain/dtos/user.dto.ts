@@ -16,10 +16,13 @@ export const createUserSchema = z.object({
       error: "El número de teléfono es requerido",
     })
     .trim()
-    .transform((val) => (val === "" ? undefined : val)) // 🔑
+    .transform((val) => (val === "" ? undefined : val))
     .optional()
     .refine((val) => !val || /^\d+$/.test(val), {
       message: "El número de teléfono solo debe contener dígitos",
+    })
+    .refine((val) => !val || val.length <= 10, {
+      message: "El número de teléfono no puede tener más de 10 dígitos",
     }),
   password: z.string().trim().optional(),
   role: z.enum(UserRole).optional(),

@@ -140,7 +140,7 @@ export {
   getPayrollStatusBadge,
   getPurchaseOrderStatusBadge,
   getSessionStatusBadge,
-  getUserRoleBadge
+  getUserRoleBadge,
 } from "./badge-utils";
 
 // Legacy function for backward compatibility - deprecated
@@ -546,6 +546,7 @@ export const getStatusLabel = (status: string) => {
       return "Rechazado";
     case "CHECKED_IN":
       return "Entrada";
+
     default:
       return status;
   }
@@ -559,8 +560,12 @@ export const getEventStatusBadgeVariant = (status: string) => {
       return "amber";
     case "CANCELLED":
       return "destructive";
+    case "PUBLISHED":
+      return "sky";
     case "COMPLETED":
       return "slate";
+    case "ENDED":
+      return "esmerald";
     default:
       return "secondary";
   }
@@ -580,6 +585,8 @@ export const getEventStatusLabel = (status: string) => {
       return "Próximo";
     case "ONGOING":
       return "En curso";
+    case "ENDED":
+      return "Finalizado";
     default:
       return status;
   }
