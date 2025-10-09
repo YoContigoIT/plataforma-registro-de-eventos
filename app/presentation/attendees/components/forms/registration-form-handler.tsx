@@ -42,6 +42,12 @@ export function RegistrationFormHandler() {
     hasResponse || false
   );
 
+  // Consider the form present only if active and with at least one field
+  const hasEventForm =
+    !!eventForm &&
+    eventForm.isActive === true &&
+    (eventForm.fields?.length ?? 0) > 0;
+
   const formResponseFetcher = useFetcher();
   const registrationFetcher = useFetcher();
 
@@ -76,8 +82,31 @@ export function RegistrationFormHandler() {
   const isFormResponseSubmitting = formResponseFetcher.state === "submitting";
   const isRegistrationSubmitting = registrationFetcher.state === "submitting";
 
-  if (!event || !user || !registrationId || !eventForm) {
+  if (!event) {
     return <div>Error: No se pudo cargar la información del evento</div>;
+  }
+
+  // If there's no event form, render only the registration form (skip steps entirely)
+  if (!hasEventForm) {
+    return (
+      <div className="max-w-7xl mx-auto bg-background rounded-2xl shadow-2xl overflow-hidden relative">
+        <div className="flex flex-col md:flex-row relative">
+          <EventDetailsPanel
+            event={event}
+            isVisible={showEventDetails}
+            onToggle={() => setShowEventDetails(!showEventDetails)}
+          />
+          <div>
+            <RegistrationForm
+              event={event}
+              user={user || null}
+              fetcher={registrationFetcher}
+              inviteToken={token}
+            />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const action = hasResponse
@@ -106,7 +135,7 @@ export function RegistrationFormHandler() {
                     <EventFormRenderer
                       eventForm={eventForm}
                       handleInputChange={handleInputChange}
-                      registrationId={registrationId}
+                      registrationId={registrationId || undefined}
                       defaultValues={formAnswers ?? undefined}
                       formResponseId={formAnswers?.id}
                       isUpdateForm={hasResponse}
@@ -121,7 +150,7 @@ export function RegistrationFormHandler() {
               <div>
                 <RegistrationForm
                   event={event}
-                  user={user}
+                  user={user || null}
                   fetcher={registrationFetcher}
                   inviteToken={token}
                 />
@@ -131,7 +160,7 @@ export function RegistrationFormHandler() {
 
           {formResponseCompleted && (
             <div className="flex justify-between mt-6 pt-6 border-t">
-              {currentStep > 1 ? (
+              {currentStep > 1 && (
                 <Button
                   onClick={handlePreviousStep}
                   disabled={isRegistrationSubmitting}
@@ -141,11 +170,9 @@ export function RegistrationFormHandler() {
                 >
                   Anterior
                 </Button>
-              ) : (
-                <div />
               )}
 
-              {currentStep < STEPS.length ? (
+              {currentStep < STEPS.length && (
                 <Button
                   onClick={handleNextStep}
                   disabled={
@@ -164,8 +191,6 @@ export function RegistrationFormHandler() {
                     "Siguiente"
                   )}
                 </Button>
-              ) : (
-                <div />
               )}
             </div>
           )}

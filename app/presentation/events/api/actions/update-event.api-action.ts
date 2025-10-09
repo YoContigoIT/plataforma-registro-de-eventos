@@ -50,13 +50,20 @@ export const updateEventAction = async ({
     maxTickets: formData.maxTickets ? Number(formData.maxTickets) : undefined,
     status: formData.status || EventStatus.DRAFT,
     organizerId: userId,
-    isPublic: Boolean(formData.isPublic),
-    requiresSignature: Boolean(formData.requiresSignature),
+    isPublic: formData.isPublic === "true",
+    requiresSignature: formData.requiresSignature === "true",
+    publicInviteToken: formData.publicInviteToken || undefined,
+    regeneratePublicInviteToken:
+      formData.regeneratePublicInviteToken === "true",
     formFields: formFields,
     remainingCapacity: formData.capacity
       ? Number(formData.capacity)
       : undefined,
   };
+
+  console.log("public token: ", {
+    publicInviteToken: parsedData.publicInviteToken,
+  });
 
   const { data, success, error } = updateEventSchema.safeParse(parsedData);
 
@@ -121,17 +128,57 @@ export const updateEventAction = async ({
       eventCapacity - registeredCount,
     );
 
-    const { formFields, ...eventData } = data;
+    const { formFields, regeneratePublicInviteToken, ...eventData } = data;
 
     let publicInviteTokenToPersist: string | null | undefined =
       existingEvent.publicInviteToken ?? undefined;
 
     if (!data.isPublic) {
+      // Si no es público, se limpia el token
       publicInviteTokenToPersist = null;
+    } else if (regeneratePublicInviteToken) {
+      // Si se pidió regenerar en el front, intentamos usar el token enviado si difiere,
+      // validando colisión; si hay colisión o no se envió, generamos uno nuevo server-side
+      const incoming = data.publicInviteToken;
+
+      if (incoming && incoming !== existingEvent.publicInviteToken) {
+        const collision =
+          await repositories.eventRepository.findByPublicInviteToken(incoming);
+        if (!collision || collision.id === existingEvent.id) {
+          publicInviteTokenToPersist = incoming;
+        } else {
+          let candidate: string | undefined;
+          for (let i = 0; i < 5; i++) {
+            candidate = generatePublicInviteToken();
+            const newCollision =
+              await repositories.eventRepository.findByPublicInviteToken(
+                candidate,
+              );
+            if (!newCollision) {
+              publicInviteTokenToPersist = candidate;
+              break;
+            }
+          }
+        }
+      } else {
+        // No llegó token nuevo o es igual al actual: genera uno único del lado servidor
+        let candidate: string | undefined;
+        for (let i = 0; i < 5; i++) {
+          candidate = generatePublicInviteToken();
+          const collision =
+            await repositories.eventRepository.findByPublicInviteToken(
+              candidate,
+            );
+          if (!collision) {
+            publicInviteTokenToPersist = candidate;
+            break;
+          }
+        }
+      }
     } else if (!publicInviteTokenToPersist) {
+      // Evento público sin token: genera uno
       let candidate: string | undefined;
       for (let i = 0; i < 5; i++) {
-        //also works with a while
         candidate = generatePublicInviteToken();
         const collision =
           await repositories.eventRepository.findByPublicInviteToken(candidate);
@@ -176,12 +223,10 @@ export const updateEventAction = async ({
       }
     }
 
-    // Check if we have an existing form
     const existingForm = await repositories.eventFormRepository.findByEventId(
       data.id,
     );
 
-    // Handle form logic based on isActive state and form fields
     const isFormActive = formData.isActive === "true";
 
     if (existingForm) {

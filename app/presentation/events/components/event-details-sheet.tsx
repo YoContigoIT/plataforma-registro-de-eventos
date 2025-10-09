@@ -32,7 +32,7 @@ import { useEffect, useState } from "react";
 import { Link, useFetcher } from "react-router";
 import { toast } from "sonner";
 import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
-import { env } from "~/infrastructure/config/env";
+
 import { ConfirmationDialog } from "~/shared/components/common/confirmation-dialog";
 import { Card, CardContent } from "~/shared/components/ui/card";
 import {
@@ -63,7 +63,6 @@ export function EventDetailsSheet({
   const fetcher = useFetcher();
   const emailFetcher = useFetcher();
 
-  // Helper function to get field type labels
   const getFieldTypeLabel = (type: string): string => {
     const typeLabels: Record<string, string> = {
       TEXT: "Texto",
@@ -125,10 +124,16 @@ export function EventDetailsSheet({
   };
 
   // Generate full public invite URL if available
-  const publicInviteUrl =
+  const invitePath =
     event.isPublic && event.publicInviteToken
-      ? `${env.APP_URL}/invitacion/${event.publicInviteToken}`
+      ? `/inscripcion/${event.publicInviteToken}`
       : "";
+
+  const publicInviteUrl =
+    invitePath &&
+    (typeof window !== "undefined"
+      ? `${window.location.origin}${invitePath}`
+      : invitePath);
 
   const handleCopyPublicInvite = async () => {
     if (!publicInviteUrl) return;
@@ -141,7 +146,6 @@ export function EventDetailsSheet({
   };
 
   const handleConfirmArchive = () => {
-    console.log("Confirming archive for event ID:", event.id);
     fetcher.submit(
       {},
       {
@@ -419,14 +423,13 @@ export function EventDetailsSheet({
                       </div>
                     </div>
 
-                    {/* Public invite token visualization + copy URL */}
                     {event.isPublic && event.publicInviteToken && (
                       <div className="flex items-center gap-3">
                         <Link2 className="h-4 w-4 text-muted-foreground" />
                         <div className="flex flex-col">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium">
-                              Invitación pública
+                              Acceso público
                             </span>
                             <Badge variant="outline" className="text-xs">
                               {event.publicInviteToken}

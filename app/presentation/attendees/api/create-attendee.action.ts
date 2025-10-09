@@ -12,7 +12,7 @@ import {
   simplifyZodErrors,
 } from "~/shared/lib/utils";
 import type { ActionData } from "~/shared/types";
-import type { Route } from "../routes/+types/join";
+import type { Route } from "../routes/+types/create-attendee";
 
 export const createAttendeeAction = async ({
   request,
@@ -23,8 +23,6 @@ export const createAttendeeAction = async ({
     const formData = await request.formData();
     const data = Object.fromEntries(formData);
     const { inviteToken } = params;
-
-    console.log(data);
 
     const decodedData = decodeInvitationData(inviteToken);
     if (!decodedData) {

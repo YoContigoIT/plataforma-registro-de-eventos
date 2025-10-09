@@ -46,6 +46,7 @@ export const createEventSchema = z.object({
   isPublic: z.boolean().default(false),
   requiresSignature: z.boolean().default(false),
   publicInviteToken: z.string().trim().nullable().optional(),
+  regeneratePublicInviteToken: z.boolean().default(false),
   formFields: z.array(createFormFieldSchema).nullable().optional(),
 });
 

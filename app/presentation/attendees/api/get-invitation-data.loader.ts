@@ -36,6 +36,8 @@ export async function getInvitationDataLoader({
 }: Route.LoaderArgs): Promise<LoaderData<InvitationData>> {
   const { token } = params;
 
+  console.log("token", token);
+
   if (!token) {
     return {
       success: false,
@@ -45,12 +47,18 @@ export async function getInvitationDataLoader({
 
   const tokenClassification = classifyInvitationToken(token);
   const privateInvitationToken =
-    tokenClassification.type === "private" ? tokenClassification.payload : null;
+    tokenClassification.type === "private"
+      ? tokenClassification.payload
+      : { userId: "", eventId: "" };
+
+  console.log("tokenClassification", tokenClassification);
 
   try {
-    if (!privateInvitationToken) {
+    if (tokenClassification.type === "public") {
       const publicEvent =
         await repositories.eventRepository.findByPublicInviteToken(token);
+
+      console.log("publicEvent", publicEvent);
 
       if (!publicEvent) {
         return {
