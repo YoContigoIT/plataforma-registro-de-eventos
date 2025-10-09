@@ -1,6 +1,7 @@
 import { EventStatus, RegistrationStatus, UserRole } from "@prisma/client";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import * as xlsx from "xlsx";
 import type { InvitationEmailDto } from "~/domain/dtos/email-invitation.dto";
 import { sendInvitationsSchema } from "~/domain/dtos/invitation.dto";
 import type { CreateRegistrationDto } from "~/domain/dtos/registration.dto";
@@ -14,14 +15,14 @@ import {
 } from "~/shared/lib/utils";
 import type { ActionData } from "~/shared/types";
 import { generateRevocationEmailTemplate } from "../../templates/revocation-email.template";
+import type { Route as RegistrationsRoute } from "../routes/+types/registrations";
 import type { Route } from "../routes/+types/send-invitations";
-
 function parseEmails(emailsString: string): string[] {
   return emailsString
     .split(/[,;\n\r]+/)
     .map((email) => email.trim().toLowerCase())
     .filter(
-      (email) => email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+      (email) => email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     )
     .filter((email, index, arr) => arr.indexOf(email) === index);
 }
@@ -141,7 +142,7 @@ export const sendInvitationsAction = async ({
               const existingRegistration =
                 await repositories.registrationRepository.registrationExists(
                   eventId,
-                  user.id,
+                  user.id
                 );
 
               if (existingRegistration) {
@@ -166,7 +167,7 @@ export const sendInvitationsAction = async ({
                   year: "numeric",
                   month: "long",
                   day: "numeric",
-                },
+                }
               );
 
               const eventTime = new Date(event.start_date).toLocaleTimeString(
@@ -174,7 +175,7 @@ export const sendInvitationsAction = async ({
                 {
                   hour: "2-digit",
                   minute: "2-digit",
-                },
+                }
               );
 
               const invitationHash = encodeInvitationData(user.id, eventId);
@@ -198,10 +199,15 @@ export const sendInvitationsAction = async ({
 
               //create registration first
               const createdRegistration =
-                await repositories.registrationRepository.create(registrationData);
+                await repositories.registrationRepository.create(
+                  registrationData
+                );
 
               try {
-                await services.emailService.sendInvitationEmail(invitationData, email);
+                await services.emailService.sendInvitationEmail(
+                  invitationData,
+                  email
+                );
                 results.successful++;
               } catch (error) {
                 results.failed++;
@@ -210,7 +216,9 @@ export const sendInvitationsAction = async ({
                 );
                 try {
                   //then delete it if email send failed
-                  await repositories.registrationRepository.delete(createdRegistration.id);
+                  await repositories.registrationRepository.delete(
+                    createdRegistration.id
+                  );
                 } catch (deleteError) {
                   results.errors.push(
                     `No se pudo revertir registro para ${email}: ${deleteError instanceof Error ? deleteError.message : "Error desconocido"}`
@@ -220,7 +228,7 @@ export const sendInvitationsAction = async ({
             } catch (error) {
               results.failed++;
               results.errors.push(
-                `Error al procesar ${email}: ${error instanceof Error ? error.message : "Error desconocido"}`,
+                `Error al procesar ${email}: ${error instanceof Error ? error.message : "Error desconocido"}`
               );
             }
           }
@@ -254,7 +262,7 @@ export const sendInvitationsAction = async ({
       },
       {
         timeout: 25000,
-      },
+      }
     );
   } catch (error) {
     return {
@@ -312,10 +320,10 @@ export const deleteRegistrationAction = async ({
         if (!registration) continue;
 
         const currentEvent = await repositories.eventRepository.findUnique(
-          registration.eventId,
+          registration.eventId
         );
         const user = await repositories.userRepository.findUnique(
-          registration.userId,
+          registration.userId
         );
 
         if (!currentEvent) continue;
@@ -355,7 +363,7 @@ export const deleteRegistrationAction = async ({
             eventDate: format(
               new Date(currentEvent.start_date),
               "PPP 'a las' p",
-              { locale: es },
+              { locale: es }
             ),
             customMessage: customMessage || undefined,
           });
@@ -435,7 +443,7 @@ export const resendInviteAction = async ({
     /* const newInviteToken = generateInviteToken(); */
     const encodedToken = encodeInvitationData(
       registration.userId,
-      registration.eventId,
+      registration.eventId
     );
 
     await repositories.registrationRepository.update({
@@ -456,7 +464,7 @@ export const resendInviteAction = async ({
 
     const emailResponse = await services.emailService.sendInvitationEmail(
       emailData,
-      registration.user.email,
+      registration.user.email
     );
 
     if (emailResponse.success) {
@@ -473,4 +481,117 @@ export const resendInviteAction = async ({
   } catch (error) {
     return handleServiceError(error);
   }
+};
+
+export const exportXLSXAction = async ({
+  request,
+  context: { repositories, session },
+}: RegistrationsRoute.ActionArgs): Promise<ActionData> => {
+  const formData = Object.fromEntries(await request.formData());
+  const eventId = formData.eventId as string;
+  const selectAllAcrossPages = formData.selectAll === "true";
+  const rawSelected = formData.selectedRegistrations;
+
+  // Convertimos a array de strings
+  let selectedRegistrations: string[] | undefined;
+  if (rawSelected) {
+    if (typeof rawSelected === "string") {
+      // Si viene como "id1,id2,id3"
+      selectedRegistrations = rawSelected.split(",");
+    } else {
+      // Nunca debería ser File, pero por seguridad
+      selectedRegistrations = undefined;
+    }
+  }
+  const userId = session.get("user")?.id;
+  const userRole = session.get("user")?.role;
+
+  if (!userId) {
+    return { success: false, error: "No se ha iniciado sesión" };
+  }
+  if (!eventId) {
+    return { success: false, error: "ID de evento requerido" };
+  }
+
+  const event = await repositories.eventRepository.findUnique(eventId);
+  if (!event) {
+    return { success: false, error: "Evento no encontrado" };
+  }
+
+  const registrations = await repositories.registrationRepository.findForExport(
+    eventId,
+    {
+      selectedRegistrations,
+      selectAllAcrossPages,
+    }
+  );
+
+  if (registrations.length === 0)
+    return {
+      success: false,
+      error: "No hay registros para exportar",
+    };
+
+  // Generar XLSX
+  const headers = [
+    "ID",
+    "Nombre",
+    "Correo",
+    "Fecha de registro",
+    "Status",
+    "QR Code",
+    "Firma",
+  ] as const;
+
+  type DataRow = {
+    ID: string;
+    Nombre: string | null;
+    Correo: string;
+    "Fecha de registro": string | undefined;
+    Status: RegistrationStatus;
+    "QR Code": string;
+    Firma: string;
+  };
+
+  const data: DataRow[] = registrations.map((r) => ({
+    ID: r.id,
+    Nombre: r.user.name,
+    Correo: r.user.email,
+    "Fecha de registro": r.registeredAt?.toISOString(),
+    Status: r.status,
+    "QR Code": r.qrCode,
+    Firma: "",
+  }));
+
+  const worksheet = xlsx.utils.json_to_sheet(data, {
+    header: headers as unknown as string[],
+  });
+
+  // Establecer el ancho de las columnas
+  const cols = headers.map((key) => {
+    const maxLength = Math.max(
+      key.length, // ancho del header
+      ...data.map((row) => {
+        const value = row[key as keyof DataRow];
+        return value ? value.toString().length : 0;
+      })
+    );
+    return { wch: maxLength + 2 }; // +2 para espacio extra
+  });
+
+  const firmaIndex = headers.indexOf("Firma");
+  if (firmaIndex !== -1) {
+    cols[firmaIndex].wch = 40; // ancho mayor para la firma
+  }
+  worksheet["!cols"] = cols;
+
+  const workbook = xlsx.utils.book_new();
+  xlsx.utils.book_append_sheet(workbook, worksheet, "Registros");
+
+  const base64 = xlsx.write(workbook, { bookType: "xlsx", type: "base64" });
+
+  return {
+    success: true,
+    message: base64,
+  };
 };
