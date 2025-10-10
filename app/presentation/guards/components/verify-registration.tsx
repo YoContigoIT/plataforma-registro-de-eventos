@@ -27,15 +27,20 @@ import {
   UserX,
   XCircle,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useFetcher, useLoaderData } from "react-router";
 import { toast } from "sonner";
+import SignaturePad from "./signature-pad";
 
 export function VerifyRegistration() {
   const loaderData = useLoaderData();
   const { invite, event, user, qrCodeUrl } = loaderData?.data || {};
   const fetcher = useFetcher();
 
+  const [signatureData, setSignatureData] = useState<string | null>(null);
+  const handleSignatureChange = (data: string | null) => {
+    setSignatureData(data);
+  };
   const statusConfig: Record<
     RegistrationStatus,
     {
@@ -201,10 +206,15 @@ export function VerifyRegistration() {
   };
 
   const handleCheckIn = () => {
-    fetcher.submit(null, {
-      method: "post",
-      action: `/verificar-registro/${invite.qrCode}`,
-    });
+    if (event.requiresSignature && !signatureData)
+      return toast.error("Por favor, complete los campos de firma.");
+    fetcher.submit(
+      { signature: signatureData },
+      {
+        method: "post",
+        action: `/verificar-registro/${invite.qrCode}`,
+      }
+    );
   };
   return (
     <div>
@@ -445,6 +455,14 @@ export function VerifyRegistration() {
                     {formatDateTime(invite.registeredAt).date}
                   </p>
                 </div>
+
+                {event.requiresSignature && (
+                  <SignaturePad
+                    onSignatureChange={handleSignatureChange}
+                    inviteStatus={invite.status}
+                    iniviteCheckedInAt={invite.checkedInAt}
+                  />
+                )}
               </CardContent>
 
               {invite.status === "REGISTERED" && !invite.checkedInAt && (
