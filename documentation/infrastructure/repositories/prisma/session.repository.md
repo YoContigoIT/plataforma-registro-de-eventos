@@ -26,7 +26,3 @@ Gestión de sesiones de usuario y tokens JWT: creación, renovación y revocaci�
 ## Mantenimiento
 - Ajusta expiraciones y comportamiento en `JWTRepository`/`config/jwt.ts`.
 - Anexa auditoría/logs para revocaciones y renovaciones.
-
-## Navegación
-- `app/infrastructure/auth/jwt.repository.ts` (generar/verificar tokens)
-- `documentation/infrastructure/auth/jwt.repository.md` (doc JWT)

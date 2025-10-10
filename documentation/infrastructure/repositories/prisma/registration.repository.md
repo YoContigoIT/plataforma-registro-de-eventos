@@ -34,7 +34,3 @@ Listados y operaciones sobre registros (invitaciones, estados, check-in), con fi
 ## Mantenimiento
 - Extiende filtros y orden si se añaden nuevos campos (p.ej., estados adicionales).
 - Revisa índices en Prisma para campos consultados frecuentemente (`userId`, `eventId`, `status`, `qrCode`).
-
-## Navegación
-- `app/infrastructure/db/prisma.ts` (instancia y transacciones)
-- `documentation/infrastructure/config/dependencies.md` (DI)

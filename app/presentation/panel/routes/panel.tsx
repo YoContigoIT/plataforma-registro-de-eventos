@@ -103,44 +103,46 @@ export default function Panel() {
       />
 
       {/* Event Status Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        {Object.entries(eventStats).map(([status, count]) => {
-          const percentage =
-            totalEvents > 0 ? Math.round((count / totalEvents) * 100) : 0;
+      <div className="overflow-x-auto mb-8">
+        <div className="flex gap-4 min-w-max">
+          {Object.entries(eventStats).map(([status, count]) => {
+            const percentage =
+              totalEvents > 0 ? Math.round((count / totalEvents) * 100) : 0;
 
-          return (
-            <Link
-              key={status}
-              to={`/eventos?status=${status.toUpperCase()}`}
-              className="block"
-            >
-              <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0">
-                <CardContent className="p-2 px-4 md:p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="space-y-1">
-                        <p className="text-xs">
-                          {getEventStatusLabel(status.toUpperCase())}
-                        </p>
-                        <p className="text-lg md:text-xl font-bold">{count}</p>
-                        {totalEvents > 0 && (
-                          <p className="text-xs text-muted-foreground">
-                            {percentage}% del total
+            return (
+              <Link
+                key={status}
+                to={`/eventos?status=${status.toUpperCase()}`}
+                className="block flex-none"
+              >
+                <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0 flex-none min-w-[220px]">
+                  <CardContent className="p-2 px-4 md:p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="space-y-1">
+                          <p className="text-xs">
+                            {getEventStatusLabel(status.toUpperCase())}
                           </p>
-                        )}
+                          <p className="text-lg md:text-xl font-bold">{count}</p>
+                          {totalEvents > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              {percentage}% del total
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="ml-2">
+                        <div className="p-1.5 rounded-lg bg-slate-50">
+                          <Calendar className="h-4 w-4 text-slate-600" />
+                        </div>
                       </div>
                     </div>
-                    <div className="ml-2">
-                      <div className="p-1.5 rounded-lg bg-slate-50">
-                        <Calendar className="h-4 w-4 text-slate-600" />
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          );
-        })}
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       <div className="grid md:grid-cols-10 gap-6">
@@ -247,46 +249,42 @@ export default function Panel() {
           </Card>
         </div>
 
-        <div className="space-y-4 md:col-span-2">
-          <div className="flex items-center gap-2">
-            <Zap className="size-5" />
-            <h2 className="text-xl font-semibold">Acciones rápidas</h2>
+        {userRole === UserRole.ADMIN && (
+          <div className="space-y-4 md:col-span-2">
+            <div className="flex items-center gap-2">
+              <Zap className="size-5" />
+              <h2 className="text-xl font-semibold">Acciones rápidas</h2>
+            </div>
+            <Card>
+              <CardContent>
+                <div className="grid gap-3">
+                  <Link
+                    to="/usuarios/crear"
+                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/20 transition-colors"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span>Agregar nuevo usuario</span>
+                  </Link>
+
+                  <Link
+                    to="/eventos"
+                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/20 transition-colors"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    <span>Gestionar eventos</span>
+                  </Link>
+                  <Link
+                    to="/usuarios"
+                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/20 transition-colors"
+                  >
+                    <Users className="h-4 w-4" />
+                    <span>Gestionar usuarios</span>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <Card>
-            <CardContent>
-              <div className="grid gap-3">
-                <Link
-                  to="/eventos/crear"
-                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/20 transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Crear nuevo evento</span>
-                </Link>
-                <Link
-                  to="/usuarios/crear"
-                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/20 transition-colors"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  <span>Agregar nuevo usuario</span>
-                </Link>
-                <Link
-                  to="/eventos"
-                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/20 transition-colors"
-                >
-                  <Calendar className="h-4 w-4" />
-                  <span>Gestionar eventos</span>
-                </Link>
-                <Link
-                  to="/usuarios"
-                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/20 transition-colors"
-                >
-                  <Users className="h-4 w-4" />
-                  <span>Gestionar usuarios</span>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        )}
       </div>
 
       <EventDetailsSheet

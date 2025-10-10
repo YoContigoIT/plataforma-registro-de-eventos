@@ -23,7 +23,3 @@ Define expiraciones por defecto para tokens y construye los secretos de acceso y
 ## Mantenimiento
 - Mantén consistencia con la implementación de `JWTRepository` (algoritmo, expiraciones).
 - Evita exponer directamente los secretos; usa este módulo como punto único.
-
-## Navegación
-- `app/infrastructure/auth/jwt.repository.ts` (generación/verificación de JWT)
-- `documentation/infrastructure/auth/jwt.repository.md` (documentación detallada)

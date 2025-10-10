@@ -130,7 +130,7 @@ export default function Registrations() {
       setSelectAllAcrossPages(checked);
       setSelectedRegistrations(checked ? registrations.map((r) => r.id) : []);
     },
-    [registrations]
+    [registrations, handleSearchParams, removeParam]
   );
 
   const handleSelectRegistration = useCallback(
@@ -158,6 +158,7 @@ export default function Registrations() {
     );
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <works as expected>
   useEffect(() => {
     if (fetcherExport.state === "idle" && fetcherExport.data) {
       const data = fetcherExport.data;

@@ -68,96 +68,100 @@ export function StatusCards({
   const occupancyPercentage = (occupiedSpots / eventCapacity) * 100;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-2 md:gap-3">
-      <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0">
-        <CardContent className="p-2 px-4 md:p-3">
-          <div className="space-y-2">
+    <div className="overflow-x-auto">
+      <div className="flex gap-2 md:gap-3 min-w-max">
+        <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0 flex-none min-w-[220px]">
+          <CardContent className="p-2 px-4 md:p-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="space-y-1">
+                    <p className="text-xs truncate">Disponibles</p>
+                    <p className="text-lg md:text-xl font-bold">
+                      {remainingCapacity}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      de {eventCapacity} lugares
+                    </p>
+                  </div>
+                </div>
+                <div className="ml-2">
+                  <div className="p-1.5 rounded-lg bg-green-50">
+                    <Users className="h-4 w-4 text-green-600" />
+                  </div>
+                </div>
+              </div>
+              <Progress value={occupancyPercentage} className="w-full h-2" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {statuses.map((status) => {
+          const count = statusCounts[status] || 0;
+          const config = statusConfig[status];
+          const Icon = config?.icon || AlertCircle;
+
+          return (
+            <Card
+              key={status}
+              className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0 flex-none min-w-[220px]"
+            >
+              <CardContent className="p-2 px-4 md:p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="space-y-1">
+                      <p className="text-xs">{getStatusLabel(status)}</p>
+                      <p className="text-lg md:text-xl font-bold">{count}</p>
+                      {totalRegistrations > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {((count / totalRegistrations) * 100).toFixed(0)}% del
+                          total
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="ml-2">
+                    <div
+                      className={`p-1.5 rounded-lg ${
+                        config?.bgColor || "bg-slate-50"
+                      }`}
+                    >
+                      <Icon
+                        className={`h-4 w-4 ${
+                          config?.color || "text-slate-600"
+                        }`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+
+        <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0 flex-none min-w-[220px]">
+          <CardContent className="p-2 px-4 md:p-3">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <div className="space-y-1">
-                  <p className="text-xs truncate">Disponibles</p>
+                  <p className="text-xs truncate">Total</p>
                   <p className="text-lg md:text-xl font-bold">
-                    {remainingCapacity}
+                    {totalRegistrations}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    de {eventCapacity} lugares
+                    Total de registros
                   </p>
                 </div>
               </div>
               <div className="ml-2">
-                <div className="p-1.5 rounded-lg bg-green-50">
-                  <Users className="h-4 w-4 text-green-600" />
+                <div className="p-1.5 rounded-lg bg-blue-50">
+                  <Users className="h-4 w-4 text-blue-600" />
                 </div>
               </div>
             </div>
-            <Progress value={occupancyPercentage} className="w-full h-2" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {statuses.map((status) => {
-        const count = statusCounts[status] || 0;
-        const config = statusConfig[status];
-        const Icon = config?.icon || AlertCircle;
-
-        return (
-          <Card
-            key={status}
-            className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0"
-          >
-            <CardContent className="p-2 px-4 md:p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <div className="space-y-1">
-                    <p className="text-xs">{getStatusLabel(status)}</p>
-                    <p className="text-lg md:text-xl font-bold">{count}</p>
-                    {totalRegistrations > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        {((count / totalRegistrations) * 100).toFixed(0)}% del
-                        total
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="ml-2">
-                  <div
-                    className={`p-1.5 rounded-lg ${
-                      config?.bgColor || "bg-slate-50"
-                    }`}
-                  >
-                    <Icon
-                      className={`h-4 w-4 ${config?.color || "text-slate-600"}`}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-
-      <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0">
-        <CardContent className="p-2 px-4 md:p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <div className="space-y-1">
-                <p className="text-xs truncate">Total</p>
-                <p className="text-lg md:text-xl font-bold">
-                  {totalRegistrations}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Total de registros
-                </p>
-              </div>
-            </div>
-            <div className="ml-2">
-              <div className="p-1.5 rounded-lg bg-blue-50">
-                <Users className="h-4 w-4 text-blue-600" />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

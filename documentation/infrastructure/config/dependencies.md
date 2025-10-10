@@ -42,7 +42,3 @@ await di.services.emailService.sendEmail({ to, subject, html });
 ## Mantenimiento
 - Añadir nuevos repositorios/servicios siguiendo el patrón ya usado.
 - Alinear tipados de interfaces (`I…Repository`, `I…Service`) con la capa de dominio.
-
-## Navegación
-- `app/infrastructure/db/prisma.ts` (instancia Prisma y transacciones)
-- `documentation/infrastructure/auth/README.md` (utilidades de autenticación)

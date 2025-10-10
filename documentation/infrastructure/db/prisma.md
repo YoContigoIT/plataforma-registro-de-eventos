@@ -39,7 +39,3 @@ await runInTransaction(async () => {
 ## Mantenimiento
 - Evita acceder a `PrismaClient` directo en otras partes; usa el exportado aquí.
 - Si cambias la estrategia de transacciones, ajusta el `Proxy` y el `AsyncLocalStorage`.
-
-## Navegación
-- `app/infrastructure/config/dependencies.ts` (consume `prisma` para crear repositorios)
-- `prisma/schema.prisma` (modelo de datos)
