@@ -11,7 +11,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { Filter, X } from "lucide-react";
 import { useState } from "react";
-import { useEventFilters } from "../hooks/event-filters.hook";
+import { useEventFilters } from "../../hooks/event-filters.hook";
 import { EventFilterContent } from "./event-filters-content";
 
 export function EventFilters() {

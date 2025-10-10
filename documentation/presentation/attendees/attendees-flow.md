@@ -32,8 +32,6 @@ Permitir que una persona invitada a un evento consulte los detalles, complete su
     - `app/presentation/attendees/components/forms/event-details-panel.tsx`
     - `app/presentation/attendees/components/forms/registration-form.tsx`
     - `app/presentation/attendees/components/forms/registration-form-handler.tsx`
-  - Hooks:
-    - `app/presentation/attendees/hooks/useRegistrationForm.tsx`
 
 - Acciones y Carga de Datos (SSR: Loaders/Actions)
   - API/SSR:
@@ -55,7 +53,6 @@ Permitir que una persona invitada a un evento consulte los detalles, complete su
    - El usuario accede con un enlace de invitación (token/ID), y el sistema carga detalles del evento y estado de la invitación.
 2. Registro mediante formulario
    - Se presenta el formulario de registro con campos necesarios (p. ej., datos personales, preferencias).
-   - El hook `useRegistrationForm` gestiona estado, validación y envío.
 3. Persistencia de respuestas y alta de asistente
    - Se envían las respuestas a `create-form-response.action.ts`.
    - En caso de requerir alta explícita, se crea el asistente con `create-attendee.action.ts`.

@@ -1,3 +1,3 @@
-import { createRegistrationAction } from "../../api/create-registration.api";
+import { createRegistrationAction } from "../../api/actions/create-registration.action";
 
 export { createRegistrationAction as action };

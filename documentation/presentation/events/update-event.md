@@ -11,7 +11,6 @@ Editar un evento existente precargando sus datos en el formulario.
 - Presentación (UI)
   - Ruta: `app/presentation/events/routes/update.tsx`
   - Form: `event-form.tsx`, `form-builder.tsx`, `sortable-form-field.tsx`
-  - Hook: `use-event-form-renderer.ts`
 - SSR (Loaders/Actions)
   - Loader: `app/presentation/events/api/loaders/get-event-by-id.loader.ts`
   - Action: `app/presentation/events/api/actions/update-event.api-action.ts`

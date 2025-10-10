@@ -1,7 +1,3 @@
-import { logoutAction } from "~/presentation/auth/api/actions";
+import { logoutAction } from "~/presentation/auth/api/actions/logout.action";
 
 export { logoutAction as action };
-
-export default function Logout() {
-  return null;
-}

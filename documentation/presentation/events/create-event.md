@@ -11,7 +11,6 @@ Permitir la creación de nuevos eventos mediante un formulario dinámico.
 - Presentación (UI)
   - Ruta: `app/presentation/events/routes/create.tsx`
   - Form: `event-form.tsx`, `form-builder.tsx`, `sortable-form-field.tsx`
-  - Hook: `use-event-form-renderer.ts`
 - SSR (Loaders/Actions)
   - Action: `app/presentation/events/api/actions/create-event.api-action.ts`
 - Dominio/Infraestructura

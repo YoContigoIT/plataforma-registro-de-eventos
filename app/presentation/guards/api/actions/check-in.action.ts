@@ -1,7 +1,7 @@
 import { RegistrationStatus } from "@prisma/client";
 import { handleServiceError } from "~/shared/lib/error-handler";
 import type { ActionData } from "~/shared/types";
-import type { Route as CheckInRoute } from "../routes/actions/+types/check-in.action";
+import type { Route as CheckInRoute } from "../../routes/actions/+types/check-in.action";
 
 export const createCheckInAction = async ({
   params,

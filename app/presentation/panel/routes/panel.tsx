@@ -11,7 +11,7 @@ import {
 import { useState } from "react";
 import { Link, useLoaderData } from "react-router";
 import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
-import { EventDetailsSheet } from "~/presentation/events/components/event-details-sheet";
+import { EventDetailsSheet } from "~/presentation/events/components/views/event-details-sheet";
 import { PageHeader } from "~/shared/components/common/page-header";
 import { Badge } from "~/shared/components/ui/badge";
 import { Card, CardContent } from "~/shared/components/ui/card";
@@ -123,7 +123,9 @@ export default function Panel() {
                           <p className="text-xs">
                             {getEventStatusLabel(status.toUpperCase())}
                           </p>
-                          <p className="text-lg md:text-xl font-bold">{count}</p>
+                          <p className="text-lg md:text-xl font-bold">
+                            {count}
+                          </p>
                           {totalEvents > 0 && (
                             <p className="text-xs text-muted-foreground">
                               {percentage}% del total

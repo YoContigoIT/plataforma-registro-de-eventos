@@ -9,10 +9,13 @@ import { Button } from "@/ui/button";
 import { Info, Loader2, X } from "lucide-react";
 import { useId, useState } from "react";
 import { Form } from "react-router";
-import { useLoginForm } from "../hooks/use-login-form.hook";
+import { loginSchema } from "~/domain/dtos/auth.dto";
+import { useFormAction } from "~/shared/hooks/use-form-action.hook";
 
 export function LoginForm() {
-  const { handleInputChange, errors, isLoading, isSubmitting } = useLoginForm();
+  const { handleInputChange, errors, isLoading, isSubmitting } = useFormAction({
+    zodSchema: loginSchema,
+  });
   const [showCredentials, setShowCredentials] = useState(true);
 
   return (
@@ -95,7 +98,7 @@ export function LoginForm() {
           </button>
           <Info className="h-4 w-4 text-sky-600 dark:text-sky-400" />
           <AlertTitle className="text-sky-800 dark:text-sky-300">
-            Credenciales de administrador (solo desarrollo)
+            Credenciales de prueba
           </AlertTitle>
           <AlertDescription className="text-sky-700 dark:text-sky-400">
             <div className="space-y-1">
@@ -104,6 +107,14 @@ export function LoginForm() {
               </p>
               <p>
                 <strong>Contraseña:</strong> AdminPass123!
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p>
+                <strong>Correo:</strong> guardia@eventos.com
+              </p>
+              <p>
+                <strong>Contraseña:</strong> GuardiaPass123!
               </p>
             </div>
           </AlertDescription>

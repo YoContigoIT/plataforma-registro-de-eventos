@@ -8,7 +8,7 @@ import { runInTransaction } from "~/infrastructure/db/prisma";
 import { handleServiceError } from "~/shared/lib/error-handler";
 import { generateQRCode, simplifyZodErrors } from "~/shared/lib/utils";
 import type { ActionData } from "~/shared/types";
-import type { Route as UpdateRegistrationRoute } from "../routes/+types/update-registration";
+import type { Route as UpdateRegistrationRoute } from "../../routes/+types/update-registration";
 
 export const updateRegistrationAction = async ({
   request,

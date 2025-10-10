@@ -8,7 +8,7 @@ import { Stepper } from "~/shared/components/common/stepper";
 import { Button } from "~/shared/components/ui/button";
 import { useFetcherForm } from "~/shared/hooks/use-fetcher-form.hook";
 import type { LoaderData } from "~/shared/types";
-import type { InvitationData } from "../../api/get-invitation-data.loader";
+import type { InvitationData } from "../../api/loaders/get-invitation-data.loader";
 import { EventDetailsPanel } from "./event-details-panel";
 import { RegistrationForm } from "./registration-form";
 
