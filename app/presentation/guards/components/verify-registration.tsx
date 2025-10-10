@@ -457,7 +457,11 @@ export function VerifyRegistration() {
                 </div>
 
                 {event.requiresSignature && (
-                  <SignaturePad onSignatureChange={handleSignatureChange} />
+                  <SignaturePad
+                    onSignatureChange={handleSignatureChange}
+                    inviteStatus={invite.status}
+                    iniviteCheckedInAt={invite.checkedInAt}
+                  />
                 )}
               </CardContent>
 

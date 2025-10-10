@@ -8,12 +8,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { RegistrationStatus } from "@prisma/client";
 import { useEffect, useRef, useState } from "react";
 
 interface SignaturePadProps {
   onSignatureChange?: (signatureData: string | null) => void;
+  inviteStatus?: RegistrationStatus;
+  iniviteCheckedInAt?: Date;
 }
-export default function SignaturePad({ onSignatureChange }: SignaturePadProps) {
+export default function SignaturePad({
+  onSignatureChange,
+  inviteStatus,
+  iniviteCheckedInAt,
+}: SignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
 
@@ -186,6 +193,9 @@ export default function SignaturePad({ onSignatureChange }: SignaturePadProps) {
     setPreviewOpen(true);
   };
 
+  if (inviteStatus !== RegistrationStatus.REGISTERED && iniviteCheckedInAt) {
+    return null;
+  }
   return (
     <div className="flex flex-col items-center gap-4 p-6">
       <h2 className="text-lg font-semibold text-foreground">
