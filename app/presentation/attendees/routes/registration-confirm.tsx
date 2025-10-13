@@ -1,7 +1,7 @@
 import { Calendar, CheckCircle, Mail } from "lucide-react";
 import { Card, CardContent } from "~/shared/components/ui/card";
 
-export function RegistrationConfirm() {
+export default function RegistrationConfirm() {
   return (
     <Card className="w-full max-w-2xl shadow-xl mx-auto border-0 bg-card">
       <CardContent className="p-8">
