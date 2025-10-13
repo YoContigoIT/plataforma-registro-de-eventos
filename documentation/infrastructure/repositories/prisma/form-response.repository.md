@@ -34,6 +34,3 @@ Crea, actualiza y consulta respuestas de formulario ligadas a registros, incluye
 ## Mantenimiento
 - Ajusta filtros y relaciones según el crecimiento del modelo.
 - Añade índices en Prisma si hay consultas frecuentes por `registrationId` o `eventId`.
-
-## Navegación
-- `app/infrastructure/db/prisma.ts` (transacciones)

@@ -15,7 +15,7 @@ import { FormField } from "~/shared/components/common/form-field";
 import { Input } from "~/shared/components/ui/input";
 import { useExcelEmailExtractor } from "~/shared/hooks/use-excel-email-extractor.hook";
 import { useFormAction } from "~/shared/hooks/use-form-action.hook";
-import { EmailTagsInput } from "../../events/components/email-tags-input";
+import { EmailTagsInput } from "../../events/components/forms/email-tags-input";
 
 interface InvitationFormProps {
   eventId: string;

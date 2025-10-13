@@ -12,10 +12,10 @@ import {
   getEventStatusLabel,
 } from "~/shared/lib/utils";
 import { eventsLoader } from "../api/loaders/get-events.loader";
-import { EventDetailsSheet } from "../components/event-details-sheet";
-import { EventFilters } from "../components/event-filters";
-import { EventGridView } from "../components/event-grid-view";
-import { EventListView } from "../components/event-list-view";
+import { EventFilters } from "../components/filters/event-filters";
+import { EventDetailsSheet } from "../components/views/event-details-sheet";
+import { EventGridView } from "../components/views/event-grid-view";
+import { EventListView } from "../components/views/event-list-view";
 
 export const loader = eventsLoader;
 

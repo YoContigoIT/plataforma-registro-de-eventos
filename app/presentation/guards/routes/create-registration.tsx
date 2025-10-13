@@ -3,7 +3,7 @@ import { useLoaderData } from "react-router";
 import { createGuestSchema } from "~/domain/dtos/user.dto";
 import { useFetcherForm } from "~/shared/hooks/use-fetcher-form.hook";
 import { useSearchParamsManager } from "~/shared/hooks/use-search-params-manager";
-import { registerAttendeeLoader } from "../api/loaders";
+import { registerAttendeeLoader } from "../api/loaders/register-attendee.loader";
 import { EmailInputStep } from "../components/steps/email-input-step";
 import { EventSelectionStep } from "../components/steps/event-selection-step";
 import { RegistrationFormStep } from "../components/steps/registration-form-step";

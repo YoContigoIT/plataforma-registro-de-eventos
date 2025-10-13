@@ -33,7 +33,3 @@ await transporter.sendMail({
 ## Mantenimiento
 - Si cambias proveedor SMTP, actualiza `env` y valida TLS/puertos.
 - Maneja errores de `sendMail` en el servicio que consume el transporter.
-
-## Navegación
-- `app/infrastructure/config/env.ts` (fuente de variables)
-- `app/infrastructure/services/email.service.ts` (uso del transporter)

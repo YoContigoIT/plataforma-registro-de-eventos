@@ -30,6 +30,3 @@ Gestiona el formulario asociado a un evento y sus campos, con operaciones atómi
 ## Mantenimiento
 - Mantén DTOs alineados con `schema.prisma`.
 - Valida `options` y `validation` según tipos configurados.
-
-## Navegación
-- `app/infrastructure/db/prisma.ts` (transacciones)

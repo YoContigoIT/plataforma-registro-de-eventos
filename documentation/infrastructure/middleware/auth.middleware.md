@@ -71,9 +71,3 @@ Protege rutas privadas verificando sesión y tokens, valida acceso por rol y ren
 - Extrae `PUBLIC_ROUTES` y `ROLE_PROTECTED_ROUTES` a config si deseas reutilización.
 - Loguea eventos de revocación/renovación para auditoría.
 - Añade pruebas de integración para flujos de expiración y renovación.
-
-## Navegación
-- `app/infrastructure/auth/session.service.ts` (gestión de sesión y cookies)
-- `app/infrastructure/auth/jwt.repository.ts` (verificación/renovación de tokens)
-- `documentation/infrastructure/auth/session.service.md` (documentación de sesión)
-- `documentation/infrastructure/auth/jwt.repository.md` (documentación JWT)

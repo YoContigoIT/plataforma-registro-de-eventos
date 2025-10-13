@@ -32,7 +32,6 @@ Permitir a usuarios administradores crear, actualizar, consultar y archivar even
     - `event-form.tsx`, `form-builder.tsx`, `sortable-form-field.tsx` (formulario)
   - Hooks:
     - `event-filters.hook.ts`
-    - `use-event-form-renderer.ts`
 
 - Acciones y carga de datos (SSR: Loaders/Actions)
   - Loaders:
