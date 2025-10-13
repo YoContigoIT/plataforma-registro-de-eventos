@@ -1,11 +1,11 @@
 import { bulkUpdateFieldResponsesSchema } from "~/domain/dtos/form-response.dto";
 import type {
-    FormResponseAnswers,
-    FormResponseEntity,
+  FormResponseAnswers,
+  FormResponseEntity,
 } from "~/domain/entities/form-response.entity";
 import { handleServiceError } from "~/shared/lib/error-handler";
 import { simplifyZodErrors } from "~/shared/lib/utils";
-import type { Route } from "../routes/+types/join";
+import type { Route } from "../../routes/+types/join";
 
 export const updateFormResponseAction = async ({
   request,

@@ -14,6 +14,8 @@ import type { FetcherWithComponents } from "react-router";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import type { UserEntity } from "~/domain/entities/user.entity";
 import { FormField } from "~/shared/components/common/form-field";
+import { NumberInput } from "~/shared/components/common/number-input";
+
 import { SelectInput } from "~/shared/components/common/select-input";
 import { TextInput } from "~/shared/components/common/text-input";
 
@@ -21,18 +23,21 @@ interface RegistrationFormProps {
   event: EventEntity;
   user: UserEntity | null;
   fetcher: FetcherWithComponents<FormData>;
+  isSubmitting: boolean;
   inviteToken?: string;
+  handleInputChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
 }
 
 export function RegistrationForm({
   event,
   user,
   fetcher,
+  isSubmitting,
   inviteToken,
+  handleInputChange,
 }: RegistrationFormProps) {
-  // Get submission state from fetcher
-  const isSubmitting = fetcher.state === "submitting";
-
   const nameId = useId();
   const emailId = useId();
   const phoneId = useId();
@@ -64,17 +69,8 @@ export function RegistrationForm({
     setTouchedFields((prev) => ({ ...prev, [fieldName]: true }));
   };
 
-  // Simple input change handler without validation (handled by parent)
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
   return (
-    <div className={`p-8 transition-all duration-500 ease-in-out`}>
-      {/* Header personalizado para usuarios registrados */}
+    <div className="p-8 transition-all duration-500 ease-in-out w-full">
       {user ? (
         <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-100 p-4 rounded-xl border border-green-200">
           <div className="flex items-center">
@@ -130,44 +126,42 @@ export function RegistrationForm({
         className="space-y-6"
         action={`/api/create-attendee/${inviteToken}`}
       >
-        {user && !user.name && (
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-            <div className="space-y-2">
-              <FormField id={nameId}>
-                <TextInput
-                  label="Nombre completo"
-                  name="name"
-                  type="text"
-                  placeholder="Ej. Andrea Sánchez"
-                  required
-                  readOnly={!!user?.name}
-                  defaultValue={user?.name ?? ""}
-                  icon={<UserCircle size={20} className="text-gray-400" />}
-                  disabled={isSubmitting}
-                  onChange={(e) => {
-                    handleInputChange(e);
-                    if (!touchedFields.name) {
-                      setTouchedFields((prev) => ({ ...prev, name: true }));
-                    }
-                    setFormData((prev) => ({ ...prev, name: e.target.value }));
-                  }}
-                  onBlur={() => handleFieldBlur("name")}
-                  className={
-                    touchedFields.name && formData.name
-                      ? "border-green-500 focus:ring-green-500 focus:border-green-500"
-                      : ""
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+          <div className="space-y-2">
+            <FormField id={nameId}>
+              <TextInput
+                label="Nombre completo"
+                name="name"
+                type="text"
+                placeholder="Ej. Andrea Sánchez"
+                required
+                readOnly={!!user?.name}
+                defaultValue={user?.name ?? ""}
+                icon={<UserCircle size={20} className="text-gray-400" />}
+                disabled={isSubmitting}
+                onChange={(e) => {
+                  if (handleInputChange) handleInputChange(e);
+                  if (!touchedFields.name) {
+                    setTouchedFields((prev) => ({ ...prev, name: true }));
                   }
-                />
-              </FormField>
-              {(user?.name || (touchedFields.name && formData.name)) && (
-                <p className="text-green-600 text-xs flex items-center">
-                  <CheckCircle size={14} className="mr-1" />
-                  {user?.name ? "Precargado desde tu cuenta" : "Campo válido"}
-                </p>
-              )}
-            </div>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }));
+                }}
+                onBlur={() => handleFieldBlur("name")}
+                className={
+                  touchedFields.name && formData.name
+                    ? "border-green-500 focus:ring-green-500 focus:border-green-500"
+                    : ""
+                }
+              />
+            </FormField>
+            {(user?.name || (touchedFields.name && formData.name)) && (
+              <p className="text-green-600 text-xs flex items-center">
+                <CheckCircle size={14} className="mr-1" />
+                {user?.name ? "Precargado desde tu cuenta" : "Campo válido"}
+              </p>
+            )}
           </div>
-        )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Correo */}
           <div className="space-y-2">
@@ -178,12 +172,12 @@ export function RegistrationForm({
                 type="email"
                 placeholder="correo@ejemplo.com"
                 required
-                readOnly
-                defaultValue={user?.email}
+                readOnly={!!user}
+                defaultValue={user?.email ?? ""}
                 icon={<Mail size={20} className="text-gray-400" />}
                 disabled={isSubmitting}
                 onChange={(e) => {
-                  handleInputChange(e);
+                  if (handleInputChange) handleInputChange(e);
                   if (!touchedFields.email) {
                     setTouchedFields((prev) => ({
                       ...prev,
@@ -211,15 +205,25 @@ export function RegistrationForm({
           {/* Teléfono */}
           <div className="space-y-2">
             <FormField id={phoneId}>
-              <TextInput
+              <NumberInput
                 label="Teléfono (opcional)"
                 name="phone"
-                type="tel"
                 placeholder="Ej. +1 234 567 8900"
                 defaultValue={user?.phone ?? ""}
                 icon={<Phone size={20} className="text-gray-400" />}
                 disabled={isSubmitting}
-                onChange={handleInputChange}
+                maxLength={10}
+                max={10}
+                onChange={(value) => {
+                  if (handleInputChange) {
+                    handleInputChange({
+                      target: {
+                        name: "phone",
+                        value: value?.toString() || "",
+                      },
+                    } as React.ChangeEvent<HTMLInputElement>);
+                  }
+                }}
               />
             </FormField>
           </div>
@@ -248,9 +252,11 @@ export function RegistrationForm({
                 )}
                 disabled={isSubmitting}
                 onValueChange={(value) => {
-                  handleInputChange({
-                    target: { name: "quantity", value },
-                  } as React.ChangeEvent<HTMLInputElement>);
+                  if (handleInputChange) {
+                    handleInputChange({
+                      target: { name: "quantity", value },
+                    } as React.ChangeEvent<HTMLInputElement>);
+                  }
                   if (!touchedFields.quantity) {
                     setTouchedFields((prev) => ({
                       ...prev,

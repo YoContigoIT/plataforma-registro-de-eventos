@@ -111,7 +111,7 @@ export default function Panel() {
           return (
             <Link
               key={status}
-              to={`/eventos?status=${status}`}
+              to={`/eventos?status=${status.toUpperCase()}`}
               className="block"
             >
               <Card className="relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow p-0">

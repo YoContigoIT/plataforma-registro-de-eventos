@@ -33,6 +33,16 @@ export const createUserAction = async ({
         );
     }
 
+    // Validar si el usuario ya existe
+    const existingUser = await repositories.userRepository.findByEmail(
+      result.data.email
+    );
+    if (existingUser) {
+      return {
+        error: "El correo electrónico ya está en uso.",
+        errors: { email: "El correo electrónico ya está en uso." },
+      };
+    }
     // Crear usuario
     await repositories.userRepository.create(result.data);
 

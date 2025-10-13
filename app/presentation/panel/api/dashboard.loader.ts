@@ -32,7 +32,7 @@ export const dashboardLoader = async ({
   return {
     eventStats: {
       draft: eventStats.DRAFT || 0,
-      published: eventStats.UPCOMING || 0,
+      upcoming: eventStats.UPCOMING || 0,
       ongoing: eventStats.ONGOING || 0,
       cancelled: eventStats.CANCELLED || 0,
     },

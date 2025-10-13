@@ -38,7 +38,7 @@ export interface RegistrationFilters {
     hours?: number;
     days?: number;
   };
-  
+
   // Invite management filters
   pendingInvites?: boolean;
   expiredInvites?: boolean;
@@ -46,7 +46,7 @@ export interface RegistrationFilters {
   // Boolean filters
   hasResponded?: boolean;
   isCheckedIn?: boolean;
-  
+
   // Status convenience filters
   isPending?: boolean;
   isRegistered?: boolean;
@@ -70,6 +70,11 @@ export interface RegistrationFilters {
     from?: Date;
     to?: Date;
   }; */
+}
+
+export interface RegistrationExportFilter {
+  selectedRegistrations?: string[]; // Array of registration IDs
+  selectAllAcrossPages?: boolean; // If true, export all matching the other filters
 }
 
 export interface IRegistrationRepository {
@@ -107,4 +112,12 @@ export interface IRegistrationRepository {
     eventId: string,
     userId: string
   ): Promise<RegistrationEntity | null>;
+  countByEventId(
+    eventId: string,
+    filters?: RegistrationFilters
+  ): Promise<number>;
+  findForExport(
+    eventId: string,
+    filters?: RegistrationExportFilter
+  ): Promise<RegistrationWithFullRelations[]>;
 }

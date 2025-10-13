@@ -10,11 +10,13 @@ export const registrationsLoader = async ({
 
   const page = parseInt(url.searchParams.get("page") || "1", 10);
   const limit = parseInt(url.searchParams.get("limit") || "10", 10);
-  
+  const selectAll = url.searchParams.get("selectAll");
+
   // Add sorting parameters
   const sortBy = url.searchParams.get("sortBy") || "invitedAt";
-  const sortDirection = (url.searchParams.get("sortOrder") as "asc" | "desc") || "desc";
-  
+  const sortDirection =
+    (url.searchParams.get("sortOrder") as "asc" | "desc") || "desc";
+
   const filters: RegistrationFilters = {};
 
   // Basic filters
@@ -90,7 +92,9 @@ export const registrationsLoader = async ({
   const respondedWithinDays = url.searchParams.get("respondedWithinDays");
   if (respondedWithinHours || respondedWithinDays) {
     filters.respondedWithin = {
-      hours: respondedWithinHours ? parseInt(respondedWithinHours, 10) : undefined,
+      hours: respondedWithinHours
+        ? parseInt(respondedWithinHours, 10)
+        : undefined,
       days: respondedWithinDays ? parseInt(respondedWithinDays, 10) : undefined,
     };
   }
@@ -144,11 +148,22 @@ export const registrationsLoader = async ({
   }
 
   // Fetch registrations with pagination, filters, and sorting
-  const { data, pagination } = await repositories.registrationRepository.findMany(
-    { page, limit, sortBy, sortDirection },
-    filters,
-  );
+  const { data, pagination } =
+    await repositories.registrationRepository.findMany(
+      { page, limit, sortBy, sortDirection },
+      filters
+    );
 
+  if (selectAll === "true" && eventId) {
+    const total = await repositories.registrationRepository.countByEventId(
+      eventId,
+      filters
+    );
+    return {
+      registrations: data,
+      pagination: { ...pagination, totalItems: total },
+    };
+  }
   return {
     registrations: data,
     pagination,

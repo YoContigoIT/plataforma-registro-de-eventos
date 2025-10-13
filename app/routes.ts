@@ -61,7 +61,7 @@ export default [
   index(`${ROUTES_PATH.redirect_root}`),
   route("/iniciar-sesion", `${ROUTES_PATH.auth.login}`),
   route("/cerrar-sesion", `${ROUTES_PATH.auth.logout}`),
-  route("/inscripcion/:inviteToken", `${ROUTES_PATH.attendee.join}`),
+  route("/inscripcion/:token", `${ROUTES_PATH.attendee.join}`),
   route("/registro-exitoso", `${ROUTES_PATH.attendee.registrationConfirm}`),
   route("/api/form-response", `${ROUTES_PATH.attendee.formResponse}`),
   route(

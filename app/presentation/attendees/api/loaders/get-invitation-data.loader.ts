@@ -4,49 +4,93 @@ import type { EventEntity } from "~/domain/entities/event.entity";
 import type { FormResponseAnswers } from "~/domain/entities/form-response.entity";
 import type { UserEntity } from "~/domain/entities/user.entity";
 import { handleServiceError } from "~/shared/lib/error-handler";
-import { decodeInvitationData } from "~/shared/lib/utils";
+import { classifyInvitationToken } from "~/shared/lib/utils";
 import type { LoaderData } from "~/shared/types";
-import type { Route } from "../routes/+types/join";
+import type { Route } from "../../routes/+types/join";
 
 export type InvitationData = {
   event: EventEntity;
-  user: UserEntity;
+  user: UserEntity | null;
   eventForm: EventFormWithFields | null;
   formResponse: FormResponseAnswers | null;
-  registrationId: string;
+  registrationId: string | null;
   hasResponse: boolean;
-  inviteToken: string;
+  token: string;
 };
 
 export async function getInvitationDataLoader({
   params,
   context: { repositories },
 }: Route.LoaderArgs): Promise<LoaderData<InvitationData>> {
-  const { inviteToken } = params;
+  const { token } = params;
 
-  if (!inviteToken) {
+  if (!token) {
     return {
       success: false,
       error: "No se encontró el token de invitación.",
     };
   }
 
-  const decodedData = decodeInvitationData(inviteToken);
-
-  if (!decodedData) {
-    return {
-      success: false,
-      error: "Invitación no válida o expirada.",
-    };
-  }
-
-  const { userId, eventId } = decodedData;
+  const tokenClassification = classifyInvitationToken(token);
+  const privateInvitationToken =
+    tokenClassification.type === "private"
+      ? tokenClassification.payload
+      : { userId: "", eventId: "" };
 
   try {
+    if (tokenClassification.type === "public") {
+      const publicEvent =
+        await repositories.eventRepository.findByPublicInviteToken(token);
+
+      if (!publicEvent) {
+        return {
+          success: false,
+          error: "Invitación no válida o expirada.",
+        };
+      }
+
+      if (publicEvent.status === "CANCELLED" || publicEvent.archived) {
+        return {
+          success: false,
+          error: "Este evento ha sido cancelado",
+        };
+      }
+
+      if (
+        publicEvent.end_date < new Date() ||
+        publicEvent.status === EventStatus.ENDED
+      ) {
+        return {
+          success: false,
+          error: "Este evento ya ha finalizado.",
+          data: null,
+        };
+      }
+
+      const eventForm = publicEvent.EventForm;
+      /* const eventForm =
+      await repositories.eventFormRepository.findByEventId(publicEvent.id); */
+
+      return {
+        success: true,
+        data: {
+          event: publicEvent,
+          user: null,
+          eventForm: eventForm?.isActive ? eventForm : null,
+          formResponse: null,
+          registrationId: null,
+          hasResponse: false,
+          token,
+        },
+      };
+    }
+
+    const { userId, eventId } = privateInvitationToken;
+
     const invite =
       await repositories.registrationRepository.findExactInvitation(
         eventId,
-        userId
+        userId,
       );
 
     if (!invite) {
@@ -82,11 +126,9 @@ export async function getInvitationDataLoader({
     if (eventForm?.isActive) {
       formResponse =
         await repositories.formResponseRepository.findByRegistrationId(
-          invite.id
+          invite.id,
         );
     }
-
-    console.log("form response id: ", formResponse?.id);
 
     return {
       success: true,
@@ -97,13 +139,13 @@ export async function getInvitationDataLoader({
         formResponse,
         registrationId: invite.id,
         hasResponse: !!formResponse,
-        inviteToken,
+        token,
       },
     };
   } catch (error) {
     return handleServiceError(
       error,
-      "Error al cargar los detalles de la invitación"
+      "Error al cargar los detalles de la invitación",
     );
   }
 }
