@@ -1,4 +1,5 @@
-import { updateUserSchema, type UpdateUserDTO } from "~/domain/dtos/user.dto";
+import { type UpdateUserDTO, updateUserSchema } from "~/domain/dtos/user.dto";
+import { handleServiceError } from "~/shared/lib/error-handler";
 import { simplifyZodErrors } from "~/shared/lib/utils";
 import type { Route } from "../routes/+types/update-user";
 
@@ -35,19 +36,26 @@ export const updateUserAction = async ({
       };
     }
 
+    const currentUser = await repositories.userRepository.findUnique(userId);
+    if (!currentUser) {
+      return {
+        error: "Usuario no encontrado.",
+        message: "El usuario especificado no existe.",
+      };
+    }
+
     if (result.data.password) {
       result.data.password =
         await repositories.encryptorRepository.hashPassword(
-          result.data.password
+          result.data.password,
         );
     }
-    // Verificar que no este en uso el email
-    if (result.data.email) {
-      // 🔑
+
+    if (result.data.email && result.data.email !== currentUser.email) {
       const existingUser = await repositories.userRepository.findByEmail(
-        result.data.email
+        result.data.email,
       );
-      if (existingUser && existingUser.email === result.data.email) {
+      if (existingUser && existingUser.id !== userId) {
         return {
           error: "El correo electrónico ya está en uso.",
           errors: { email: "El correo electrónico ya está en uso." },
@@ -62,10 +70,6 @@ export const updateUserAction = async ({
       redirectTo: "/usuarios",
     };
   } catch (error) {
-    console.error(error);
-    return {
-      error: "Error al actualizar el usuario.",
-      message: "Intenta de nuevo más tarde.",
-    };
+    handleServiceError(error, "Error al actualizar el usuario.");
   }
 };

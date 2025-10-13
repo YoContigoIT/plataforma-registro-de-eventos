@@ -1,3 +1,3 @@
-import { archiveEventAction } from "../api/actions/archive-event.api-action";
+import { archiveEventAction } from "../api/actions/archive-event.action";
 
 export const action = archiveEventAction;

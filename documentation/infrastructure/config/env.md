@@ -27,7 +27,3 @@ Provee un objeto `env` con todas las variables de entorno necesarias para base d
 ## Mantenimiento
 - Añadir nuevas variables aquí para evitar lecturas directas de `process.env` fuera de este módulo.
 - Documentar valores por defecto y sus implicaciones.
-
-## Navegación
-- `app/infrastructure/config/jwt.ts` (config de expiración y secretos)
-- `app/infrastructure/config/nodemailer.ts` (transportador de email)

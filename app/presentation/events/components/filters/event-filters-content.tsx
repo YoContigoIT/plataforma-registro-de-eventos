@@ -18,7 +18,7 @@ import { es } from "date-fns/locale";
 import { CalendarIcon, X } from "lucide-react";
 import { cn } from "~/shared/lib/utils";
 
-import type { FilterState } from "../hooks/event-filters.hook";
+import type { FilterState } from "../../hooks/event-filters.hook";
 
 type FilterContent = {
   startDate?: Date;
@@ -32,7 +32,7 @@ type FilterContent = {
   handleThisMonthToggle: (pressed: boolean) => void;
   handleDateChange: (
     type: "startDate" | "endDate",
-    date: Date | undefined,
+    date: Date | undefined
   ) => void;
 };
 
@@ -141,7 +141,7 @@ export const EventFilterContent = ({
               variant="outline"
               className={cn(
                 "justify-start text-left font-normal",
-                !startDate && "text-muted-foreground",
+                !startDate && "text-muted-foreground"
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
@@ -165,7 +165,7 @@ export const EventFilterContent = ({
               variant="outline"
               className={cn(
                 "justify-start text-left font-normal",
-                !endDate && "text-muted-foreground",
+                !endDate && "text-muted-foreground"
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />

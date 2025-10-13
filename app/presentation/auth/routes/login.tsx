@@ -1,7 +1,5 @@
 import { Bell, Calendar, CheckCircle, Users } from "lucide-react";
-import { redirect } from "react-router";
-import { getSession } from "~/infrastructure/auth/session.service";
-import { loginAction } from "~/presentation/auth/api/actions";
+import { loginAction } from "~/presentation/auth/api/actions/login.action";
 import { LoginForm } from "~/presentation/auth/components/login-form";
 import {
   Card,
@@ -10,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/shared/components/ui/card";
-import type { Route } from "./+types/login";
 
 export function meta() {
   return [
@@ -22,15 +19,7 @@ export function meta() {
   ];
 }
 
-export const loader = async ({ request }: Route.LoaderArgs) => {
-  const session = await getSession(request.headers.get("Cookie"));
-  const user = session.get("user");
-
-  if (user) {
-    return redirect("/panel");
-  }
-};
-
+export { sessionLoader as loader } from "~/presentation/auth/api/loaders/session.loader";
 export { loginAction as action };
 
 export default function LoginPage() {
@@ -112,9 +101,7 @@ export default function LoginPage() {
                   <CheckCircle className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">
-                    Experiencia perfecta
-                  </h3>
+                  <h3 className="font-semibold text-lg">Check-in controlado</h3>
                   <p className="text-foreground text-sm">
                     Proporciona una experiencia profesional desde el registro
                     hasta el check-in con nuestra plataforma todo en uno.

@@ -91,9 +91,9 @@ export function EventForm({
 
   const publicInviteUrl =
     typeof window !== "undefined" && publicTokenPreview
-      ? `${window.location.origin}/invitacion/${publicTokenPreview}`
+      ? `${window.location.origin}/inscripcion/${publicTokenPreview}`
       : publicTokenPreview
-        ? `/invitacion/${publicTokenPreview}`
+        ? `/inscripcion/${publicTokenPreview}`
         : "";
 
   const handleCopyPublicInvite = async () => {

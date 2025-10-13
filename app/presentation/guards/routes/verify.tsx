@@ -1,5 +1,5 @@
-import { createCheckInAction } from "../api/check-in.api";
-import { registrationByTokenLoader } from "../api/loaders";
+import { createCheckInAction } from "../api/actions/check-in.action";
+import { registrationByTokenLoader } from "../api/loaders/registration.loader";
 import { VerifyRegistration } from "../components/verify-registration";
 export const loader = registrationByTokenLoader;
 export { createCheckInAction as action };

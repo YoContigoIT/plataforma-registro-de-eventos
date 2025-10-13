@@ -1,16 +1,14 @@
 import type { Route as RouteLogin } from ".react-router/types/app/presentation/auth/routes/+types/login";
-import type { Route as RouteLogout } from ".react-router/types/app/presentation/auth/routes/+types/logout";
 import { redirect } from "react-router";
 import { loginSchema } from "~/domain/dtos/auth.dto";
 import {
-  commitSession,
-  destroySession,
-  getSession,
+    commitSession,
+    getSession
 } from "~/infrastructure/auth/session.service";
 
 export const loginAction = async ({
   request,
-  context: { repositories, services, clientInfo },
+  context: { repositories, clientInfo },
 }: RouteLogin.ActionArgs) => {
   const formData = Object.fromEntries(await request.formData());
 
@@ -73,28 +71,6 @@ export const loginAction = async ({
   return redirect("/", {
     headers: {
       "Set-Cookie": await commitSession(sessionStore),
-    },
-  });
-};
-
-export const logoutAction = async ({
-  context: { repositories, session },
-}: RouteLogout.ActionArgs) => {
-  const sessiondId = session.get("sessionId");
-
-  if (!sessiondId) {
-    return redirect("/iniciar-sesion", {
-      headers: {
-        "Set-Cookie": await destroySession(session),
-      },
-    });
-  }
-
-  await repositories.sessionRepository.revoke(sessiondId);
-
-  return redirect("/iniciar-sesion", {
-    headers: {
-      "Set-Cookie": await destroySession(session),
     },
   });
 };

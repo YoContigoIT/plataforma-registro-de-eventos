@@ -13,50 +13,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/* export function simplifyZodErrors<T>(
-  error: z.ZodError<T>,
-): Record<string, string[]> {
-  const errors: Record<string, string[]> = {};
-
-  error.errors.forEach((err) => {
-    if (err.path.length > 0) {
-      const key = err.path.join(".");
-      if (!errors[key]) {
-        errors[key] = [];
-      }
-      errors[key].push(err.message);
-    }
-  });
-  return errors;
-}
-
-export function formatName(
-  person: Partial<User> | Omit<User, "password"> | null,
-) {
-  if (!person) {
-    return "No hay información de la persona";
-  }
-  const apellidoPaterno = person
-    ? person.apellido_paterno
-    : "";
-  const apellidoMaterno = person.apellido_materno
-    ? person.apellido_materno
-    : "";
-  return `${person.nombre} ${apellidoPaterno} ${apellidoMaterno}`;
-}
-
-export function getUserInitials(user: Partial<User>) {
-  const nombreInitial = user.nombre?.charAt(0) || "";
-  const apellido_paternoInitial = user.apellido_paterno?.charAt(0) || "";
-  const apellido_maternoInitial = user.apellido_materno?.charAt(0) || "";
-  return (
-    nombreInitial +
-    apellido_paternoInitial +
-    apellido_maternoInitial
-  ).toUpperCase();
-} */
-
-// Using Temporal API for modern, reliable date handling
 // Temporal provides better timezone support, immutable objects, and more reliable parsing
 export function formatDate(date: Date | null | undefined): string {
   if (!date) {
@@ -134,12 +90,6 @@ export function formatCurrency(amount: number): string {
 
 // Re-export badge utilities for backward compatibility
 export {
-  formatRoleName,
-  getEmployeeStatusBadge,
-  getFundingStatusBadge,
-  getMovementTypeBadge,
-  getPayrollStatusBadge,
-  getPurchaseOrderStatusBadge,
   getSessionStatusBadge,
   getUserRoleBadge
 } from "./badge-utils";
@@ -566,7 +516,7 @@ export const getEventStatusBadgeVariant = (status: string) => {
     case "COMPLETED":
       return "slate";
     case "ENDED":
-      return "esmerald";
+      return "emerald";
     default:
       return "secondary";
   }

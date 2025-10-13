@@ -1,6 +1,6 @@
 import type { RegistrationStatus } from "@prisma/client";
 import type { RegistrationFilters } from "~/domain/repositories/registration.repository";
-import type { Route } from "../routes/+types/registrations";
+import type { Route } from "../../routes/+types/registrations";
 
 export const registrationsLoader = async ({
   request,

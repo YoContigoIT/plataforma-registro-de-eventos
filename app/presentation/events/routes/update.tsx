@@ -2,9 +2,9 @@ import { PageHeader } from "@/components/common/page-header";
 import { useLoaderData } from "react-router";
 import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import type { LoaderData } from "~/shared/types";
-import { updateEventAction } from "../api/actions/update-event.api-action";
+import { updateEventAction } from "../api/actions/update-event.action";
 import { getEventByIdLoader } from "../api/loaders/get-event-by-id.loader";
-import { EventForm } from "../components/event-form";
+import { EventForm } from "../components/forms/event-form";
 
 export const loader = getEventByIdLoader;
 export const action = updateEventAction;

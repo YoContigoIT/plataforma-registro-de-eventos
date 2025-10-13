@@ -33,9 +33,9 @@ import {
   getStatusLabel,
 } from "~/shared/lib/utils";
 import { eventsLoader } from "../../events/api/loaders/get-events.loader";
-import { EventDetailsSheet } from "../../events/components/event-details-sheet";
-import { exportXLSXAction } from "../api/actions";
-import { registrationsLoader } from "../api/loaders";
+import { EventDetailsSheet } from "../../events/components/views/event-details-sheet";
+import { exportXLSXAction } from "../api/actions/export-xlsx.action";
+import { registrationsLoader } from "../api/loaders/registrations.loaders";
 import { EventCombobox } from "../components/event-combobox";
 import { MassActions } from "../components/mass-actions";
 import { RegistrationFilters } from "../components/registration-filters";
@@ -130,7 +130,7 @@ export default function Registrations() {
       setSelectAllAcrossPages(checked);
       setSelectedRegistrations(checked ? registrations.map((r) => r.id) : []);
     },
-    [registrations]
+    [registrations, handleSearchParams, removeParam]
   );
 
   const handleSelectRegistration = useCallback(
@@ -158,6 +158,7 @@ export default function Registrations() {
     );
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <works as expected>
   useEffect(() => {
     if (fetcherExport.state === "idle" && fetcherExport.data) {
       const data = fetcherExport.data;

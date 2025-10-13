@@ -1,3 +1,3 @@
-import { createCheckInAction } from "../../api/check-in.api";
+import { createCheckInAction } from "../../api/actions/check-in.action";
 
 export { createCheckInAction as action };

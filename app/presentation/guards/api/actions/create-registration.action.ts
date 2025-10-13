@@ -12,7 +12,7 @@ import {
   generateQRCode,
   simplifyZodErrors
 } from "~/shared/lib/utils";
-import type { Route as CreateRegistrationRoute } from "../routes/+types/create-registration";
+import type { Route as CreateRegistrationRoute } from "../../routes/+types/create-registration";
 export const createRegistrationAction = async ({
   request,
   context: { repositories, session, services },

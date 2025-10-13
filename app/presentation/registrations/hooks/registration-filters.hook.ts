@@ -22,7 +22,7 @@ export const useRegistrationFilters = () => {
     getParamValue,
     handleSearchParams,
     removeParam,
-    resetAllParams,
+    resetAllExcept,
   } = useSearchParamsManager();
 
   const [invitedAt, setInvitedAt] = useState<Date | undefined>();
@@ -95,7 +95,7 @@ export const useRegistrationFilters = () => {
   };
 
   const clearAllFilters = () => {
-    resetAllParams();
+    resetAllExcept(["eventId"]);
     setInvitedAt(undefined);
     setRespondedAt(undefined);
     setRegisteredAt(undefined);
@@ -112,7 +112,7 @@ export const useRegistrationFilters = () => {
 
   const handleThisMonthToggle = (isPressed: boolean, dateType: "invitedAt" | "respondedAt" | "registeredAt" | "checkedInAt") => {
     if (isPressed) {
-      const { startOfMonth, endOfMonth } = currentMonthBounds;
+      const { startOfMonth } = currentMonthBounds;
       handleSearchParams(dateType, startOfMonth.toISOString());
       if (dateType === "invitedAt") setInvitedAt(startOfMonth);
       else if (dateType === "respondedAt") setRespondedAt(startOfMonth);

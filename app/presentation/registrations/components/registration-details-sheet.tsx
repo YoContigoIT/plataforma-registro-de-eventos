@@ -47,6 +47,45 @@ interface RegistrationDetailsSheetProps {
   canSendInvite: boolean;
 }
 
+// Helper function to format field response value
+const formatFieldValue = (value: any, fieldType: string) => {
+  if (value === null || value === undefined || value === "") {
+    return "Sin respuesta";
+  }
+
+  // Handle different field types
+  switch (fieldType) {
+    case "DATE":
+      try {
+        return format(new Date(value), "PP", { locale: es });
+      } catch {
+        return value;
+      }
+    case "CHECKBOX":
+      if (Array.isArray(value)) {
+        return value.join(", ");
+      }
+      if (
+        typeof value === "string" &&
+        value.startsWith("[") &&
+        value.endsWith("]")
+      ) {
+        try {
+          const parsed = JSON.parse(value);
+          if (Array.isArray(parsed)) {
+            return parsed.join(", ");
+          }
+        } catch {}
+      }
+      return value;
+    case "SELECT":
+    case "RADIO":
+      return value;
+    default:
+      return value;
+  }
+};
+
 export function RegistrationDetailsSheet({
   registration,
   isOpen,
@@ -60,18 +99,21 @@ export function RegistrationDetailsSheet({
   const fetcher = useFetcher();
   const resendFetcher = useFetcher();
 
-  useEffect(() => {
-    if (fetcher.state === "idle" && fetcher.data) {
-      toast[fetcher.data.success ? "success" : "error"](
-        fetcher.data.success
-          ? fetcher.data.message || "Registro eliminado exitosamente"
-          : fetcher.data.error || "Error al eliminar el registro"
-      );
-    }
-  }, [fetcher.state, fetcher.data]);
+  // Use stable IDs instead of refs
+  const RESEND_TOAST_ID = "resend-invite-loading";
+  const DELETE_TOAST_ID = "delete-invite-loading";
 
+  // Show loading toast when resending starts
+  useEffect(() => {
+    if (resendFetcher.state === "submitting") {
+      toast.loading("Reenviando invitación...", { id: RESEND_TOAST_ID });
+    }
+  }, [resendFetcher.state]);
+
+  // Dismiss loading and show result for resend
   useEffect(() => {
     if (resendFetcher.state === "idle" && resendFetcher.data) {
+      toast.dismiss(RESEND_TOAST_ID);
       toast[resendFetcher.data.success ? "success" : "error"](
         resendFetcher.data.success
           ? resendFetcher.data.message || "Invitación reenviada exitosamente"
@@ -80,48 +122,28 @@ export function RegistrationDetailsSheet({
     }
   }, [resendFetcher.state, resendFetcher.data]);
 
+  // Show loading toast when revoking starts
+  useEffect(() => {
+    if (fetcher.state === "submitting") {
+      toast.loading("Revocando invitación...", { id: DELETE_TOAST_ID });
+    }
+  }, [fetcher.state]);
+
+  // Dismiss loading and show result for revoke
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data) {
+      toast.dismiss(DELETE_TOAST_ID);
+      toast[fetcher.data.success ? "success" : "error"](
+        fetcher.data.success
+          ? fetcher.data.message || "Registro eliminado exitosamente"
+          : fetcher.data.error || "Error al eliminar el registro"
+      );
+    }
+  }, [fetcher.state, fetcher.data]);
+
   if (!registration) return null;
 
   const { user, FormResponse } = registration;
-
-  // Helper function to format field response value
-  const formatFieldValue = (value: any, fieldType: string) => {
-    if (value === null || value === undefined || value === "") {
-      return "Sin respuesta";
-    }
-
-    // Handle different field types
-    switch (fieldType) {
-      case "DATE":
-        try {
-          return format(new Date(value), "PP", { locale: es });
-        } catch {
-          return value;
-        }
-      case "CHECKBOX":
-        if (Array.isArray(value)) {
-          return value.join(", ");
-        }
-        if (
-          typeof value === "string" &&
-          value.startsWith("[") &&
-          value.endsWith("]")
-        ) {
-          try {
-            const parsed = JSON.parse(value);
-            if (Array.isArray(parsed)) {
-              return parsed.join(", ");
-            }
-          } catch {}
-        }
-        return value;
-      case "SELECT":
-      case "RADIO":
-        return value;
-      default:
-        return value;
-    }
-  };
 
   const handleDeleteClick = () => {
     setIsDeleteDialogOpen(true);

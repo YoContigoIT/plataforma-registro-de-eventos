@@ -7,6 +7,7 @@ interface BuilderReturn {
   removeParam: (key: string) => void;
   resetAllParams: () => void;
   resetAndSetParam: (key: string, value: string) => void;
+  resetAllExcept: (keys: string[]) => void;
   searchParams: URLSearchParams;
 }
 
@@ -69,6 +70,20 @@ export function useSearchParamsManager(): BuilderReturn {
     setSearchParams(params);
   };
 
+  const resetAllExcept = (keys: string[]) => {
+    const currentParams = new URLSearchParams(searchParams.toString());
+    const newParams = new URLSearchParams();
+
+    keys.forEach((key) => {
+      const value = currentParams.get(key);
+      if (value !== null) {
+        newParams.set(key, value);
+      }
+    });
+
+    setSearchParams(newParams);
+  };
+
   return {
     getParamValue,
     handleSearchParams,
@@ -77,5 +92,6 @@ export function useSearchParamsManager(): BuilderReturn {
     resetAllParams,
     resetAndSetParam,
     searchParams,
+    resetAllExcept,
   };
 }

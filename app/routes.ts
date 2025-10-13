@@ -92,7 +92,7 @@ export default [
     route("/usuarios/crear", `${ROUTES_PATH.users.create}`),
     route("/usuarios/editar/:userId", `${ROUTES_PATH.users.update}`),
     route("/eventos", `${ROUTES_PATH.events.list}`),
-    route("/eventos/detalle/:id", `${ROUTES_PATH.events.detail}`),
+    /* route("/eventos/detalle/:id", `${ROUTES_PATH.events.detail}`), */
     route("/eventos/crear", `${ROUTES_PATH.events.create}`),
     route("/eventos/actualizar/:id", `${ROUTES_PATH.events.update}`),
     route("/eventos/archivar/:id", `${ROUTES_PATH.events.archive}`),

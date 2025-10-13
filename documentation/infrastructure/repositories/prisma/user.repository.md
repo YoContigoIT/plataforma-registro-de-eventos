@@ -27,7 +27,3 @@ CRUD y listado paginado de usuarios con exclusión de roles y soft delete; prove
 ## Mantenimiento
 - Extiende `searchFields` y `customFilters` si se habilitan más criterios.
 - Mantén coherencia con DTOs/entidades en dominio.
-
-## Navegación
-- `app/infrastructure/db/prisma.ts` (instancia)
-- `documentation/infrastructure/config/dependencies.md` (DI)

@@ -32,7 +32,3 @@ Operaciones de lectura, escritura y métricas sobre eventos, con filtros avanzad
 ## Mantenimiento
 - Agrega nuevos filtros en `customFilters` y refleja cambios en tipos de dominio.
 - Sincroniza cambios de schema Prisma (`schema.prisma`) con los includes y filtros.
-
-## Navegación
-- `app/infrastructure/db/prisma.ts` (instancia y transacciones)
-- `documentation/infrastructure/config/dependencies.md` (DI)

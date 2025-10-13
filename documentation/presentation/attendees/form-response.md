@@ -8,7 +8,6 @@ Capturar información relevante del invitado y persistir las respuestas del form
 - UI (formularios):
   - `app/presentation/attendees/components/forms/registration-form.tsx`
   - `app/presentation/attendees/components/forms/registration-form-handler.tsx`
-- Hook: `app/presentation/attendees/hooks/useRegistrationForm.tsx`
 - Acción: `app/presentation/attendees/api/create-form-response.action.ts`
 
 ## Escenarios (BDD)

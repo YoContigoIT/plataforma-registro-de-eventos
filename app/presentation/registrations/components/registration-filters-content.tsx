@@ -45,8 +45,6 @@ type FilterContent = {
 export const RegistrationFilterContent = ({
   invitedAt,
   respondedAt,
-  registeredAt,
-  checkedInAt,
   activeFilterCount,
   clearAllFilters,
   currentFilters,
@@ -233,35 +231,5 @@ export const RegistrationFilterContent = ({
     </div>
 
     <Separator />
-
-    {/* <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm">En lista de espera</Label>
-        <Switch
-          checked={currentFilters.isWaitlisted}
-          onCheckedChange={(checked) =>
-            handleFilterChange("isWaitlisted", checked)
-          }
-        />
-      </div>
-      <div className="flex items-center justify-between">
-        <Label className="text-sm">Cancelados</Label>
-        <Switch
-          checked={currentFilters.isCancelled}
-          onCheckedChange={(checked) =>
-            handleFilterChange("isCancelled", checked)
-          }
-        />
-      </div>
-      <div className="flex items-center justify-between">
-        <Label className="text-sm">Rechazados</Label>
-        <Switch
-          checked={currentFilters.isDeclined}
-          onCheckedChange={(checked) =>
-            handleFilterChange("isDeclined", checked)
-          }
-        />
-      </div>
-    </div> */}
   </div>
 );
