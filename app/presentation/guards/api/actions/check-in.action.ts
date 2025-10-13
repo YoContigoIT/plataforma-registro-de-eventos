@@ -4,10 +4,14 @@ import type { ActionData } from "~/shared/types";
 import type { Route as CheckInRoute } from "../../routes/actions/+types/check-in.action";
 
 export const createCheckInAction = async ({
+  request,
   params,
   context: { repositories },
 }: CheckInRoute.ActionArgs): Promise<ActionData> => {
   try {
+    const data = Object.fromEntries(await request.formData());
+    const signature = data.signature; //BASE64 string of the signature image
+
     const { qrCode } = params;
 
     const registration =
@@ -35,6 +39,3 @@ export const createCheckInAction = async ({
     return handleServiceError(error, "Error al hacer check-in del usuario");
   }
 };
-
-
-
