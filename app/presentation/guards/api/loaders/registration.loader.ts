@@ -3,9 +3,11 @@ import type { Route as VerifyRoute } from "../../routes/+types/verify";
 
 export const registrationByTokenLoader = async ({
   params,
-  context: { repositories },
+  context: { repositories, session },
 }: VerifyRoute.LoaderArgs) => {
   const { qrCode } = params;
+  const userId = session.get("user")?.id;
+  const userRole = session.get("user")?.role;
 
   if (!qrCode) {
     return {
@@ -33,6 +35,8 @@ export const registrationByTokenLoader = async ({
       event: invite.event,
       user: invite.user,
       qrCodeUrl,
+      userId,
+      userRole,
     },
   };
 };

@@ -1,7 +1,7 @@
 import type { RegistrationConfirmationEmailDto } from "~/domain/dtos/email-invitation.dto";
 
 export function generateRegistrationConfirmationTemplate(
-  data: RegistrationConfirmationEmailDto
+  data: RegistrationConfirmationEmailDto,
 ): string {
   const {
     userName,
@@ -54,12 +54,12 @@ export function generateRegistrationConfirmationTemplate(
               </tr>
 
               <!-- Boletos adquiridos -->
-<div style="padding:20px; margin:20px 0; background-color:#f1f8ff; border-radius:12px; text-align:center;">
-  <h3 style="font-size:18px; font-weight:600; color:#1976d2; margin-bottom:10px;">Tus boletos</h3>
-  <p style="font-size:16px; font-weight:600; color:#263238;">
-    Has adquirido <strong>${ticketsQuantity}</strong> boletos para este evento.
-  </p>
-</div>
+              <div style="padding:20px; margin:20px 0; background-color:#f1f8ff; border-radius:12px; text-align:center;">
+                <h3 style="font-size:18px; font-weight:600; color:#1976d2; margin-bottom:10px;">Tus boletos</h3>
+                <p style="font-size:16px; font-weight:600; color:#263238;">
+                  Has adquirido <strong>${ticketsQuantity}</strong> boletos para este evento.
+                </p>
+              </div>
 
               <tr>
                 <td>
