@@ -34,6 +34,7 @@ const ROUTES_PATH = {
     detail: "presentation/usuarios/routes/user-by-id.tsx",
     create: "presentation/usuarios/routes/create-user.tsx",
     update: "presentation/usuarios/routes/update-user.tsx",
+    delete: "presentation/usuarios/routes/delete.ts",
   },
   registrations: {
     list: "presentation/registrations/routes/registrations.tsx",
@@ -66,20 +67,20 @@ export default [
   route("/api/form-response", `${ROUTES_PATH.attendee.formResponse}`),
   route(
     "/api/update-form-response",
-    `${ROUTES_PATH.attendee.updateFormResponse}`,
+    `${ROUTES_PATH.attendee.updateFormResponse}`
   ),
   route(
     "/api/create-attendee/:inviteToken",
-    `${ROUTES_PATH.attendee.createAttendee}`,
+    `${ROUTES_PATH.attendee.createAttendee}`
   ),
   route(
     "/api/update-registration",
-    `${ROUTES_PATH.guard.updateRegisterAction}`,
+    `${ROUTES_PATH.guard.updateRegisterAction}`
   ),
 
   route(
     "/api/create-registration",
-    `${ROUTES_PATH.guard.createRegistrationAction}`,
+    `${ROUTES_PATH.guard.createRegistrationAction}`
   ),
 
   route("/api/check-in/:qrCode", `${ROUTES_PATH.guard.checkInAction}`),
@@ -88,9 +89,9 @@ export default [
   layout(`${ROUTES_PATH.layout}`, [
     route("/panel", `${ROUTES_PATH.panel.dashboard}`),
     route("/usuarios", `${ROUTES_PATH.users.list}`),
-    route("/usuarios/ver/:userId", `${ROUTES_PATH.users.detail}`),
     route("/usuarios/crear", `${ROUTES_PATH.users.create}`),
     route("/usuarios/editar/:userId", `${ROUTES_PATH.users.update}`),
+    route("/usuarios/eliminar/:userId", `${ROUTES_PATH.users.delete}`),
     route("/eventos", `${ROUTES_PATH.events.list}`),
     /* route("/eventos/detalle/:id", `${ROUTES_PATH.events.detail}`), */
     route("/eventos/crear", `${ROUTES_PATH.events.create}`),
@@ -99,15 +100,15 @@ export default [
     route("/registros", `${ROUTES_PATH.registrations.list}`),
     route(
       "/registros/enviar-invitaciones/:id",
-      `${ROUTES_PATH.registrations.sendInvitations}`,
+      `${ROUTES_PATH.registrations.sendInvitations}`
     ),
     route(
       "/registros/delete-registration",
-      `${ROUTES_PATH.registrations.deleteRegistration}`,
+      `${ROUTES_PATH.registrations.deleteRegistration}`
     ),
     route(
       "/registros/resend-invite",
-      `${ROUTES_PATH.registrations.resendInvite}`,
+      `${ROUTES_PATH.registrations.resendInvite}`
     ),
 
     route("/crear-registro", `${ROUTES_PATH.guard.createRegister}`),
