@@ -35,7 +35,7 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
               ? "Modifica la información del usuario"
               : "Completa la información para crear un nuevo usuario"
           }
-          goBack={isEditing ? `/usuarios/ver/${defaultValues.id}` : "/usuarios"}
+          goBack={"/usuarios"}
         />
       </div>
       {/* Card principal */}

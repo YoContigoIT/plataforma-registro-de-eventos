@@ -1,20 +1,30 @@
+import { UserRole } from "@prisma/client";
 import { redirect } from "react-router";
-import type { Route } from "../routes/+types/user-by-id";
+import type { Route } from "../routes/+types/delete";
 
 export const deleteUserAction = async ({
-  request,
-  context: { repositories },
+  params,
+  context: { repositories, session },
 }: Route.ActionArgs) => {
   try {
-    // Obtener datos del body
-    const formData = await request.formData();
-    const userId = formData.get("id") as string;
-
+    const userId = session.get("user")?.id;
+    const userRole = session.get("user")?.role;
+    const userIdDelete = params.userId as string;
     if (!userId) {
-      return { success: false, error: "ID de usuario no proporcionado." };
+      return {
+        success: false,
+        error: "No se ha iniciado sesión",
+      };
     }
 
-    await repositories.userRepository.delete(userId);
+    if (!userRole || userRole !== UserRole.ADMIN) {
+      return {
+        success: false,
+        error: "No tienes permisos para archivar eventos",
+      };
+    }
+
+    await repositories.userRepository.delete(userIdDelete);
     return redirect("/usuarios");
   } catch (error) {
     console.error(error);
