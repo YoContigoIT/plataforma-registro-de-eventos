@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { RegistrationStatus } from "@prisma/client";
+import type { Registration, RegistrationStatus } from "@prisma/client";
 import {
   Briefcase,
   Building,
@@ -28,125 +28,139 @@ import {
   XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher } from "react-router";
 import { toast } from "sonner";
+import type { EventEntity } from "~/domain/entities/event.entity";
+import type { UserEntity } from "~/domain/entities/user.entity";
+import { getInitials } from "~/shared/lib/utils";
 import SignaturePad from "./signature-pad";
 
-export function VerifyRegistration() {
-  const loaderData = useLoaderData();
-  const { invite, event, user, qrCodeUrl } = loaderData?.data || {};
+interface VerifyProps {
+  invite: Registration;
+  event: EventEntity;
+  user: UserEntity;
+  qrCodeUrl: string;
+}
+
+const statusConfig: Record<
+  RegistrationStatus,
+  {
+    title: string;
+    message: string;
+    badge: string;
+    badgeVariant: "default" | "destructive" | "secondary";
+    icon: React.ElementType;
+    iconColor: string;
+    bgColor: string;
+    alert?: {
+      bg: string;
+      border: string;
+      title: string;
+      message: string;
+      titleColor: string;
+      messageColor: string;
+    };
+  }
+> = {
+  PENDING: {
+    title: "INVITACIÓN PENDIENTE",
+    message: "Aún no se ha confirmado la asistencia.",
+    badge: "Pendiente",
+    badgeVariant: "secondary",
+    icon: Clock,
+    iconColor: "text-yellow-500",
+    bgColor: "bg-yellow-100",
+    alert: {
+      bg: "bg-yellow-50",
+      border: "border-yellow-200",
+      title: "Invitación pendiente",
+      message: "Aún no se puede confirmar el acceso al evento.",
+      titleColor: "text-yellow-800",
+      messageColor: "text-yellow-600",
+    },
+  },
+  REGISTERED: {
+    title: "INVITACIÓN VÁLIDA",
+    message: "Puede ingresar al evento.",
+    badge: "Confirmado",
+    badgeVariant: "default",
+    icon: CheckCircle,
+    iconColor: "text-green-600",
+    bgColor: "bg-green-100",
+  },
+  WAITLISTED: {
+    title: "EN LISTA DE ESPERA",
+    message: "Su lugar depende de disponibilidad.",
+    badge: "Lista de espera",
+    badgeVariant: "secondary",
+    icon: HelpCircle,
+    iconColor: "text-blue-500",
+    bgColor: "bg-blue-100",
+    alert: {
+      bg: "bg-blue-50",
+      border: "border-blue-200",
+      title: "Lista de espera",
+      message: "Debe esperar a que se libere un lugar para acceder.",
+      titleColor: "text-blue-800",
+      messageColor: "text-blue-600",
+    },
+  },
+  CHECKED_IN: {
+    title: "YA REGISTRADO EN EL EVENTO",
+    message: "El usuario ya hizo check-in.",
+    badge: "Asistencia confirmada",
+    badgeVariant: "default",
+    icon: UserCheck,
+    iconColor: "text-green-500",
+    bgColor: "bg-green-100",
+  },
+  CANCELLED: {
+    title: "REGISTRO CANCELADO",
+    message: "No puede ingresar al evento.",
+    badge: "Cancelado",
+    badgeVariant: "destructive",
+    icon: XCircle,
+    iconColor: "text-red-600",
+    bgColor: "bg-red-100",
+    alert: {
+      bg: "bg-red-50",
+      border: "border-red-200",
+      title: "Invitación no válida",
+      message: "No puede ingresar al evento con esta invitación.",
+      titleColor: "text-red-800",
+      messageColor: "text-red-600",
+    },
+  },
+  DECLINED: {
+    title: "INVITACIÓN RECHAZADA",
+    message: "El usuario declinó la invitación.",
+    badge: "Rechazado",
+    badgeVariant: "destructive",
+    icon: UserX,
+    iconColor: "text-red-500",
+    bgColor: "bg-red-100",
+    alert: {
+      bg: "bg-red-50",
+      border: "border-red-200",
+      title: "Invitación rechazada",
+      message: "El usuario declinó esta invitación y no puede ingresar.",
+      titleColor: "text-red-800",
+      messageColor: "text-red-600",
+    },
+  },
+};
+
+export function VerifyRegistration({
+  invite,
+  event,
+  user,
+  qrCodeUrl,
+}: VerifyProps) {
   const fetcher = useFetcher();
 
   const [signatureData, setSignatureData] = useState<string | null>(null);
   const handleSignatureChange = (data: string | null) => {
     setSignatureData(data);
-  };
-  const statusConfig: Record<
-    RegistrationStatus,
-    {
-      title: string;
-      message: string;
-      badge: string;
-      badgeVariant: "default" | "destructive" | "secondary";
-      icon: React.ElementType;
-      iconColor: string;
-      bgColor: string;
-      alert?: {
-        bg: string;
-        border: string;
-        title: string;
-        message: string;
-        titleColor: string;
-        messageColor: string;
-      };
-    }
-  > = {
-    PENDING: {
-      title: "INVITACIÓN PENDIENTE",
-      message: "Aún no se ha confirmado la asistencia.",
-      badge: "Pendiente",
-      badgeVariant: "secondary",
-      icon: Clock,
-      iconColor: "text-yellow-500",
-      bgColor: "bg-yellow-100",
-      alert: {
-        bg: "bg-yellow-50",
-        border: "border-yellow-200",
-        title: "Invitación pendiente",
-        message: "Aún no se puede confirmar el acceso al evento.",
-        titleColor: "text-yellow-800",
-        messageColor: "text-yellow-600",
-      },
-    },
-    REGISTERED: {
-      title: "INVITACIÓN VÁLIDA",
-      message: "Puede ingresar al evento.",
-      badge: "Confirmado",
-      badgeVariant: "default",
-      icon: CheckCircle,
-      iconColor: "text-green-600",
-      bgColor: "bg-green-100",
-    },
-    WAITLISTED: {
-      title: "EN LISTA DE ESPERA",
-      message: "Su lugar depende de disponibilidad.",
-      badge: "Lista de espera",
-      badgeVariant: "secondary",
-      icon: HelpCircle,
-      iconColor: "text-blue-500",
-      bgColor: "bg-blue-100",
-      alert: {
-        bg: "bg-blue-50",
-        border: "border-blue-200",
-        title: "Lista de espera",
-        message: "Debe esperar a que se libere un lugar para acceder.",
-        titleColor: "text-blue-800",
-        messageColor: "text-blue-600",
-      },
-    },
-    CHECKED_IN: {
-      title: "YA REGISTRADO EN EL EVENTO",
-      message: "El usuario ya hizo check-in.",
-      badge: "Asistencia confirmada",
-      badgeVariant: "default",
-      icon: UserCheck,
-      iconColor: "text-green-500",
-      bgColor: "bg-green-100",
-    },
-    CANCELLED: {
-      title: "REGISTRO CANCELADO",
-      message: "No puede ingresar al evento.",
-      badge: "Cancelado",
-      badgeVariant: "destructive",
-      icon: XCircle,
-      iconColor: "text-red-600",
-      bgColor: "bg-red-100",
-      alert: {
-        bg: "bg-red-50",
-        border: "border-red-200",
-        title: "Invitación no válida",
-        message: "No puede ingresar al evento con esta invitación.",
-        titleColor: "text-red-800",
-        messageColor: "text-red-600",
-      },
-    },
-    DECLINED: {
-      title: "INVITACIÓN RECHAZADA",
-      message: "El usuario declinó la invitación.",
-      badge: "Rechazado",
-      badgeVariant: "destructive",
-      icon: UserX,
-      iconColor: "text-red-500",
-      bgColor: "bg-red-100",
-      alert: {
-        bg: "bg-red-50",
-        border: "border-red-200",
-        title: "Invitación rechazada",
-        message: "El usuario declinó esta invitación y no puede ingresar.",
-        titleColor: "text-red-800",
-        messageColor: "text-red-600",
-      },
-    },
   };
 
   const {
@@ -192,18 +206,8 @@ export function VerifyRegistration() {
     };
   };
 
-  const eventDate = formatDateTime(event.start_date);
-  const eventEndTime = formatDateTime(event.end_date).time;
-
-  // Generar iniciales para el avatar
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  const eventDate = formatDateTime(event.start_date.toISOString());
+  const eventEndTime = formatDateTime(event.end_date.toISOString()).time;
 
   const handleCheckIn = () => {
     if (event.requiresSignature && !signatureData)
@@ -212,7 +216,7 @@ export function VerifyRegistration() {
       { signature: signatureData },
       {
         method: "post",
-        action: `/verificar-registro/${invite.qrCode}`,
+        action: `/api/check-in/${invite.qrCode}`,
       }
     );
   };
@@ -277,7 +281,7 @@ export function VerifyRegistration() {
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-14 w-14 border-2 border-blue-100">
                     <AvatarFallback className="bg-blue-100 text-blue-700 text-lg font-semibold">
-                      {getInitials(user.name)}
+                      {getInitials(user.name || "Invitado")}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
@@ -441,8 +445,15 @@ export function VerifyRegistration() {
                       </span>
                     </div>
                     <p className="text-green-700 text-sm mt-1">
-                      {formatDateTime(invite.checkedInAt).date} a las{" "}
-                      {formatDateTime(invite.checkedInAt).time}
+                      {
+                        formatDateTime(invite.checkedInAt?.toISOString() || "")
+                          .date
+                      }{" "}
+                      a las{" "}
+                      {
+                        formatDateTime(invite.checkedInAt?.toISOString() || "")
+                          .time
+                      }
                     </p>
                   </div>
                 )}
@@ -452,7 +463,10 @@ export function VerifyRegistration() {
                     Fecha de registro
                   </p>
                   <p className="text-slate-700">
-                    {formatDateTime(invite.registeredAt).date}
+                    {
+                      formatDateTime(invite.registeredAt?.toISOString() || "")
+                        .date
+                    }
                   </p>
                 </div>
 
@@ -460,7 +474,7 @@ export function VerifyRegistration() {
                   <SignaturePad
                     onSignatureChange={handleSignatureChange}
                     inviteStatus={invite.status}
-                    iniviteCheckedInAt={invite.checkedInAt}
+                    iniviteCheckedInAt={invite.checkedInAt || undefined}
                   />
                 )}
               </CardContent>

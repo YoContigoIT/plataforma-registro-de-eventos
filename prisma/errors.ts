@@ -13,6 +13,7 @@ export const clientPrismaErrors: Record<string, string> = {
     "No se puede eliminar este registro porque está siendo usado en otro lugar.",
   P2005: "Uno de los valores ingresados no es válido.",
   P2006: "Los datos proporcionados no son válidos.",
+  P2028: "Tiempo de espera de la transacción excedido. Por favor, intenta de nuevo.",
   P2011: "Falta información requerida.",
   P2012: "Por favor, completa todos los campos obligatorios.",
   P2014: "Esta acción no es posible debido a registros relacionados.",

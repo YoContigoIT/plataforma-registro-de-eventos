@@ -1,57 +1,48 @@
+import { Key, Loader2, Mail, UserCircle } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
-  Briefcase,
-  Key,
-  Loader2,
-  Mail,
-  Shield,
-  UserCircle,
-} from "lucide-react";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
 import { Form } from "react-router";
+import { useUserForm } from "~/presentation/usuarios/hooks/use-create-user-form.hook";
 import { FormField } from "~/shared/components/common/form-field";
-import { PageHeader } from "~/shared/components/common/page-header";
-import { PasswordInput } from "~/shared/components/common/password-input";
 import { SelectInput } from "~/shared/components/common/select-input";
 import { TextInput } from "~/shared/components/common/text-input";
-import { Button } from "~/shared/components/ui/button";
-import { Card, CardContent } from "~/shared/components/ui/card";
-import { useUserForm } from "../../hooks/use-create-user-form.hook";
-interface UserFormProps {
-  isEditing?: boolean;
-  actionUrl: string;
-}
+import { ResetPasswordForm } from "./forms/reset-password-form";
 
-export function UserForm({ isEditing, actionUrl }: UserFormProps) {
+export default function ProfileContent() {
   const { isSubmitting, errors, handleInputChange, defaultValues } =
-    useUserForm(isEditing);
-
+    useUserForm(true);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   return (
-    <div className="max-w-full mx-auto">
-      {/* Header */}
-      <div className="flex items-center mb-6">
-        <PageHeader
-          title={isEditing ? "Editar usuario" : "Crear usuario"}
-          description={
-            isEditing
-              ? "Modifica la información del usuario"
-              : "Completa la información para crear un nuevo usuario"
-          }
-          goBack={"/usuarios"}
-        />
-      </div>
-      {/* Card principal */}
-      <Card className="w-full max-w-full shadow-xl relative z-10">
-        <CardContent className="space-y-8">
-          {/* Información personal */}
-          <Form method="post" action={actionUrl}>
-            <div className="flex items-start gap-4">
-              <div className="bg-primary/10 p-3 rounded-lg">
-                <UserCircle className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-4">
-                  Información personal
-                </h3>
-                <div className="grid gap-5 md:grid-cols-2">
+    <Tabs defaultValue="personal" className="space-y-6">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="personal">Personal</TabsTrigger>
+        <TabsTrigger value="security">Seguridad</TabsTrigger>
+      </TabsList>
+
+      {/* Personal Information */}
+      <TabsContent value="personal" className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Información personal</CardTitle>
+            <CardDescription>
+              Actualice sus datos personales e información de perfil.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <Form method="post" replace>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="space-y-2">
                   <FormField id="name" error={errors?.name}>
                     <TextInput
                       defaultValue={defaultValues.name || ""}
@@ -73,7 +64,8 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
                       aria-describedby={errors?.name ? "name-error" : undefined}
                     />
                   </FormField>
-
+                </div>
+                <div className="space-y-2">
                   <FormField id="email" error={errors?.email}>
                     <TextInput
                       defaultValue={defaultValues.email || ""}
@@ -95,19 +87,7 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
                     />
                   </FormField>
                 </div>
-              </div>
-            </div>
-
-            {/* Información laboral */}
-            <div className="flex items-start gap-4">
-              <div className="bg-primary/10 p-3 rounded-lg">
-                <Briefcase className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-4">
-                  Información laboral
-                </h3>
-                <div className="grid gap-5 md:grid-cols-2">
+                <div className="space-y-2">
                   <FormField id="company" error={errors?.company}>
                     <TextInput
                       defaultValue={defaultValues.company || ""}
@@ -124,7 +104,8 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
                       }
                     />
                   </FormField>
-
+                </div>
+                <div className="space-y-2">
                   <FormField id="title" error={errors?.title}>
                     <TextInput
                       defaultValue={defaultValues.title || ""}
@@ -141,7 +122,8 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
                       }
                     />
                   </FormField>
-
+                </div>
+                <div className="space-y-2">
                   <FormField id="phone" error={errors?.phone}>
                     <TextInput
                       defaultValue={defaultValues.phone || ""}
@@ -160,19 +142,7 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
                     />
                   </FormField>
                 </div>
-              </div>
-            </div>
-
-            {/* Permisos y contraseña */}
-            <div className="flex items-start gap-4">
-              <div className="bg-primary/10 p-3 rounded-lg">
-                <Shield className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-4">
-                  Permisos y acceso
-                </h3>
-                <div className="grid gap-5">
+                <div className="space-y-2">
                   <FormField id="role" error={errors?.role}>
                     <SelectInput
                       label="Rol"
@@ -195,50 +165,79 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
                       Selecciona el nivel de acceso adecuado para este usuario
                     </p>
                   </FormField>
-
-                  {!isEditing && (
-                    <FormField id="password" error={errors?.password}>
-                      <PasswordInput
-                        name="password"
-                        label="Contraseña"
-                        placeholder="Escribe una contraseña segura"
-                        autoComplete="new-password"
-                        icon={
-                          <Key size={20} className="text-muted-foreground" />
-                        }
-                        required
-                      />
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        La contraseña debe tener al menos 8 caracteres,
-                        incluyendo mayúsculas, minúsculas y números
-                      </p>
-                    </FormField>
-                  )}
                 </div>
               </div>
-            </div>
+              <div className="flex justify-end pt-6 border-t border-border gap-3">
+                <Button
+                  type="submit"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {"Guardando cambios..."}
+                    </>
+                  ) : (
+                    "Guardar cambios"
+                  )}
+                </Button>
+              </div>
+            </Form>
+          </CardContent>
+        </Card>
+      </TabsContent>
 
-            {/* Botones de acción */}
-            <div className="flex justify-end pt-6 border-t border-border gap-3">
-              <Button
-                type="submit"
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
+      {/* Security Settings */}
+      <TabsContent value="security" className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Configuración de seguridad</CardTitle>
+            <CardDescription>
+              Administre la seguridad y autenticación de su cuenta.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label className="text-base">Contraseña</Label>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPasswordForm(!showPasswordForm)}
+                >
+                  <Key className="mr-2 h-4 w-4" />
+                  {showPasswordForm ? "Cancelar" : "Cambiar contraseña"}
+                </Button>
+              </div>
+              <div
+                className={`transition-all duration-300 overflow-hidden ${
+                  showPasswordForm
+                    ? "max-h-96 opacity-100"
+                    : "max-h-0 opacity-0"
+                }`}
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isEditing ? "Guardando cambios..." : "Creando usuario..."}
-                  </>
-                ) : isEditing ? (
-                  "Guardar cambios"
-                ) : (
-                  "Crear usuario"
-                )}
-              </Button>
+                <ResetPasswordForm />
+              </div>
+
+              <Separator />
+              {/* TODO: Implementar cuando esten las sesion */}
+              {/* <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label className="text-base">Sesiones activas</Label>
+                  <p className="text-muted-foreground text-sm">
+                    Administrar dispositivos que están conectados a su cuenta
+                  </p>
+                </div>
+                <Button variant="outline">
+                  <Shield className="mr-2 h-4 w-4" />
+                  Administrar sesiones
+                </Button>
+              </div> */}
             </div>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 }

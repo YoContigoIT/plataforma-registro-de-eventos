@@ -33,7 +33,6 @@ export function EmailImport() {
     const file = e.target.files?.[0];
     if (!file) return;
     const emails = await extractEmailsFromExcel(file);
-    console.log("Emails:", emails);
   }
 
   return <input type="file" accept=".xlsx,.xls" onChange={onFileChange} />;

@@ -6,7 +6,7 @@ import {
 } from "~/infrastructure/auth/session.service";
 import type { Route } from "../../presentation/+types/layout";
 
-const PUBLIC_ROUTES = ["/iniciar-sesion", "/registro", "/", "/inicio"];
+const PUBLIC_ROUTES = ["/iniciar-sesion", "/registro", "/", ];
 
 const ROLE_PROTECTED_ROUTES: Record<UserRole, string[]> = {
   [UserRole.ADMIN]: [
