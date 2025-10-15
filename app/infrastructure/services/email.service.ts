@@ -133,8 +133,6 @@ export const EmailService = (): IEmailService => ({
     registrationData: RegistrationConfirmationEmailDto
   ): Promise<EmailResponse> => {
     try {
-      console.log(registrationData);
-
       const subject = `Confirmación de registro - ${registrationData.eventName}`;
 
       const htmlTemplate =

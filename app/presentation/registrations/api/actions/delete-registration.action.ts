@@ -47,6 +47,7 @@ export const deleteRegistrationAction = async ({
 
   try {
     await runInTransaction(async () => {
+      console.log(registrationIds);
       for (const registrationId of registrationIds) {
         const registration =
           await repositories.registrationRepository.findOne(registrationId);
@@ -109,7 +110,7 @@ export const deleteRegistrationAction = async ({
           });
         }
       }
-    });
+    }, { timeout: 10000 });
 
     return {
       success: true,

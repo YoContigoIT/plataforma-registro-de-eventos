@@ -6,13 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/card";
-import { FileSpreadsheet, Loader2, Mail, Send, Upload } from "lucide-react";
+import { Loader2, Mail, Send, Upload } from "lucide-react";
 import { useId, useState } from "react";
 import { Form, Link } from "react-router";
 import { toast } from "sonner";
 import { sendInvitationsSchema } from "~/domain/dtos/invitation.dto";
 import { FormField } from "~/shared/components/common/form-field";
 import { Input } from "~/shared/components/ui/input";
+import { Label } from "~/shared/components/ui/label";
 import { useExcelEmailExtractor } from "~/shared/hooks/use-excel-email-extractor.hook";
 import { useFormAction } from "~/shared/hooks/use-form-action.hook";
 import { EmailTagsInput } from "../../events/components/forms/email-tags-input";
@@ -82,61 +83,71 @@ export function InvitationForm({ eventId, eventName }: InvitationFormProps) {
           <input type="hidden" name="eventId" value={eventId} />
 
           <FormField id={emailsId} error={errors.emails}>
-            <EmailTagsInput
-              id={emailsId}
-              name="emails"
-              label="Correos electrónicos"
-              placeholder="ejemplo@correo.com, otro@correo.com"
-              required
-              disabled={isSubmitting || isProcessingFile}
-              value={emails}
-              onChange={setEmails}
-              aria-invalid={Boolean(errors?.emails)}
-              aria-describedby={errors?.emails ? "emails-error" : undefined}
-            />
+            <div className="space-y-2">
+              <div className="flex flex-col md:flex-row items-start gap-4">
+                <div className="flex-1 w-full">
+                  <EmailTagsInput
+                    id={emailsId}
+                    name="emails"
+                    label="Correos electrónicos"
+                    placeholder="ejemplo@correo.com, otro@correo.com"
+                    required
+                    disabled={isSubmitting || isProcessingFile}
+                    value={emails}
+                    onChange={setEmails}
+                    aria-invalid={Boolean(errors?.emails)}
+                    aria-describedby={
+                      errors?.emails ? "emails-error" : undefined
+                    }
+                  />
+                </div>
+                {/* <div className="w-full text-center text-muted-foreground md:hidden">
+                  O también
+                </div> */}
+                <div className="flex flex-col gap-2 w-full md:w-auto">
+                  <Label className="hidden md:inline">
+                    O importar desde Excel
+                  </Label>
+                  <Input
+                    type="file"
+                    id={fileInputId}
+                    className="hidden"
+                    accept=".xlsx,.xls"
+                    onChange={handleFileChange}
+                    disabled={isSubmitting || isProcessingFile}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() =>
+                      document.getElementById(fileInputId)?.click()
+                    }
+                    disabled={isSubmitting || isProcessingFile}
+                    className="whitespace-nowrap"
+                  >
+                    {isProcessingFile ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <span className="hidden sm:inline">Procesando...</span>
+                        <span className="md:hidden">...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        <span className="hidden sm:inline">
+                          Seleccionar archivo
+                        </span>
+                        <span className="md:hidden">Importar desde Excel</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Formatos soportados: .xlsx, .xls
+              </p>
+            </div>
           </FormField>
-
-          {/* Excel file upload */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <FileSpreadsheet className="h-4 w-4" />
-              <span className="text-sm font-medium">
-                Importar correos desde Excel
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Input
-                type="file"
-                id={fileInputId}
-                className="hidden"
-                accept=".xlsx,.xls"
-                onChange={handleFileChange}
-                disabled={isSubmitting || isProcessingFile}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => document.getElementById(fileInputId)?.click()}
-                disabled={isSubmitting || isProcessingFile}
-              >
-                {isProcessingFile ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Procesando...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Seleccionar archivo
-                  </>
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Formatos soportados: .xlsx, .xls
-            </p>
-          </div>
 
           {/* Custom message */}
           <FormField id={messageId} error={errors.message}>
