@@ -56,6 +56,10 @@ const ROUTES_PATH = {
       "presentation/guards/routes/actions/update-registration.action.tsx",
     checkInAction: "presentation/guards/routes/actions/check-in.action.tsx",
   },
+  profile: {
+    profile: "presentation/profile/routes/profile.tsx",
+    resetPassword: "presentation/profile/routes/reset-password.ts",
+  },
 };
 
 export default [
@@ -113,5 +117,7 @@ export default [
 
     route("/crear-registro", `${ROUTES_PATH.guard.createRegister}`),
     route("/actualizar-registro", `${ROUTES_PATH.guard.updateRegiter}`),
+    route("/perfil", `${ROUTES_PATH.profile.profile}`),
+    route("/cambiar-contrasenia", `${ROUTES_PATH.profile.resetPassword}`),
   ]),
 ] satisfies RouteConfig;
