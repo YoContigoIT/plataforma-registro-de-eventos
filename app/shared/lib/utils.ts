@@ -89,10 +89,7 @@ export function formatCurrency(amount: number): string {
 }
 
 // Re-export badge utilities for backward compatibility
-export {
-  getSessionStatusBadge,
-  getUserRoleBadge
-} from "./badge-utils";
+export { getSessionStatusBadge, getUserRoleBadge } from "./badge-utils";
 
 // Legacy function for backward compatibility - deprecated
 export function getRoleBadgeVariant(rol: string): string {
@@ -155,7 +152,7 @@ export function formatDateShortTemporal(date: Date | string): string {
 
 // Parse date string safely using Temporal API
 export function parseDate(
-  dateString: string | undefined | null,
+  dateString: string | undefined | null
 ): Date | undefined {
   if (!dateString || dateString === "") {
     return undefined;
@@ -207,7 +204,7 @@ export interface WhereClauseConfig {
  */
 export function buildWhereClause(
   searchTerm?: string,
-  config: WhereClauseConfig = {},
+  config: WhereClauseConfig = {}
 ): Record<string, unknown> {
   const where: Record<string, unknown> = {};
 
@@ -293,7 +290,7 @@ export function buildWhereClause(
 export function calculatePaginationInfo(
   page: number,
   limit: number,
-  totalItems: number,
+  totalItems: number
 ) {
   const totalPages = Math.ceil(totalItems / limit);
 
@@ -306,7 +303,7 @@ export function calculatePaginationInfo(
 }
 
 export function simplifyZodErrors<T>(
-  error: ZodError<T>,
+  error: ZodError<T>
 ): Record<string, string[]> {
   const errors: Record<string, string[]> = {};
   if (error.issues) {
@@ -322,7 +319,7 @@ export function simplifyZodErrors<T>(
 }
 // Formatear iniciales del user
 export function getUserInitials(
-  user: Partial<UserEntity> | Omit<UserEntity, "password">,
+  user: Partial<UserEntity> | Omit<UserEntity, "password">
 ): string {
   if (!user.name) {
     return "NN"; // Nombre no disponible
@@ -338,7 +335,7 @@ export function getUserInitials(
 
 //Funcion para formatear nombre del user
 export function formatName(
-  user: Partial<UserEntity> | Omit<UserEntity, "password">,
+  user: Partial<UserEntity> | Omit<UserEntity, "password">
 ): string {
   if (!user) {
     return "No hay información del usuario";
@@ -411,14 +408,14 @@ export function encodeInvitationData(userId: string, eventId: string): string {
 
   // Encode data + timestamp + hash together
   const payload = Buffer.from(`${data}:${timestamp}:${hash}`).toString(
-    "base64url",
+    "base64url"
   );
   return payload;
 }
 
 // Decode and verify invitation data
 export function decodeInvitationData(
-  encodedData: string,
+  encodedData: string
 ): { userId: string; eventId: string } | null {
   try {
     const secret = process.env.INVITATION_SECRET || "default-secret-key";
@@ -552,7 +549,6 @@ export const copyToClipboard = async (text: string, label: string) => {
   }
 };
 
-
 export function classifyInvitationToken(token: string): TokenClassification {
   const decoded = decodeInvitationData(token);
   if (decoded) {
@@ -560,3 +556,12 @@ export function classifyInvitationToken(token: string): TokenClassification {
   }
   return { type: "public" };
 }
+// Generar iniciales para el avatar
+export const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
