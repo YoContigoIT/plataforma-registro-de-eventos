@@ -57,7 +57,7 @@ export const createEventSchema = z
     isPublic: z.boolean().default(false),
   requiresSignature: z.boolean().default(false),
   publicInviteToken: z.string().trim().nullable().optional(),
-  regeneratePublicInviteToken: z.boolean().default(false),
+  regeneratePublicInviteToken: z.boolean().default(false).optional(),
   formFields: z.array(createFormFieldSchema).nullable().optional(),
   })
   .refine((data) => data.end_date >= data.start_date, {
