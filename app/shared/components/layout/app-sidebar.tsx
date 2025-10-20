@@ -1,5 +1,5 @@
 import { UserRole } from "@prisma/client";
-import { MonitorCog, PartyPopper, Users } from "lucide-react";
+import { MonitorCog, PartyPopper, UserCircle, Users } from "lucide-react";
 import type * as React from "react";
 import { Link, useLocation } from "react-router";
 import type { UserEntity } from "~/domain/entities/user.entity";
@@ -54,22 +54,23 @@ const navMenu: NavSection[] = [
       },
     ],
   },
-  /* {
+  {
     title: "Configuración",
     items: [
       {
         title: "Perfil",
         url: "/perfil",
         icon: UserCircle,
+        roles: [UserRole.ADMIN, UserRole.ORGANIZER, UserRole.GUARD],
       },
-      {
-        title: "Sesiones",
-        url: "/sesiones",
-        icon: Shield,
-        roles: [UserRole.ADMIN],
-      },
+      // {
+      //   title: "Sesiones",
+      //   url: "/sesiones",
+      //   icon: Shield,
+      //   roles: [UserRole.ADMIN],
+      // },
     ],
-  }, */
+  },
 ];
 
 const hasAccess = (userRole: UserRole, allowedRoles?: UserRole[]): boolean => {

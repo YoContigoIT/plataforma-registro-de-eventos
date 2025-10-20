@@ -32,6 +32,7 @@ import { useFetcher } from "react-router";
 import { toast } from "sonner";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import type { UserEntity } from "~/domain/entities/user.entity";
+import { getInitials } from "~/shared/lib/utils";
 import SignaturePad from "./signature-pad";
 
 interface VerifyProps {
@@ -207,16 +208,6 @@ export function VerifyRegistration({
 
   const eventDate = formatDateTime(event.start_date.toISOString());
   const eventEndTime = formatDateTime(event.end_date.toISOString()).time;
-
-  // Generar iniciales para el avatar
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
 
   const handleCheckIn = () => {
     if (event.requiresSignature && !signatureData)

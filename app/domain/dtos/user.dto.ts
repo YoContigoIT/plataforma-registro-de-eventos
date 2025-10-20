@@ -30,18 +30,22 @@ export const createUserSchema = z.object({
 
 export const updateUserSchema = createUserSchema.partial();
 
-export const changePasswordSchema = z.object({
-  currentPassword: z
-    .string({
-      error: "La contraseña actual es requerida.",
-    })
-    .trim(),
-  newPassword: z
-    .string({
-      error: "La nueva contraseña es requerida.",
-    })
-    .trim(),
-});
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z
+      .string({ error: "La contraseña actual es requerida." })
+      .trim(),
+    newPassword: z
+      .string({ error: "La nueva contraseña es requerida." })
+      .trim(),
+    confirmPassword: z
+      .string({ error: "Debes confirmar tu nueva contraseña." })
+      .trim(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Las contraseñas no coinciden.",
+    path: ["confirmPassword"],
+  });
 
 export const createGuestSchema = createUserSchema.extend({
   eventId: z.string({
