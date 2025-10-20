@@ -28,6 +28,10 @@ const ROLE_PROTECTED_ROUTES: Record<UserRole, string[]> = {
   ],
   [UserRole.ORGANIZER]: [
     "/panel",
+    "/usuarios",
+    "/usuarios/crear",
+    "/usuarios/:id",
+    "/usuarios/:id/actualizar",
     "/eventos",
     "/eventos/crear",
     "/eventos/:id",
