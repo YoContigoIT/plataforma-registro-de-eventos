@@ -81,7 +81,7 @@ export const createEventAction = async ({
   }
 
   try {
-    const { formFields, ...eventData } = data;
+    const { formFields, regeneratePublicInviteToken, ...eventData } = data;
 
     //we need a unique public invite token if the event is public
     let publicInviteToken: string | undefined;
