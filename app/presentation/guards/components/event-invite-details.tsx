@@ -33,7 +33,7 @@ export default function InviteDetailsPage({ event }: { event: EventEntity }) {
             </Badge> */}
           </div>
 
-          <h1 className="mb-6 text-5xl font-bold leading-tight text-primary-foreground">
+          <h1 className="mb-6 text-5xl foknt-bold leading-tight text-primary-foreground">
             {event.name}
           </h1>
           <p className="mb-8 max-w-2xl text-xl text-primary-foreground/90">
