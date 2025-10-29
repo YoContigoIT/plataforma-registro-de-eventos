@@ -51,7 +51,7 @@ export function RegistrationForm({
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    quantity: 0,
+    quantity: event.maxTickets === 1 ? 1 : 0,
   });
 
   useEffect(() => {
@@ -64,6 +64,13 @@ export function RegistrationForm({
       }
     }
   }, [user]);
+
+  useEffect(() => {
+    if (event?.maxTickets === 1) {
+      setTouchedFields((prev) => ({ ...prev, quantity: true }));
+      setFormData((prev) => ({ ...prev, quantity: 1 }));
+    }
+  }, [event?.maxTickets]);
 
   const handleFieldBlur = (fieldName: string) => {
     setTouchedFields((prev) => ({ ...prev, [fieldName]: true }));
@@ -238,12 +245,10 @@ export function RegistrationForm({
                 placeholder="Seleccione cantidad"
                 name="quantity"
                 required
+                defaultValue={event.maxTickets === 1 ? "1" : undefined}
                 options={Array.from(
                   {
-                    length: Math.min(
-                      event.maxTickets || 5,
-                      event.capacity || 5
-                    ),
+                    length: Math.min(event.maxTickets || 5, event.capacity || 5),
                   },
                   (_, index) => ({
                     value: (index + 1).toString(),

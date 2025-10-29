@@ -4,6 +4,7 @@ export interface ActionData {
   message?: string;
   redirectTo?: string;
   errors?: Record<string, string[]>;
+  data?: Record<string, unknown>;
 }
 
 export interface LoaderData<T> {

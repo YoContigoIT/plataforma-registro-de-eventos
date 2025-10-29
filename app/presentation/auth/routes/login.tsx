@@ -40,7 +40,7 @@ export default function LoginPage() {
             className="w-full h-full object-cover absolute"
           />
 
-          <Card className="w-full max-w-lg shadow-xl relative z-10">
+          <Card className="bg-background/85 backdrop-blur-sm w-full max-w-lg shadow-xl relative z-10">
             <CardHeader>
               <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Gestión de eventos simplificada
