@@ -4,7 +4,7 @@ import {
   simplifyZodErrors,
 } from "@/shared/lib/utils";
 import { EventStatus } from "@prisma/client";
-import { updateFormFieldSchema } from "~/domain/dtos/event-form.dto";
+import { createFormFieldSchema } from "~/domain/dtos/event-form.dto";
 import { createEventSchema } from "~/domain/dtos/event.dto";
 import { handleServiceError } from "~/shared/lib/error-handler";
 import type { ActionData } from "~/shared/types";
@@ -42,9 +42,9 @@ export const createEventAction = async ({
           return null;
         }
 
-        const validatedFields = [];
-        for (const [field] of parsed.entries()) {
-          const result = updateFormFieldSchema.safeParse(field);
+        const validatedFields: Array<unknown> = [];
+        for (const field of parsed) {
+          const result = createFormFieldSchema.safeParse(field);
           if (!result.success) {
             return null;
           }
@@ -60,6 +60,8 @@ export const createEventAction = async ({
       ? Number(formData.capacity)
       : undefined,
   };
+
+  console.log(parsedData);
 
   const { data, success, error } = createEventSchema.safeParse(parsedData);
 
