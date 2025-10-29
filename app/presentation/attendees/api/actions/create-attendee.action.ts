@@ -173,10 +173,16 @@ export const createAttendeeAction = async ({
       ticketsQuantity: registration.purchasedTickets || 0,
     });
 
+    // Verificar si el evento no tiene formulario activo con campos
+    const eventForm = await repositories.eventFormRepository.findByEventId(eventId);
+    const shouldRedirectToSuccess =
+      !eventForm || eventForm.isActive !== true || (eventForm.fields?.length ?? 0) === 0;
+  
     return {
       success: true,
       message: "Asistente registrado exitosamente.",
       data: { registrationId: registration.id },
+      redirectTo: shouldRedirectToSuccess ? "/registro-exitoso" : undefined,
     };
   } catch (error) {
     return handleServiceError(error, "Error al registrar el asistente.");
