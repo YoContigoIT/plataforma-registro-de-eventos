@@ -12,16 +12,17 @@ import type { InvitationData } from "../../api/loaders/get-invitation-data.loade
 import { EventDetailsPanel } from "./event-details-panel";
 import { RegistrationForm } from "./registration-form";
 
+// Top-level: reordenar STEPS para que Registro sea primero
 const STEPS = [
-  {
-    id: "event-form",
-    title: "Formulario del evento",
-    description: "Completa la información específica del evento",
-  },
   {
     id: "registration",
     title: "Registro",
     description: "Completa los detalles de tu registro",
+  },
+  {
+    id: "event-form",
+    title: "Formulario del evento",
+    description: "Completa la información específica del evento",
   },
 ];
 
@@ -37,10 +38,11 @@ export function RegistrationFormHandler() {
     token,
   } = loaderData.data || {};
   const [showEventDetails, setShowEventDetails] = useState(true);
-  const [currentStep, setCurrentStep] = useState(hasResponse ? 2 : 1);
+  const [currentStep, setCurrentStep] = useState(1);
   const [formResponseCompleted, setFormResponseCompleted] = useState(
     hasResponse || false
   );
+  const [registrationCompleted, setRegistrationCompleted] = useState(false);
 
   const hasEventForm =
     !!eventForm &&
@@ -59,7 +61,11 @@ export function RegistrationFormHandler() {
     fetcher: registrationFetcher,
     isSubmitting: isRegistrationSubmitting,
     handleInputChange: handleRegistrationInput,
+    isSuccess: registrationSuccess,
+    data: registrationData,
   } = useFetcherForm({ zodSchema: createUserSchema });
+
+  const [resolvedRegistrationId, setResolvedRegistrationId] = useState<string | null>(registrationId ?? null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <not needed>
   useEffect(() => {
@@ -68,6 +74,19 @@ export function RegistrationFormHandler() {
       handleNextStep();
     }
   }, [formResponseSuccess, formResponseData]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <not needed>
+  useEffect(() => {
+    if (registrationSuccess) {
+      const newId =
+        (registrationData?.data as { registrationId?: string })?.registrationId ??
+        registrationId ??
+        null;
+      setResolvedRegistrationId(newId);
+      setRegistrationCompleted(true);
+      handleNextStep();
+    }
+  }, [registrationSuccess, registrationData]);
 
   const handleNextStep = () => {
     if (currentStep < STEPS.length) {
@@ -130,24 +149,6 @@ export function RegistrationFormHandler() {
           <div className="flex-1 min-h-[400px]">
             {currentStep === 1 && (
               <div>
-                {eventForm && (
-                  <formResponseFetcher.Form method="post" action={action}>
-                    <EventFormRenderer
-                      eventForm={eventForm}
-                      handleInputChange={handleFormResponseInput}
-                      registrationId={registrationId || undefined}
-                      defaultValues={formAnswers ?? undefined}
-                      formResponseId={formAnswers?.id}
-                      isUpdateForm={hasResponse}
-                      isSubmitting={isFormResponseSubmitting}
-                    />
-                  </formResponseFetcher.Form>
-                )}
-              </div>
-            )}
-
-            {currentStep === 2 && (
-              <div>
                 <RegistrationForm
                   event={event}
                   user={user || null}
@@ -156,6 +157,24 @@ export function RegistrationFormHandler() {
                   inviteToken={token}
                   handleInputChange={handleRegistrationInput}
                 />
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div>
+                {eventForm && (
+                  <formResponseFetcher.Form method="post" action={action}>
+                    <EventFormRenderer
+                      eventForm={eventForm}
+                      handleInputChange={handleFormResponseInput}
+                      registrationId={resolvedRegistrationId ?? undefined}
+                      defaultValues={formAnswers ?? undefined}
+                      formResponseId={formAnswers?.id}
+                      isUpdateForm={hasResponse}
+                      isSubmitting={isFormResponseSubmitting}
+                    />
+                  </formResponseFetcher.Form>
+                )}
               </div>
             )}
           </div>
@@ -178,13 +197,15 @@ export function RegistrationFormHandler() {
                 <Button
                   onClick={handleNextStep}
                   disabled={
-                    isFormResponseSubmitting ||
-                    (currentStep === 1 && !formResponseCompleted)
+                    (currentStep === 1 &&
+                      (isRegistrationSubmitting || !registrationCompleted)) ||
+                    (currentStep === 2 && isFormResponseSubmitting)
                   }
                   type="button"
                   size="lg"
                 >
-                  {isFormResponseSubmitting ? (
+                  {(currentStep === 1 && isRegistrationSubmitting) ||
+                  (currentStep === 2 && isFormResponseSubmitting) ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Enviando...

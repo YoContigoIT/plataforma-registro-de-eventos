@@ -9,7 +9,7 @@ export const createFormResponseAction = async ({
   try {
     const formData = await request.formData();
     const data = Object.fromEntries(formData);
-    
+
     const registrationId = data.registrationId as string;
     if (!registrationId) {
       return {
@@ -19,7 +19,8 @@ export const createFormResponseAction = async ({
     }
 
     // Check if registration exists
-    const registration = await repositories.registrationRepository.findOne(registrationId);
+    const registration =
+      await repositories.registrationRepository.findOne(registrationId);
     if (!registration) {
       return {
         success: false,
@@ -28,7 +29,10 @@ export const createFormResponseAction = async ({
     }
 
     // Check if form response already exists for this registration
-    const existingResponse = await repositories.formResponseRepository.findByRegistrationId(registrationId);
+    const existingResponse =
+      await repositories.formResponseRepository.findByRegistrationId(
+        registrationId,
+      );
     if (existingResponse) {
       return {
         success: false,
@@ -39,8 +43,8 @@ export const createFormResponseAction = async ({
     // Extract field responses from form data
     const fieldResponses = [];
     for (const [key, value] of Object.entries(data)) {
-      if (key.startsWith('field_')) {
-        const fieldId = key.replace('field_', '');
+      if (key.startsWith("field_")) {
+        const fieldId = key.replace("field_", "");
         fieldResponses.push({
           fieldId,
           value: value as any, // The DTO allows any type for value
@@ -61,17 +65,19 @@ export const createFormResponseAction = async ({
       };
     }
 
-    const formResponse = await repositories.formResponseRepository.create(result.data);
+    const formResponse = await repositories.formResponseRepository.create(
+      result.data,
+    );
 
     return {
       success: true,
       message: "Formulario enviado exitosamente.",
+      redirectTo: "/registro-exitoso",
       data: {
         responseId: formResponse.id,
         submittedAt: formResponse.submittedAt,
       },
     };
-
   } catch (error) {
     console.error("Error creating form response:", error);
     return {

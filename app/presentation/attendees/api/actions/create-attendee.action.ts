@@ -176,7 +176,7 @@ export const createAttendeeAction = async ({
     return {
       success: true,
       message: "Asistente registrado exitosamente.",
-      redirectTo: "/registro-exitoso",
+      data: { registrationId: registration.id },
     };
   } catch (error) {
     return handleServiceError(error, "Error al registrar el asistente.");
