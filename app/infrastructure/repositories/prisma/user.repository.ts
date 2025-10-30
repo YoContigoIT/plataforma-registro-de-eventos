@@ -1,11 +1,11 @@
 import { buildWhereClause, calculatePaginationInfo } from "@/shared/lib/utils";
 import type { PaginatedResponse } from "@/shared/types";
-import { UserRole, type Prisma, type PrismaClient } from "@prisma/client";
+import { type Prisma, type PrismaClient, UserRole } from "@prisma/client";
 import type { UserEntity } from "~/domain/entities/user.entity";
 import type { IUserRepository } from "~/domain/repositories/user.repository";
 
 export const PrismaUserRepository = (
-  prisma: PrismaClient
+  prisma: PrismaClient,
 ): IUserRepository => ({
   create: async (data) => {
     return await prisma.user.create({
@@ -14,7 +14,7 @@ export const PrismaUserRepository = (
   },
   findMany: async (
     { page, limit },
-    filters
+    filters,
   ): Promise<PaginatedResponse<UserEntity>> => {
     const offset = (page - 1) * limit;
 

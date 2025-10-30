@@ -145,7 +145,8 @@ export const authMiddleware = async ({
   context: { repositories, session, clientInfo },
 }: Route.LoaderArgs) => {
   const url = new URL(request.url);
-  const pathname = url.pathname;
+  const rawPathname = url.pathname;
+  const pathname = rawPathname.replace(/\/+$/, "") || "/";
 
   // Skip auth check for public routes
   if (PUBLIC_ROUTES.includes(pathname)) {
@@ -197,7 +198,10 @@ export const authMiddleware = async ({
 
     // Verify user has access to the route
     if (!hasRouteAccess(user.role, pathname)) {
-      return redirect("/panel");
+      // Evita redirect redundante si ya estás en /panel
+      if (pathname !== "/panel") {
+        return redirect("/panel");
+      }
     }
 
     return { user };
