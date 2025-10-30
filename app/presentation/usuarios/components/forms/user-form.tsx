@@ -15,6 +15,7 @@ import { TextInput } from "~/shared/components/common/text-input";
 import { Button } from "~/shared/components/ui/button";
 import { Card, CardContent } from "~/shared/components/ui/card";
 import { useUserForm } from "../../hooks/use-create-user-form.hook";
+
 interface UserFormProps {
   isEditing?: boolean;
   actionUrl: string;
@@ -178,7 +179,6 @@ export function UserForm({ isEditing, actionUrl }: UserFormProps) {
                       label="Rol"
                       required
                       options={[
-                        { label: "Asistente", value: "ATTENDEE" },
                         { label: "Organizador", value: "ORGANIZER" },
                         { label: "Administrador", value: "ADMIN" },
                         { label: "Guardia", value: "GUARD" },

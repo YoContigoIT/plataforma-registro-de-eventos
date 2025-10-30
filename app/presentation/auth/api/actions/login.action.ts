@@ -2,8 +2,8 @@ import type { Route as RouteLogin } from ".react-router/types/app/presentation/a
 import { redirect } from "react-router";
 import { loginSchema } from "~/domain/dtos/auth.dto";
 import {
-    commitSession,
-    getSession
+  commitSession,
+  getSession,
 } from "~/infrastructure/auth/session.service";
 
 export const loginAction = async ({
@@ -25,6 +25,12 @@ export const loginAction = async ({
   if (!user || !user.password) {
     return {
       error: "Credenciales incorrectas",
+    };
+  }
+
+  if (user.archived) {
+    return {
+      error: "El usuario no está activo",
     };
   }
 

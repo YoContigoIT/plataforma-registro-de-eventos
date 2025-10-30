@@ -17,7 +17,7 @@ export async function getAllUsersPagination({
   }
   const users = await repositories.userRepository.findMany(
     { page, limit },
-    { ...filters, excludeRoles: [UserRole.ATTENDEE] }
+    { ...filters, excludeRoles: [UserRole.ATTENDEE] },
   );
 
   return {
