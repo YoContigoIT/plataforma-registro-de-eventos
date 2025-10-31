@@ -55,10 +55,13 @@ export const createEventSchema = z
       message: "El ID del organizador debe ser un UUID válido",
     }),
     isPublic: z.boolean().default(false),
-  requiresSignature: z.boolean().default(false),
-  publicInviteToken: z.string().trim().nullable().optional(),
-  regeneratePublicInviteToken: z.boolean().default(false).optional(),
-  formFields: z.array(createFormFieldSchema).nullable().optional(),
+    requiresSignature: z.boolean().default(false),
+    publicInviteToken: z.string().trim().nullable().optional(),
+    regeneratePublicInviteToken: z.boolean().default(false).optional(),
+    formFields: z.array(createFormFieldSchema).nullable().optional(),
+    eventUrl: z.string().trim().nullable().optional(),
+    privacyPolicyUrl: z.string().trim().nullable().optional(),
+    contactEmail: z.string().trim().nullable().optional(),
   })
   .refine((data) => data.end_date >= data.start_date, {
     message: "La fecha de fin debe ser posterior o igual a la fecha de inicio",
@@ -73,7 +76,7 @@ export const createEventSchema = z
       message:
         "El número máximo de tickets por persona no puede ser mayor que la capacidad total",
       path: ["maxTickets"],
-    }
+    },
   );
 
 export const updateEventSchema = createEventSchema.partial().extend({

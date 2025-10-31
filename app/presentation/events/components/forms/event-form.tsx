@@ -16,6 +16,7 @@ import {
   FileSignature,
   Info,
   Link2,
+  Mail,
   MapPin,
   RefreshCw,
   Users,
@@ -235,6 +236,40 @@ export function EventForm({
                     },
                   } as React.ChangeEvent<HTMLInputElement>);
                 }}
+              />
+            </div>
+
+            {/* NUEVO: URLs y contacto */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <TextInput
+                label="Sitio web del evento (opcional)"
+                name="eventUrl"
+                placeholder="Ingresa el sitio web del evento"
+                icon={<Link2 className="h-4 w-4 text-muted-foreground" />}
+                error={errors.eventUrl?.[0]}
+                onChange={handleInputChange}
+                defaultValue={eventData?.eventUrl || ""}
+              />
+              <TextInput
+                label="URL de política de privacidad (opcional)"
+                name="privacyPolicyUrl"
+                placeholder="Enlace a la política de privacidad"
+                icon={<Link2 className="h-4 w-4 text-muted-foreground" />}
+                error={errors.privacyPolicyUrl?.[0]}
+                onChange={handleInputChange}
+                defaultValue={eventData?.privacyPolicyUrl || ""}
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-6">
+              <TextInput
+                label="Email de contacto (opcional)"
+                name="contactEmail"
+                type="email"
+                placeholder="Ingresa el email de contacto para soporte"
+                icon={<Mail className="h-4 w-4 text-muted-foreground" />}
+                error={errors.contactEmail?.[0]}
+                onChange={handleInputChange}
+                defaultValue={eventData?.contactEmail || ""}
               />
             </div>
           </CardContent>
