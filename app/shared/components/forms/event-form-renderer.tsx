@@ -30,6 +30,7 @@ interface EventFormRendererProps {
   isUpdateForm?: boolean;
   formResponseId?: string; // Add this for update operations
   isSubmitting?: boolean;
+  renderSubmitButton?: boolean;
 }
 
 export function EventFormRenderer({
@@ -42,6 +43,7 @@ export function EventFormRenderer({
   isUpdateForm = false,
   formResponseId,
   isSubmitting = false,
+  renderSubmitButton = true,
 }: EventFormRendererProps) {
   const [checkboxSelections, setCheckboxSelections] = useState<
     Record<string, string[]>
@@ -323,19 +325,20 @@ export function EventFormRenderer({
         {isUpdateForm && formResponseId && (
           <input type="hidden" name="formResponseId" value={formResponseId} />
         )}
-
-        <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isUpdateForm ? "Actualizando..." : "Enviando..."}
-            </>
-          ) : isUpdateForm ? (
-            "Actualizar"
-          ) : (
-            submitButtonText
-          )}
-        </Button>
+        {renderSubmitButton && (
+          <Button type="submit" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isUpdateForm ? "Actualizando..." : "Enviando..."}
+              </>
+            ) : isUpdateForm ? (
+              "Actualizar"
+            ) : (
+              submitButtonText
+            )}
+          </Button>
+        )}
       </div>
     </div>
   );

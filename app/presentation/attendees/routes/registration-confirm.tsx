@@ -63,7 +63,7 @@ export default function RegistrationConfirm() {
               </ul>
             </div>
 
-            <p className="text-muted-foreground text-sm mt-6">
+            {/* <p className="text-muted-foreground text-sm mt-6">
               ¿Necesitas ayuda?{" "}
               <a
                 href="mailto:soporte@eventos.com"
@@ -71,7 +71,7 @@ export default function RegistrationConfirm() {
               >
                 Contáctanos
               </a>
-            </p>
+            </p> */}
           </div>
         </CardContent>
       </Card>

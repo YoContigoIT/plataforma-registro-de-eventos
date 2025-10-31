@@ -6,7 +6,6 @@ import {
   Loader2,
   Mail,
   Phone,
-  Sparkles,
   UserCircle,
 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
@@ -25,6 +24,8 @@ interface RegistrationFormProps {
   fetcher: FetcherWithComponents<FormData>;
   isSubmitting: boolean;
   inviteToken?: string;
+  showSubmitButton?: boolean;
+  formId?: string;
   handleInputChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
@@ -37,6 +38,8 @@ export function RegistrationForm({
   isSubmitting,
   inviteToken,
   handleInputChange,
+  showSubmitButton = true,
+  formId,
 }: RegistrationFormProps) {
   const nameId = useId();
   const emailId = useId();
@@ -78,7 +81,7 @@ export function RegistrationForm({
 
   return (
     <div className="p-8 transition-all duration-500 ease-in-out w-full">
-      {user ? (
+      {/* {user ? (
         <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-100 p-4 rounded-xl border border-green-200">
           <div className="flex items-center">
             <div className="bg-green-100 p-2 rounded-full mr-3">
@@ -109,13 +112,11 @@ export function RegistrationForm({
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-2xl font-bold text-foreground">
-            Confirmar asistencia
-          </h2>
+          <h2 className="text-2xl font-bold text-foreground">Registro</h2>
           {user && (
             <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-medium px-3 py-1 rounded-full flex items-center">
               <BadgeCheck className="h-3 w-3 mr-1" />
@@ -124,7 +125,7 @@ export function RegistrationForm({
           )}
         </div>
         <p className="text-muted-foreground">
-          Completa tus datos para confirmar tu asistencia al evento.
+          Completa tus datos para registrate al evento.
         </p>
       </div>
 
@@ -132,6 +133,7 @@ export function RegistrationForm({
         method="post"
         className="space-y-6"
         action={`/api/create-attendee/${inviteToken}`}
+        id={formId ?? "registration-form"}
       >
         <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
           <div className="space-y-2">
@@ -238,62 +240,76 @@ export function RegistrationForm({
 
         <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
           {/* Cantidad de Tickets a reservar */}
-          <div className="space-y-2">
-            <FormField id={quantityId}>
-              <SelectInput
-                label="Número de invitaciones"
-                placeholder="Seleccione cantidad"
-                name="quantity"
-                required
-                defaultValue={event.maxTickets === 1 ? "1" : undefined}
-                options={Array.from(
-                  {
-                    length: Math.min(event.maxTickets || 5, event.capacity || 5),
-                  },
-                  (_, index) => ({
-                    value: (index + 1).toString(),
-                    label: (index + 1).toString(),
-                  })
-                )}
-                disabled={isSubmitting}
-                onValueChange={(value) => {
-                  if (handleInputChange) {
-                    handleInputChange({
-                      target: { name: "quantity", value },
-                    } as React.ChangeEvent<HTMLInputElement>);
-                  }
-                  if (!touchedFields.quantity) {
-                    setTouchedFields((prev) => ({
-                      ...prev,
-                      quantity: true,
-                    }));
-                  }
-                  const hasValue = Number.parseInt(value.trim(), 10);
-                  setFormData((prev) => ({
-                    ...prev,
-                    quantity: hasValue,
-                  }));
-                }}
-                className={
-                  touchedFields.quantity && formData.quantity
-                    ? "border-green-500 focus:ring-green-500 focus:border-green-500"
-                    : ""
-                }
+          {event?.maxTickets === 1 ? (
+            <>
+              <input type="hidden" name="quantity" value="1" />
+              <input
+                type="hidden"
+                name="maxTickets"
+                value={(event.maxTickets ?? 1).toString()}
               />
-            </FormField>
-            {touchedFields.quantity && formData.quantity && (
-              <p className="text-green-600 text-xs flex items-center">
-                <CheckCircle size={14} className="mr-1" /> Campo válido
-              </p>
-            )}
-          </div>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <FormField id={quantityId}>
+                <SelectInput
+                  label="Número de pases"
+                  placeholder="Seleccione cantidad"
+                  name="quantity"
+                  required
+                  defaultValue={event.maxTickets === 1 ? "1" : undefined}
+                  options={Array.from(
+                    {
+                      length: Math.min(
+                        event.maxTickets || 5,
+                        event.capacity || 5
+                      ),
+                    },
+                    (_, index) => ({
+                      value: (index + 1).toString(),
+                      label: (index + 1).toString(),
+                    })
+                  )}
+                  disabled={isSubmitting}
+                  onValueChange={(value) => {
+                    if (handleInputChange) {
+                      handleInputChange({
+                        target: { name: "quantity", value },
+                      } as React.ChangeEvent<HTMLInputElement>);
+                    }
+                    if (!touchedFields.quantity) {
+                      setTouchedFields((prev) => ({
+                        ...prev,
+                        quantity: true,
+                      }));
+                    }
+                    const hasValue = Number.parseInt(value.trim(), 10);
+                    setFormData((prev) => ({
+                      ...prev,
+                      quantity: hasValue,
+                    }));
+                  }}
+                  className={
+                    touchedFields.quantity && formData.quantity
+                      ? "border-green-500 focus:ring-green-500 focus:border-green-500"
+                      : ""
+                  }
+                />
+              </FormField>
+              {touchedFields.quantity && formData.quantity && (
+                <p className="text-green-600 text-xs flex items-center">
+                  <CheckCircle size={14} className="mr-1" /> Campo válido
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Resumen de la reserva */}
         <div className="bg-blue-50 p-5 rounded-xl border border-blue-200">
           <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
             <ClipboardCheck size={18} className="mr-2 text-blue-600" />
-            Resumen de tu reserva
+            Resumen de tu registro
           </h3>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="text-gray-600">Evento:</div>
@@ -301,7 +317,7 @@ export function RegistrationForm({
               {event?.name || "Nombre del evento"}
             </div>
 
-            <div className="text-gray-600">Invitaciones:</div>
+            <div className="text-gray-600">Pases:</div>
             <div className="font-medium text-right">
               {formData.quantity || 0}
             </div>
@@ -331,26 +347,28 @@ export function RegistrationForm({
         </div>
 
         {/* Botón de envío */}
-        <div className="flex justify-center pt-4">
-          <Button
-            type="submit"
-            size="lg"
-            disabled={isSubmitting}
-            className="w-full md:w-auto min-w-[200px] bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Confirmando asistencia...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="mr-2 h-5 w-5" />
-                Confirmar asistencia
-              </>
-            )}
-          </Button>
-        </div>
+        {showSubmitButton && (
+          <div className="flex justify-center pt-4">
+            <Button
+              type="submit"
+              size="lg"
+              disabled={isSubmitting}
+              className="w-full md:w-auto min-w-[200px] bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Confirmando registro...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-5 w-5" />
+                  Registrarme
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </fetcher.Form>
     </div>
   );

@@ -2,6 +2,8 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  FileText,
+  List,
   MapPin,
   Users,
 } from "lucide-react";
@@ -38,7 +40,7 @@ export function EventDetailsPanel({
       </button>
 
       <div
-        className={`bg-gradient-to-br from-primary to-secondary text-white md:pr-0 px-4 py-8 transition-all duration-500 ease-in-out ${
+        className={`bg-gradient-to-br md:pl-12 from-primary to-secondary text-white md:pr-0 px-4 py-8 transition-all duration-500 ease-in-out ${
           isVisible
             ? "md:w-2/5 translate-x-0"
             : "md:w-0 md:-translate-x-full md:overflow-hidden"
@@ -104,7 +106,6 @@ export function EventDetailsPanel({
                   </p>
                 </div>
               </div>
-
               {/* Ubicación */}
               {event?.location && (
                 <div className="flex items-start">
@@ -119,7 +120,6 @@ export function EventDetailsPanel({
                   </div>
                 </div>
               )}
-
               {/* Capacidad */}
               <div className="flex items-start">
                 <div className="bg-white/20 p-2 rounded-lg mr-3">
@@ -137,6 +137,38 @@ export function EventDetailsPanel({
                   </p>
                 </div>
               </div>
+              {/* Descripción */}
+              {event?.description && (
+                <div className="flex items-start">
+                  <div className="bg-white/20 p-2 rounded-lg mr-3">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm uppercase tracking-wide">
+                      Descripción
+                    </p>
+                    <p className="text-sm opacity-90 whitespace-pre-line">
+                      {event.description}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {/* Agenda */}
+              {event?.agenda && (
+                <div className="flex items-start">
+                  <div className="bg-white/20 p-2 rounded-lg mr-3">
+                    <List className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm uppercase tracking-wide">
+                      Agenda
+                    </p>
+                    <p className="text-sm opacity-90 whitespace-pre-line">
+                      {event.agenda}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
