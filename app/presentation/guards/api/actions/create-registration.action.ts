@@ -8,10 +8,7 @@ import type { CreateRegistrationDto } from "~/domain/dtos/registration.dto";
 import { type CreateGuestDTO, createGuestSchema } from "~/domain/dtos/user.dto";
 import { runInTransaction } from "~/infrastructure/db/prisma";
 import { handleServiceError } from "~/shared/lib/error-handler";
-import {
-  generateQRCode,
-  simplifyZodErrors
-} from "~/shared/lib/utils";
+import { generateQRCode, simplifyZodErrors } from "~/shared/lib/utils";
 import type { Route as CreateRegistrationRoute } from "../../routes/+types/create-registration";
 export const createRegistrationAction = async ({
   request,
@@ -136,7 +133,7 @@ export const createRegistrationAction = async ({
           success: false,
           error: "Error de validación",
           errors: simplifyZodErrors<CreateFormResponseDTO>(
-            formResponseResult.error
+            formResponseResult.error,
           ),
         };
       }
@@ -158,7 +155,7 @@ export const createRegistrationAction = async ({
       const finalRegistration =
         await repositories.registrationRepository.findTickesPurchased(
           eventId,
-          user.id
+          user.id,
         );
 
       if (!finalRegistration) {
@@ -167,15 +164,23 @@ export const createRegistrationAction = async ({
 
       // Enviar QR por correo
       const qrCodeUrl = await QRCode.toDataURL(
-        `${process.env.APP_URL}/verificar-registro/${finalRegistration.qrCode}`
+        `${process.env.APP_URL}/verificar-registro/${finalRegistration.qrCode}`,
       );
+      // Formatear hora en formato local (24h, HH:mm)
+      const eventStartLocal = new Date(event.start_date);
+      const eventTimeFormatted = eventStartLocal.toLocaleTimeString("es-MX", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "America/Tijuana",
+      });
 
       await services.emailService.sendRegistrationConfirmation(user.email, {
         userName: user.name || "",
         eventName: event.name,
         eventDate: event.start_date.toISOString().split("T")[0],
         eventLocation: event.location,
-        eventTime: event.start_date.toISOString().split("T")[1],
+        eventTime: eventTimeFormatted,
         qrCode: finalRegistration.qrCode,
         qrCodeUrl,
         ticketsQuantity: finalRegistration.purchasedTickets || 0,

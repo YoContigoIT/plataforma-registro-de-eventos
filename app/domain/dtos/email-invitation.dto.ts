@@ -33,9 +33,10 @@ export const registrationConfirmationEmailSchema = z.object({
   qrCode: z.string().min(1, "QR code is required"),
   qrCodeUrl: z.string().url("Invalid QR code URL"),
   customMessage: z.string().optional(),
-  eventDetailsUrl: z.string().url("Invalid event details URL").optional(),
-  supportEmail: z.string().email("Invalid support email").optional(),
   ticketsQuantity: z.number().optional(),
+  eventUrl: z.string().url("Invalid event URL").optional(),
+  privacyPolicyUrl: z.string().url("Invalid privacy policy URL").optional(),
+  contactEmail: z.string().email("Invalid contact email").optional(),
 });
 
 // Type inference from schemas

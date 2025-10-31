@@ -14,7 +14,6 @@ import {
   Building2,
   Calendar,
   CalendarCheck,
-  Copy,
   FileText,
   Mail,
   Phone,
@@ -36,7 +35,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/shared/components/ui/card";
-import { copyToClipboard } from "~/shared/lib/utils";
 
 interface RegistrationDetailsSheetProps {
   registration: RegistrationWithFullRelations | null;
@@ -204,7 +202,7 @@ export function RegistrationDetailsSheet({
               <Card>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 gap-3">
-                    <div className="flex items-start gap-3">
+                    {/* <div className="flex items-start gap-3">
                       <QrCode className="h-4 w-4 text-muted-foreground mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -228,7 +226,7 @@ export function RegistrationDetailsSheet({
                           Código QR
                         </p>
                       </div>
-                    </div>
+                    </div> */}
                     <div className="flex items-center gap-3">
                       <BadgeAlert className="size-4 text-muted-foreground" />
                       <div>

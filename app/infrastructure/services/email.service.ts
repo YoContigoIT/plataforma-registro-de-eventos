@@ -51,7 +51,7 @@ export const EmailService = (): IEmailService => ({
   sendLoginNotification: async (
     to: string,
     userName: string,
-    loginInfo: { ipAddress: string; userAgent: string; timestamp: Date }
+    loginInfo: { ipAddress: string; userAgent: string; timestamp: Date },
   ): Promise<EmailResponse> => {
     try {
       const subject = "Nuevo inicio de sesión detectado";
@@ -130,7 +130,7 @@ export const EmailService = (): IEmailService => ({
 
   sendRegistrationConfirmation: async (
     to: string,
-    registrationData: RegistrationConfirmationEmailDto
+    registrationData: RegistrationConfirmationEmailDto,
   ): Promise<EmailResponse> => {
     try {
       const subject = `Confirmación de registro - ${registrationData.eventName}`;
@@ -160,7 +160,7 @@ export const EmailService = (): IEmailService => ({
 
   sendInvitationEmail: async (
     emailData: InvitationEmailDto,
-    recipientEmail: string
+    recipientEmail: string,
   ): Promise<EmailResponse> => {
     const { success, data } = invitationEmailSchema.safeParse(emailData);
 
@@ -190,7 +190,7 @@ export const EmailService = (): IEmailService => ({
 
   sendCancelInvitationEmail: async (
     emailData: InvitationEmailDto,
-    recipientEmail: string
+    recipientEmail: string,
   ): Promise<EmailResponse> => {
     console.log(emailData);
 

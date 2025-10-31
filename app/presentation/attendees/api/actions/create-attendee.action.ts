@@ -162,22 +162,36 @@ export const createAttendeeAction = async ({
       `${process.env.APP_URL}/verificar-registro/${registration.qrCode}`,
     );
 
+    const eventStartLocal = new Date(event.start_date);
+    const eventTimeFormatted = eventStartLocal.toLocaleTimeString("es-MX", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "America/Tijuana",
+    });
+
     await services.emailService.sendRegistrationConfirmation(user.email, {
       userName: user.name || "",
       eventName: event.name,
       eventDate: event.start_date.toISOString().split("T")[0],
       eventLocation: event.location,
-      eventTime: event.start_date.toISOString().split("T")[1],
+      eventTime: eventTimeFormatted,
       qrCode: registration.qrCode,
       qrCodeUrl,
       ticketsQuantity: registration.purchasedTickets || 0,
+      eventUrl: event.eventUrl || "",
+      privacyPolicyUrl: event.privacyPolicyUrl || "",
+      contactEmail: event.contactEmail || "",
     });
 
     // Verificar si el evento no tiene formulario activo con campos
-    const eventForm = await repositories.eventFormRepository.findByEventId(eventId);
+    const eventForm =
+      await repositories.eventFormRepository.findByEventId(eventId);
     const shouldRedirectToSuccess =
-      !eventForm || eventForm.isActive !== true || (eventForm.fields?.length ?? 0) === 0;
-  
+      !eventForm ||
+      eventForm.isActive !== true ||
+      (eventForm.fields?.length ?? 0) === 0;
+
     return {
       success: true,
       message: "Asistente registrado exitosamente.",
