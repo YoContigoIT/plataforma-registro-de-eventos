@@ -9,7 +9,7 @@ import {
 } from "@/ui/table";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { AtSign, Calendar, CalendarCheck, User } from "lucide-react";
+import { AtSign, Calendar, CalendarCheck, Ticket, User } from "lucide-react";
 import { useState } from "react";
 import type { RegistrationWithFullRelations } from "~/domain/entities/registration.entity";
 import { SortableHeader } from "~/shared/components/common/sortable-header";
@@ -98,6 +98,12 @@ export function RegistrationTable({
                   onSort={onSort}
                   Icon={AtSign}
                 />
+                <TableHead>
+                  <div className="flex items-center space-x-1">
+                    <Ticket className="size-4 mr-2 text-muted-foreground" />
+                    <span>Tickets adquiridos</span>
+                  </div>
+                </TableHead>
                 <SortableHeader
                   headerName="Estado"
                   propName="status"
@@ -159,6 +165,7 @@ export function RegistrationTable({
                         </div>
                       )}
                     </TableCell>
+                    <TableCell>{registration.purchasedTickets}</TableCell>
                     <TableCell>
                       <Badge
                         variant={
