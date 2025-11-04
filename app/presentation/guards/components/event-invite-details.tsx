@@ -1,6 +1,5 @@
 import { Building, Calendar, Clock, MapPin, Timer, Users } from "lucide-react";
 import type { EventEntity } from "~/domain/entities/event.entity";
-import { Button } from "~/shared/components/ui/button";
 import {
   Card,
   CardContent,
@@ -158,12 +157,6 @@ export default function InviteDetailsPage({ event }: { event: EventEntity }) {
                   Ubicación del evento. Te esperamos en este lugar para
                   compartir una experiencia increíble.
                 </p>
-                <Button
-                  variant="outline"
-                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                >
-                  Ver en el mapa
-                </Button>
               </CardContent>
             </Card>
           </div>

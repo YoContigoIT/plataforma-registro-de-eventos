@@ -262,27 +262,20 @@ export function generateRegistrationConfirmationTemplate(
             border-top: 1px solid #e5e7eb;
             text-align: center;
         }
-        
-        .footer p {
-            font-size: 12px;
-            color: #9ca3af;
-            margin-bottom: 8px;
-        }
-        
+        /* ACTUALIZADO: links del footer en columna */
         .footer-links {
             display: flex;
-            justify-content: center;
-            gap: 16px;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
             font-size: 12px;
             color: #6b7280;
             margin-bottom: 8px;
         }
-        
         .footer-links a {
             color: #3b82f6;
             text-decoration: none;
         }
-        
         .footer-links a:hover {
             color: #2563eb;
         }
@@ -401,14 +394,13 @@ export function generateRegistrationConfirmationTemplate(
                     ? `
                 <div class="footer-links">
                   ${privacyPolicyUrl ? `<a href="${privacyPolicyUrl}">Política de privacidad</a>` : ``}
-                  ${privacyPolicyUrl && eventUrl ? `<span>•</span>` : ``}
                   ${eventUrl ? `<a href="${eventUrl}">Sitio web</a>` : ``}
                 </div>
                 `
                     : ``
                 }
                 <p>© 2024 Event Manager. Todos los derechos reservados.</p>
-                <p>Si tienes preguntas, contáctanos en: ${contactEmail}</p>
+                ${contactEmail ? `<p>Si tienes preguntas, contáctanos en: ${contactEmail}</p>` : ``}
             </div>
         </div>
     </div>

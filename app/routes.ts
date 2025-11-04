@@ -42,6 +42,7 @@ const ROUTES_PATH = {
     deleteRegistration:
       "presentation/registrations/routes/delete-registration.tsx",
     resendInvite: "presentation/registrations/routes/resend-invite.tsx",
+    resendQr: "presentation/registrations/routes/resend-qr.ts",
   },
   panel: {
     dashboard: "presentation/panel/routes/panel.tsx",
@@ -71,20 +72,20 @@ export default [
   route("/api/form-response", `${ROUTES_PATH.attendee.formResponse}`),
   route(
     "/api/update-form-response",
-    `${ROUTES_PATH.attendee.updateFormResponse}`
+    `${ROUTES_PATH.attendee.updateFormResponse}`,
   ),
   route(
     "/api/create-attendee/:inviteToken",
-    `${ROUTES_PATH.attendee.createAttendee}`
+    `${ROUTES_PATH.attendee.createAttendee}`,
   ),
   route(
     "/api/update-registration",
-    `${ROUTES_PATH.guard.updateRegisterAction}`
+    `${ROUTES_PATH.guard.updateRegisterAction}`,
   ),
 
   route(
     "/api/create-registration",
-    `${ROUTES_PATH.guard.createRegistrationAction}`
+    `${ROUTES_PATH.guard.createRegistrationAction}`,
   ),
 
   route("/api/check-in/:qrCode", `${ROUTES_PATH.guard.checkInAction}`),
@@ -104,16 +105,17 @@ export default [
     route("/registros", `${ROUTES_PATH.registrations.list}`),
     route(
       "/registros/enviar-invitaciones/:id",
-      `${ROUTES_PATH.registrations.sendInvitations}`
+      `${ROUTES_PATH.registrations.sendInvitations}`,
     ),
     route(
       "/registros/delete-registration",
-      `${ROUTES_PATH.registrations.deleteRegistration}`
+      `${ROUTES_PATH.registrations.deleteRegistration}`,
     ),
     route(
       "/registros/resend-invite",
-      `${ROUTES_PATH.registrations.resendInvite}`
+      `${ROUTES_PATH.registrations.resendInvite}`,
     ),
+    route("/registros/resend-qr", `${ROUTES_PATH.registrations.resendQr}`),
 
     route("/crear-registro", `${ROUTES_PATH.guard.createRegister}`),
     route("/actualizar-registro", `${ROUTES_PATH.guard.updateRegiter}`),
