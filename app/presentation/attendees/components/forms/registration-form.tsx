@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import {
-  BadgeCheck,
   CheckCircle,
   ClipboardCheck,
   Loader2,
@@ -29,6 +28,20 @@ interface RegistrationFormProps {
   handleInputChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
+  // nuevas props
+  preservedData?: {
+    name: string;
+    email: string;
+    phone?: string;
+    quantity: number;
+  };
+  validationErrors?: Record<string, string[]>;
+  onDataChange?: (data: {
+    name: string;
+    email: string;
+    phone?: string;
+    quantity: number;
+  }) => void;
 }
 
 export function RegistrationForm({
@@ -40,6 +53,9 @@ export function RegistrationForm({
   handleInputChange,
   showSubmitButton = true,
   formId,
+  preservedData,
+  validationErrors,
+  onDataChange,
 }: RegistrationFormProps) {
   const nameId = useId();
   const emailId = useId();
@@ -52,21 +68,21 @@ export function RegistrationForm({
     quantity: false,
   });
   const [formData, setFormData] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    quantity: event.maxTickets === 1 ? 1 : 0,
+    name: preservedData?.name || user?.name || "",
+    email: preservedData?.email || user?.email || "",
+    quantity: preservedData?.quantity ?? (event.maxTickets === 1 ? 1 : 0),
   });
 
   useEffect(() => {
     if (user) {
-      if (user.name) {
+      if (user.name || preservedData?.name) {
         setTouchedFields((prev) => ({ ...prev, name: true }));
       }
-      if (user.email) {
+      if (user.email || preservedData?.email) {
         setTouchedFields((prev) => ({ ...prev, email: true }));
       }
     }
-  }, [user]);
+  }, [user, preservedData]);
 
   useEffect(() => {
     if (event?.maxTickets === 1) {
@@ -117,12 +133,12 @@ export function RegistrationForm({
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-2xl font-bold text-foreground">Registro</h2>
-          {user && (
+          {/* {user && (
             <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-medium px-3 py-1 rounded-full flex items-center">
               <BadgeCheck className="h-3 w-3 mr-1" />
               Usuario verificado
             </span>
-          )}
+          )} */}
         </div>
         <p className="text-muted-foreground">
           Completa tus datos para registrate al evento.
@@ -145,7 +161,7 @@ export function RegistrationForm({
                 placeholder="Ej. Andrea Sánchez"
                 required
                 readOnly={!!user?.name}
-                defaultValue={user?.name ?? ""}
+                defaultValue={preservedData?.name ?? user?.name ?? ""}
                 icon={<UserCircle size={20} className="text-gray-400" />}
                 disabled={isSubmitting}
                 onChange={(e) => {
@@ -153,24 +169,43 @@ export function RegistrationForm({
                   if (!touchedFields.name) {
                     setTouchedFields((prev) => ({ ...prev, name: true }));
                   }
-                  setFormData((prev) => ({ ...prev, name: e.target.value }));
+                  const next = { ...formData, name: e.target.value };
+                  setFormData(next);
+                  onDataChange?.({
+                    name: next.name,
+                    email: next.email,
+                    phone: preservedData?.phone ?? user?.phone ?? "",
+                    quantity: next.quantity,
+                  });
                 }}
                 onBlur={() => handleFieldBlur("name")}
                 className={
-                  touchedFields.name && formData.name
-                    ? "border-green-500 focus:ring-green-500 focus:border-green-500"
-                    : ""
+                  (validationErrors?.name?.length ?? 0) > 0
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : touchedFields.name && formData.name
+                      ? "border-green-500 focus:ring-green-500 focus:border-green-500"
+                      : ""
                 }
               />
             </FormField>
-            {(user?.name || (touchedFields.name && formData.name)) && (
-              <p className="text-green-600 text-xs flex items-center">
-                <CheckCircle size={14} className="mr-1" />
-                {user?.name ? "Precargado desde tu cuenta" : "Campo válido"}
+            {(validationErrors?.name || []).map((msg, idx) => (
+              <p
+                key={`name-err-${idx.toString()}`}
+                className="text-red-600 text-xs"
+              >
+                {msg}
               </p>
-            )}
+            ))}
+            {(validationErrors?.name?.length ?? 0) === 0 &&
+              (user?.name || (touchedFields.name && formData.name)) && (
+                <p className="text-green-600 text-xs flex items-center">
+                  <CheckCircle size={14} className="mr-1" />
+                  {user?.name ? "Precargado desde tu cuenta" : "Campo válido"}
+                </p>
+              )}
           </div>
         </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Correo */}
           <div className="space-y-2">
@@ -182,7 +217,7 @@ export function RegistrationForm({
                 placeholder="correo@ejemplo.com"
                 required
                 readOnly={!!user}
-                defaultValue={user?.email ?? ""}
+                defaultValue={preservedData?.email ?? user?.email ?? ""}
                 icon={<Mail size={20} className="text-gray-400" />}
                 disabled={isSubmitting}
                 onChange={(e) => {
@@ -193,22 +228,40 @@ export function RegistrationForm({
                       email: true,
                     }));
                   }
-                  setFormData((prev) => ({ ...prev, email: e.target.value }));
+                  const next = { ...formData, email: e.target.value };
+                  setFormData(next);
+                  onDataChange?.({
+                    name: next.name,
+                    email: next.email,
+                    phone: preservedData?.phone ?? user?.phone ?? "",
+                    quantity: next.quantity,
+                  });
                 }}
                 onBlur={() => handleFieldBlur("email")}
                 className={
-                  touchedFields.email && formData.email
-                    ? "border-green-500 focus:ring-green-500 focus:border-green-500"
-                    : ""
+                  (validationErrors?.email?.length ?? 0) > 0
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+                    : touchedFields.email && formData.email
+                      ? "border-green-500 focus:ring-green-500 focus:border-green-500"
+                      : ""
                 }
               />
             </FormField>
-            {(user?.email || (touchedFields.email && formData.email)) && (
-              <p className="text-green-600 text-xs flex items-center">
-                <CheckCircle size={14} className="mr-1" />
-                {user?.email ? "Precargado desde tu cuenta" : "Campo válido"}
+            {(validationErrors?.email || []).map((msg, idx) => (
+              <p
+                key={`email-err-${idx.toString()}`}
+                className="text-red-600 text-xs"
+              >
+                {msg}
               </p>
-            )}
+            ))}
+            {(validationErrors?.email?.length ?? 0) === 0 &&
+              (user?.email || (touchedFields.email && formData.email)) && (
+                <p className="text-green-600 text-xs flex items-center">
+                  <CheckCircle size={14} className="mr-1" />
+                  {user?.email ? "Precargado desde tu cuenta" : "Campo válido"}
+                </p>
+              )}
           </div>
 
           {/* Teléfono */}
@@ -218,7 +271,7 @@ export function RegistrationForm({
                 label="Teléfono (opcional)"
                 name="phone"
                 placeholder="Ej. +1 234 567 8900"
-                defaultValue={user?.phone ?? ""}
+                defaultValue={preservedData?.phone ?? user?.phone ?? ""}
                 icon={<Phone size={20} className="text-gray-400" />}
                 disabled={isSubmitting}
                 maxLength={10}
@@ -232,9 +285,24 @@ export function RegistrationForm({
                       },
                     } as React.ChangeEvent<HTMLInputElement>);
                   }
+                  const next = { ...formData };
+                  onDataChange?.({
+                    name: next.name,
+                    email: next.email,
+                    phone: value?.toString() || "",
+                    quantity: next.quantity,
+                  });
                 }}
               />
             </FormField>
+            {(validationErrors?.phone || []).map((msg, idx) => (
+              <p
+                key={`phone-err-${idx.toString()}`}
+                className="text-red-600 text-xs"
+              >
+                {msg}
+              </p>
+            ))}
           </div>
         </div>
 
@@ -257,7 +325,6 @@ export function RegistrationForm({
                   placeholder="Seleccione cantidad"
                   name="quantity"
                   required
-                  defaultValue={event.maxTickets === 1 ? "1" : undefined}
                   options={Array.from(
                     {
                       length: Math.min(
@@ -270,37 +337,38 @@ export function RegistrationForm({
                       label: (index + 1).toString(),
                     })
                   )}
-                  disabled={isSubmitting}
-                  onValueChange={(value) => {
-                    if (handleInputChange) {
-                      handleInputChange({
-                        target: { name: "quantity", value },
-                      } as React.ChangeEvent<HTMLInputElement>);
-                    }
-                    if (!touchedFields.quantity) {
-                      setTouchedFields((prev) => ({
-                        ...prev,
-                        quantity: true,
-                      }));
-                    }
-                    const hasValue = Number.parseInt(value.trim(), 10);
-                    setFormData((prev) => ({
-                      ...prev,
-                      quantity: hasValue,
-                    }));
-                  }}
-                  className={
-                    touchedFields.quantity && formData.quantity
-                      ? "border-green-500 focus:ring-green-500 focus:border-green-500"
-                      : ""
+                  defaultValue={
+                    event.maxTickets === 1
+                      ? "1"
+                      : (
+                          preservedData?.quantity ??
+                          formData.quantity ??
+                          undefined
+                        )?.toString()
                   }
+                  onValueChange={(val) => {
+                    const qty = Number(val || 0);
+                    const next = { ...formData, quantity: qty };
+                    setFormData(next);
+                    setTouchedFields((prev) => ({ ...prev, quantity: true }));
+                    onDataChange?.({
+                      name: next.name,
+                      email: next.email,
+                      phone: preservedData?.phone ?? user?.phone ?? "",
+                      quantity: qty,
+                    });
+                  }}
+                  disabled={isSubmitting}
                 />
               </FormField>
-              {touchedFields.quantity && formData.quantity && (
-                <p className="text-green-600 text-xs flex items-center">
-                  <CheckCircle size={14} className="mr-1" /> Campo válido
+              {(validationErrors?.quantity || []).map((msg, idx) => (
+                <p
+                  key={`qty-err-${idx.toString()}`}
+                  className="text-red-600 text-xs"
+                >
+                  {msg}
                 </p>
-              )}
+              ))}
             </div>
           )}
         </div>
