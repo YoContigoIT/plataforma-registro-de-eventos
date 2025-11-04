@@ -1,14 +1,12 @@
 import type { InvitationEmailDto } from "~/domain/dtos/email-invitation.dto";
 
 export function generateRevocationEmailTemplate(
-  data: Pick<InvitationEmailDto, 'userName' | 'eventName' | 'eventDate' | 'customMessage'>,
+  data: Pick<
+    InvitationEmailDto,
+    "userName" | "eventName" | "eventDate" | "customMessage"
+  >,
 ): string {
-  const {
-    userName,
-    eventName,
-    eventDate,
-    customMessage,
-  } = data;
+  const { userName, eventName, eventDate, customMessage } = data;
 
   return `<!DOCTYPE html>
 <html lang="es-MX">
@@ -239,7 +237,7 @@ export function generateRevocationEmailTemplate(
             <div class="content">
                 <!-- Greeting -->
                 <div class="greeting">
-                    <h2>Hola ${userName || 'estimado/a invitado/a'},</h2>
+                    <h2>Hola ${userName || "estimado/a invitado/a"},</h2>
                     <p>
                         Lamentamos informarte que tu invitación al siguiente evento ha sido revocada.
                     </p>
@@ -252,12 +250,16 @@ export function generateRevocationEmailTemplate(
                     <p class="event-date">${eventDate}</p>
                 </div>
                 
-                ${customMessage ? `
+                ${
+                  customMessage
+                    ? `
                 <div class="custom-message">
                     <h4>Mensaje del Organizador</h4>
                     <p>${customMessage}</p>
                 </div>
-                ` : ''}
+                `
+                    : ""
+                }
                 
                 <!-- Important Information -->
                 <div class="important-note">

@@ -96,10 +96,12 @@ export function RegistrationDetailsSheet({
   const [customMessage, setCustomMessage] = useState("");
   const fetcher = useFetcher();
   const resendFetcher = useFetcher();
+  const resendQrFetcher = useFetcher();
 
   // Use stable IDs instead of refs
   const RESEND_TOAST_ID = "resend-invite-loading";
   const DELETE_TOAST_ID = "delete-invite-loading";
+  const RESEND_QR_TOAST_ID = "resend-qr-loading";
 
   // Show loading toast when resending starts
   useEffect(() => {
@@ -139,6 +141,24 @@ export function RegistrationDetailsSheet({
     }
   }, [fetcher.state, fetcher.data]);
 
+  // Toasts para reenviar QR
+  useEffect(() => {
+    if (resendQrFetcher.state === "submitting") {
+      toast.loading("Reenviando código QR...", { id: RESEND_QR_TOAST_ID });
+    }
+  }, [resendQrFetcher.state]);
+
+  useEffect(() => {
+    if (resendQrFetcher.state === "idle" && resendQrFetcher.data) {
+      toast.dismiss(RESEND_QR_TOAST_ID);
+      toast[resendQrFetcher.data.success ? "success" : "error"](
+        resendQrFetcher.data.success
+          ? resendQrFetcher.data.message || "Código QR reenviado exitosamente"
+          : resendQrFetcher.data.error || "Error al reenviar el QR"
+      );
+    }
+  }, [resendQrFetcher.state, resendQrFetcher.data]);
+
   if (!registration) return null;
 
   const { user, FormResponse } = registration;
@@ -173,8 +193,19 @@ export function RegistrationDetailsSheet({
     );
   };
 
+  const handleResendQr = () => {
+    resendQrFetcher.submit(
+      { registrationId: registration.id },
+      {
+        action: "/registros/resend-qr",
+        method: "post",
+      }
+    );
+  };
+
   const isDeleting = fetcher.state === "submitting";
   const isResending = resendFetcher.state === "submitting";
+  const isResendingQr = resendQrFetcher.state === "submitting";
   const isPending = registration.status === "PENDING";
 
   return (
@@ -474,6 +505,17 @@ export function RegistrationDetailsSheet({
                       >
                         <Send className="w-4 h-4 mr-2" />
                         {isResending ? "Reenviando..." : "Reenviar invitación"}
+                      </Button>
+                    )}
+                    {registration.status === "REGISTERED" && registration.qrCode && (
+                      <Button
+                        onClick={handleResendQr}
+                        disabled={isResendingQr}
+                        variant="default"
+                        className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                      >
+                        <QrCode className="w-4 h-4 mr-2" />
+                        {isResendingQr ? "Reenviando..." : "Reenviar código QR"}
                       </Button>
                     )}
                     <Button

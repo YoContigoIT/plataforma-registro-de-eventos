@@ -171,8 +171,7 @@ export const createRegistrationAction = async ({
       const eventTimeFormatted = eventStartLocal.toLocaleTimeString("es-MX", {
         hour: "2-digit",
         minute: "2-digit",
-        hour12: false,
-        timeZone: "America/Tijuana",
+        hour12: true,
       });
 
       await services.emailService.sendRegistrationConfirmation(user.email, {
