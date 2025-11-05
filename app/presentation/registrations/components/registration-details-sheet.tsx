@@ -24,6 +24,7 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
+import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import { toast } from "sonner";
@@ -94,6 +95,8 @@ export function RegistrationDetailsSheet({
 }: RegistrationDetailsSheetProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [customMessage, setCustomMessage] = useState("");
+  const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
+
   const fetcher = useFetcher();
   const resendFetcher = useFetcher();
   const resendQrFetcher = useFetcher();
@@ -128,6 +131,28 @@ export function RegistrationDetailsSheet({
       toast.loading("Revocando invitación...", { id: DELETE_TOAST_ID });
     }
   }, [fetcher.state]);
+
+  useEffect(() => {
+    const generateQr = async () => {
+      try {
+        if (registration?.qrCode) {
+          const origin =
+            typeof window !== "undefined"
+              ? window.location.origin
+              : process.env.APP_URL || "http://localhost:3000";
+          const dataUrl = await QRCode.toDataURL(
+            `${origin}/verificar-registro/${registration.qrCode}`
+          );
+          setQrCodeImage(dataUrl);
+        } else {
+          setQrCodeImage(null);
+        }
+      } catch {
+        setQrCodeImage(null);
+      }
+    };
+    generateQr();
+  }, [registration?.qrCode]);
 
   // Dismiss loading and show result for revoke
   useEffect(() => {
@@ -258,6 +283,21 @@ export function RegistrationDetailsSheet({
                         </p>
                       </div>
                     </div> */}
+                    {registration.qrCode && qrCodeImage && (
+                      <div className="flex items-start gap-3">
+                        <QrCode className="h-4 w-4 text-muted-foreground mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <img
+                            src={qrCodeImage}
+                            alt="Código QR"
+                            className="w-48 h-48 rounded-md border"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Código QR
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-center gap-3">
                       <BadgeAlert className="size-4 text-muted-foreground" />
                       <div>
@@ -507,17 +547,20 @@ export function RegistrationDetailsSheet({
                         {isResending ? "Reenviando..." : "Reenviar invitación"}
                       </Button>
                     )}
-                    {registration.status === "REGISTERED" && registration.qrCode && (
-                      <Button
-                        onClick={handleResendQr}
-                        disabled={isResendingQr}
-                        variant="default"
-                        className="w-full justify-start bg-blue-600 hover:bg-blue-700"
-                      >
-                        <QrCode className="w-4 h-4 mr-2" />
-                        {isResendingQr ? "Reenviando..." : "Reenviar código QR"}
-                      </Button>
-                    )}
+                    {registration.status === "REGISTERED" &&
+                      registration.qrCode && (
+                        <Button
+                          onClick={handleResendQr}
+                          disabled={isResendingQr}
+                          variant="default"
+                          className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                        >
+                          <QrCode className="w-4 h-4 mr-2" />
+                          {isResendingQr
+                            ? "Reenviando..."
+                            : "Reenviar código QR"}
+                        </Button>
+                      )}
                     <Button
                       variant="destructive"
                       onClick={handleDeleteClick}
