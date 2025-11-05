@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,8 +31,7 @@ import { useFetcher } from "react-router";
 import { toast } from "sonner";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import type { UserEntity } from "~/domain/entities/user.entity";
-import { getInitials } from "~/shared/lib/utils";
-import SignaturePad from "./signature-pad";
+import SignaturePad from "./signature-pad copy";
 
 interface VerifyProps {
   invite: Registration;
@@ -279,18 +277,20 @@ export function VerifyRegistration({
               </CardHeader>
               <CardContent>
                 <div className="flex items-center space-x-4">
-                  <Avatar className="h-14 w-14 border-2 border-blue-100">
+                  {/* <Avatar className="h-14 w-14 border-2 border-blue-100">
                     <AvatarFallback className="bg-blue-100 text-blue-700 text-lg font-semibold">
                       {getInitials(user.name || "Invitado")}
                     </AvatarFallback>
-                  </Avatar>
+                  </Avatar> */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-800 truncate">
+                    <h3 className="font-semibold text-slate-800 break-words sm:truncate">
                       {user.name}
                     </h3>
-                    <div className="flex items-center text-sm text-slate-600 mt-1">
-                      <Mail className="h-4 w-4 mr-1" />
-                      <span className="truncate">{user.email}</span>
+                    <div className="flex items-start sm:items-center text-sm text-slate-600 mt-1">
+                      <Mail className="h-4 w-4 mr-1 shrink-0" />
+                      <span className="break-all sm:truncate">
+                        {user.email}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -405,9 +405,6 @@ export function VerifyRegistration({
                       loading="lazy"
                     />
                   </div>
-                  <p className="text-xs text-slate-500 text-center mt-2">
-                    ID: {invite.qrCode}
-                  </p>
                 </div>
               </CardContent>
               {/* <CardFooter>
@@ -471,11 +468,16 @@ export function VerifyRegistration({
                 </div>
 
                 {event.requiresSignature && (
-                  <SignaturePad
-                    onSignatureChange={handleSignatureChange}
-                    inviteStatus={invite.status}
-                    iniviteCheckedInAt={invite.checkedInAt || undefined}
-                  />
+                  <div className="pt-4 border-t border-slate-100">
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Firma requerida para completar el check-in
+                    </p>
+                    <SignaturePad
+                      onSignatureChange={handleSignatureChange}
+                      inviteStatus={invite.status}
+                      iniviteCheckedInAt={invite.checkedInAt || undefined}
+                    />
+                  </div>
                 )}
               </CardContent>
 
@@ -484,6 +486,7 @@ export function VerifyRegistration({
                   <Button
                     className="w-full bg-blue-600 hover:bg-blue-700"
                     onClick={handleCheckIn}
+                    disabled={event.requiresSignature && !signatureData}
                   >
                     <CheckCircle className="h-5 w-5 mr-2" />
                     Realizar Check-in
