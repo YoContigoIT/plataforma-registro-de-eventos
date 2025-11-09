@@ -4,7 +4,11 @@ import type { EventEntity } from "~/domain/entities/event.entity";
 import type { FormResponseAnswers } from "~/domain/entities/form-response.entity";
 import type { UserEntity } from "~/domain/entities/user.entity";
 import { handleServiceError } from "~/shared/lib/error-handler";
-import { classifyInvitationToken } from "~/shared/lib/utils";
+import {
+  classifyInvitationToken,
+  getEventStatusLabel,
+  typeEventStatus,
+} from "~/shared/lib/utils";
 import type { LoaderData } from "~/shared/types";
 import type { Route } from "../../routes/+types/join";
 
@@ -53,6 +57,16 @@ export async function getInvitationDataLoader({
         return {
           success: false,
           error: "Este evento ha sido cancelado",
+          message: getEventStatusLabel(publicEvent.status),
+        };
+      }
+
+      if (publicEvent.status === EventStatus.DRAFT) {
+        return {
+          success: false,
+          error: "No se puede registrar en un evento que aún está en borrador.",
+          data: null,
+          message: typeEventStatus(publicEvent.status),
         };
       }
 
@@ -64,6 +78,7 @@ export async function getInvitationDataLoader({
           success: false,
           error: "Este evento ya ha finalizado.",
           data: null,
+          message: typeEventStatus(publicEvent.status),
         };
       }
 
@@ -90,7 +105,7 @@ export async function getInvitationDataLoader({
     const invite =
       await repositories.registrationRepository.findExactInvitation(
         eventId,
-        userId,
+        userId
       );
 
     if (!invite) {
@@ -104,17 +119,27 @@ export async function getInvitationDataLoader({
       return {
         success: false,
         error: "Este evento ha sido cancelado",
+        message: getEventStatusLabel(invite.event.status),
       };
     }
 
+    if (invite.event.status === EventStatus.DRAFT) {
+      return {
+        success: false,
+        error: "No se puede registrar en un evento que aún está en borrador.",
+        message: typeEventStatus(invite.event.status),
+      };
+    }
     if (
       invite.event.end_date < new Date() ||
       invite.event.status === EventStatus.ENDED
     ) {
       return {
         success: false,
-        error: "Este evento ya ha finalizado.",
+        error:
+          "Este evento ya ha finalizado y no está disponible para nuevos registros.",
         data: null,
+        message: typeEventStatus(invite.event.status),
       };
     }
 
@@ -126,7 +151,7 @@ export async function getInvitationDataLoader({
     if (eventForm?.isActive) {
       formResponse =
         await repositories.formResponseRepository.findByRegistrationId(
-          invite.id,
+          invite.id
         );
     }
 
@@ -145,7 +170,7 @@ export async function getInvitationDataLoader({
   } catch (error) {
     return handleServiceError(
       error,
-      "Error al cargar los detalles de la invitación",
+      "Error al cargar los detalles de la invitación"
     );
   }
 }
