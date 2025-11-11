@@ -61,8 +61,6 @@ export const createEventAction = async ({
       : undefined,
   };
 
-  console.log(parsedData);
-
   const { data, success, error } = createEventSchema.safeParse(parsedData);
 
   if (!success) {

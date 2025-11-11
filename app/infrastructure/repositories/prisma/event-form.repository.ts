@@ -11,16 +11,16 @@ import type {
   EventFormWithFields,
   FormFieldEntity,
 } from "~/domain/entities/event-form.entity";
-import type {
-  IEventFormRepository
-} from "~/domain/repositories/event-form.repository";
+import type { IEventFormRepository } from "~/domain/repositories/event-form.repository";
 import { runInTransaction } from "~/infrastructure/db/prisma";
 
 export const PrismaEventFormRepository = (
-  prisma: PrismaClient,
+  prisma: PrismaClient
 ): IEventFormRepository => {
   return {
-    findByEventId: async (eventId: string): Promise<EventFormWithFields | null> => {
+    findByEventId: async (
+      eventId: string
+    ): Promise<EventFormWithFields | null> => {
       return await prisma.eventForm.findUnique({
         where: { eventId },
         include: {
@@ -47,6 +47,7 @@ export const PrismaEventFormRepository = (
             label: field.label,
             type: field.type,
             required: field.required,
+            placeholder: field.placeholder ?? undefined,
             options: field.options ?? undefined,
             validation: field.validation ?? undefined,
             order: index,
@@ -63,7 +64,7 @@ export const PrismaEventFormRepository = (
           title: data.title,
           description: data.description,
           isActive: data.isActive,
-          updatedAt: new Date(), 
+          updatedAt: new Date(),
         },
         include: {
           fields: {
@@ -101,7 +102,10 @@ export const PrismaEventFormRepository = (
       });
     },
 
-    addField: async (formId: string, data: CreateFormFieldDTO): Promise<FormFieldEntity> => {
+    addField: async (
+      formId: string,
+      data: CreateFormFieldDTO
+    ): Promise<FormFieldEntity> => {
       return await prisma.formField.create({
         data: {
           formId,
