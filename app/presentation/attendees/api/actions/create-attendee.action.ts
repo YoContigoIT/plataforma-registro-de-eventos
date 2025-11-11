@@ -168,19 +168,23 @@ Por favor, intenta con otro correo si deseas adquirir más.`,
       hour12: true,
     });
 
-    await services.emailService.sendRegistrationConfirmation(user.email, {
-      userName: user.name || "",
-      eventName: event.name,
-      eventDate: event.start_date.toISOString().split("T")[0],
-      eventLocation: event.location,
-      eventTime: eventTimeFormatted,
-      qrCode: registration.qrCode,
-      qrCodeUrl,
-      ticketsQuantity: registration.purchasedTickets || 0,
-      eventUrl: event.eventUrl || "",
-      privacyPolicyUrl: event.privacyPolicyUrl || "",
-      contactEmail: event.contactEmail || undefined,
-    });
+    try {
+      await services.emailService.sendRegistrationConfirmation(user.email, {
+        userName: user.name || "",
+        eventName: event.name,
+        eventDate: event.start_date.toISOString().split("T")[0],
+        eventLocation: event.location,
+        eventTime: eventTimeFormatted,
+        qrCode: registration.qrCode,
+        qrCodeUrl,
+        ticketsQuantity: registration.purchasedTickets || 0,
+        eventUrl: event.eventUrl || "",
+        privacyPolicyUrl: event.privacyPolicyUrl || "",
+        contactEmail: event.contactEmail || undefined,
+      });
+    } catch (emailError) {
+      console.error("Error al enviar el correo de confirmación:", emailError);
+    }
 
     // Verificar si el evento no tiene formulario activo con campos
     const eventForm =
