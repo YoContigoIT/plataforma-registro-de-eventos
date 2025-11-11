@@ -565,3 +565,20 @@ export const getInitials = (name: string) => {
     .toUpperCase()
     .slice(0, 2);
 };
+
+export const typeEventStatus = (status: string) => {
+  switch (status) {
+    case "DRAFT":
+      return "Evento en borrador";
+    case "CANCELLED":
+      return "Evento cancelado";
+    case "UPCOMING":
+      return "Próximo evento";
+    case "ONGOING":
+      return "Evento en curso";
+    case "ENDED":
+      return "Evento finalizado";
+    default:
+      return status;
+  }
+};

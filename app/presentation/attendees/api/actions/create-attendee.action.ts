@@ -56,7 +56,7 @@ export const createAttendeeAction = async ({
     const event =
       tokenClassification.type === "public"
         ? await repositories.eventRepository.findByPublicInviteToken(
-            inviteToken,
+            inviteToken
           )
         : await repositories.eventRepository.findUnique(eventId);
 
@@ -73,7 +73,7 @@ export const createAttendeeAction = async ({
 
     user = isPrivate
       ? await repositories.userRepository.findUnique(
-          privateInvitationToken.userId,
+          privateInvitationToken.userId
         )
       : await repositories.userRepository.findByEmail(result.data.email);
 
@@ -98,16 +98,15 @@ export const createAttendeeAction = async ({
     let registration =
       await repositories.registrationRepository.findTickesPurchased(
         eventId,
-        user.id,
+        user.id
       );
 
     const userTickets = registration?.purchasedTickets || 0;
     if (userTickets + ticketsRequested > maxTickets) {
       return {
         success: false,
-        error: `Solo puedes comprar ${maxTickets} tickets como máximo. 
-                Actualmente tienes ${userTickets}, 
-                intentaste comprar ${ticketsRequested}.`,
+        error: `Solo puedes comprar un máximo de ${maxTickets} tickets por correo. 
+Por favor, intenta con otro correo si deseas adquirir más.`,
       };
     }
 
@@ -159,7 +158,7 @@ export const createAttendeeAction = async ({
     }
 
     const qrCodeUrl = await QRCode.toDataURL(
-      `${process.env.APP_URL}/verificar-registro/${registration.qrCode}`,
+      `${process.env.APP_URL}/verificar-registro/${registration.qrCode}`
     );
 
     const eventStartLocal = new Date(event.start_date);
@@ -169,19 +168,23 @@ export const createAttendeeAction = async ({
       hour12: true,
     });
 
-    await services.emailService.sendRegistrationConfirmation(user.email, {
-      userName: user.name || "",
-      eventName: event.name,
-      eventDate: event.start_date.toISOString().split("T")[0],
-      eventLocation: event.location,
-      eventTime: eventTimeFormatted,
-      qrCode: registration.qrCode,
-      qrCodeUrl,
-      ticketsQuantity: registration.purchasedTickets || 0,
-      eventUrl: event.eventUrl || "",
-      privacyPolicyUrl: event.privacyPolicyUrl || "",
-      contactEmail: event.contactEmail || undefined,
-    });
+    try {
+      await services.emailService.sendRegistrationConfirmation(user.email, {
+        userName: user.name || "",
+        eventName: event.name,
+        eventDate: event.start_date.toISOString().split("T")[0],
+        eventLocation: event.location,
+        eventTime: eventTimeFormatted,
+        qrCode: registration.qrCode,
+        qrCodeUrl,
+        ticketsQuantity: registration.purchasedTickets || 0,
+        eventUrl: event.eventUrl || "",
+        privacyPolicyUrl: event.privacyPolicyUrl || "",
+        contactEmail: event.contactEmail || undefined,
+      });
+    } catch (emailError) {
+      console.error("Error al enviar el correo de confirmación:", emailError);
+    }
 
     // Verificar si el evento no tiene formulario activo con campos
     const eventForm =

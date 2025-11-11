@@ -46,71 +46,75 @@ export const deleteRegistrationAction = async ({
   }
 
   try {
-    await runInTransaction(async () => {
-      console.log(registrationIds);
-      for (const registrationId of registrationIds) {
-        const registration =
-          await repositories.registrationRepository.findOne(registrationId);
+    await runInTransaction(
+      async () => {
+        console.log(registrationIds);
+        for (const registrationId of registrationIds) {
+          const registration =
+            await repositories.registrationRepository.findOne(registrationId);
 
-        if (!registration) continue;
+          if (!registration) continue;
 
-        const currentEvent = await repositories.eventRepository.findUnique(
-          registration.eventId,
-        );
-        const user = await repositories.userRepository.findUnique(
-          registration.userId,
-        );
+          const currentEvent = await repositories.eventRepository.findUnique(
+            registration.eventId
+          );
+          const user = await repositories.userRepository.findUnique(
+            registration.userId
+          );
 
-        if (!currentEvent) continue;
+          if (!currentEvent) continue;
 
-        // Permisos
-        if (
-          userRole === UserRole.ORGANIZER &&
-          currentEvent.organizerId !== userId
-        ) {
-          return {
-            success: false,
-            error: "No tienes permisos para eliminar este registro",
-          };
+          // Permisos
+          if (
+            userRole === UserRole.ORGANIZER &&
+            currentEvent.organizerId !== userId
+          ) {
+            return {
+              success: false,
+              error: "No tienes permisos para eliminar este registro",
+            };
+          }
+
+          // Eliminar registro
+          await repositories.registrationRepository.delete(registrationId);
+
+          // Actualizar capacidad
+          if (
+            registration.status === RegistrationStatus.REGISTERED ||
+            registration.status === RegistrationStatus.CHECKED_IN
+          ) {
+            const ticketsToRestore = registration.purchasedTickets ?? 1;
+
+            await repositories.eventRepository.update({
+              id: currentEvent.id,
+              remainingCapacity:
+                (currentEvent.remainingCapacity ?? 0) + ticketsToRestore,
+            });
+          }
+
+          // Notificación por correo
+          if (user?.email) {
+            const emailTemplate = generateRevocationEmailTemplate({
+              userName: user.name || user.email.split("@")[0],
+              eventName: currentEvent.name,
+              eventDate: format(
+                new Date(currentEvent.start_date),
+                "PPP 'a las' p",
+                { locale: es }
+              ),
+              customMessage: customMessage || undefined,
+            });
+
+            await services.emailService.sendEmail({
+              to: user.email,
+              subject: `Invitación revocada - ${currentEvent.name}`,
+              html: emailTemplate,
+            });
+          }
         }
-
-        // Eliminar registro
-        await repositories.registrationRepository.delete(registrationId);
-
-        // Actualizar capacidad
-        if (
-          registration.status === RegistrationStatus.REGISTERED ||
-          registration.status === RegistrationStatus.CHECKED_IN
-        ) {
-          await repositories.eventRepository.update({
-            id: currentEvent.id,
-            remainingCapacity: currentEvent.remainingCapacity
-              ? currentEvent.remainingCapacity + 1
-              : 1,
-          });
-        }
-
-        // Notificación por correo
-        if (user?.email) {
-          const emailTemplate = generateRevocationEmailTemplate({
-            userName: user.name || user.email.split("@")[0],
-            eventName: currentEvent.name,
-            eventDate: format(
-              new Date(currentEvent.start_date),
-              "PPP 'a las' p",
-              { locale: es },
-            ),
-            customMessage: customMessage || undefined,
-          });
-
-          await services.emailService.sendEmail({
-            to: user.email,
-            subject: `Invitación revocada - ${currentEvent.name}`,
-            html: emailTemplate,
-          });
-        }
-      }
-    }, { timeout: 10000 });
+      },
+      { timeout: 10000 }
+    );
 
     return {
       success: true,
