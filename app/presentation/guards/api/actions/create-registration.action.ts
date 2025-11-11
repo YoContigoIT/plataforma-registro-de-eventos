@@ -133,7 +133,7 @@ export const createRegistrationAction = async ({
           success: false,
           error: "Error de validación",
           errors: simplifyZodErrors<CreateFormResponseDTO>(
-            formResponseResult.error,
+            formResponseResult.error
           ),
         };
       }
@@ -155,7 +155,7 @@ export const createRegistrationAction = async ({
       const finalRegistration =
         await repositories.registrationRepository.findTickesPurchased(
           eventId,
-          user.id,
+          user.id
         );
 
       if (!finalRegistration) {
@@ -164,7 +164,7 @@ export const createRegistrationAction = async ({
 
       // Enviar QR por correo
       const qrCodeUrl = await QRCode.toDataURL(
-        `${process.env.APP_URL}/verificar-registro/${finalRegistration.qrCode}`,
+        `${process.env.APP_URL}/verificar-registro/${finalRegistration.qrCode}`
       );
       // Formatear hora en formato local (24h, HH:mm)
       const eventStartLocal = new Date(event.start_date);
