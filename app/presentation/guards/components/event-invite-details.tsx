@@ -1,4 +1,4 @@
-import { Building, Calendar, Clock, MapPin, Timer, Users } from "lucide-react";
+import { Building, Calendar, Clock, MapPin, Timer } from "lucide-react";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import {
   Card,
@@ -6,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/shared/components/ui/card";
-import { Progress } from "~/shared/components/ui/progress";
 import { Separator } from "~/shared/components/ui/separator";
 
 export default function InviteDetailsPage({ event }: { event: EventEntity }) {
@@ -163,59 +162,6 @@ export default function InviteDetailsPage({ event }: { event: EventEntity }) {
 
           {/* Right Column - Registration Sidebar */}
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-foreground">
-                  Aforo del evento
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    <span>Asistentes</span>
-                  </div>
-                  <span className="font-semibold text-foreground">
-                    {event.remainingCapacity} / {event.capacity}
-                  </span>
-                </div>
-                {/* Replaced with shadcn Progress component */}
-                <Progress
-                  value={(event?.remainingCapacity || 0) / event.capacity}
-                  className="w-full h-3"
-                />
-                <p className="text-sm text-primary font-medium">
-                  {event.remainingCapacity} lugares disponibles
-                </p>
-                {event.maxTickets && (
-                  <p className="text-sm text-muted-foreground">
-                    Máximo {event.maxTickets} tickets por persona
-                  </p>
-                )}
-                {/* {status === "PENDING" ? (
-                  <Link to={`/inscripcion/${event.id}`}>
-                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                      Registrar asistencia
-                    </Button>
-                  </Link>
-                ) : status === "REGISTERED" ? (
-                  <Button
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                    disabled
-                  >
-                    ✓ Registrado
-                  </Button>
-                ) : (
-                  <Button
-                    className="w-full bg-muted text-muted-foreground"
-                    disabled
-                  >
-                    No disponible
-                  </Button>
-                )} */}
-              </CardContent>
-            </Card>
-
             {/* Event Details Card with Icons */}
             <Card>
               <CardContent className="pt-6 space-y-4">
