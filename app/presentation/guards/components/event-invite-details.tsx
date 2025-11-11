@@ -1,4 +1,4 @@
-import { Building, Calendar, Clock, MapPin, Timer } from "lucide-react";
+import { Calendar, Clock, MapPin, Timer } from "lucide-react";
 import type { EventEntity } from "~/domain/entities/event.entity";
 import {
   Card,
@@ -215,15 +215,6 @@ export default function InviteDetailsPage({ event }: { event: EventEntity }) {
                   </div>
                 </div>
                 <Separator />
-                <div className="flex items-center gap-3">
-                  <Building className="h-4 w-4 text-primary" />
-                  <div className="flex-1">
-                    <span className="text-sm text-muted-foreground">
-                      Formato
-                    </span>
-                    <p className="font-medium text-foreground">Presencial</p>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
