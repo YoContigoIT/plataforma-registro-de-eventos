@@ -17,7 +17,8 @@ import { RegistrationFormHandler } from "../components/forms/registration-form-h
 export const loader = getInvitationDataLoader;
 
 export default function JoinPage() {
-  const { data, success } = useLoaderData<LoaderData<InvitationData>>();
+  const { data, success, error, message } =
+    useLoaderData<LoaderData<InvitationData>>();
 
   if (!success || !data?.event) {
     return (
@@ -30,14 +31,15 @@ export default function JoinPage() {
                   <CalendarX className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                 </div>
                 <CardTitle className="text-xl font-semibold text-slate-800 dark:text-slate-200">
-                  Evento finalizado
+                  {message ? message : "Evento finalizado"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-center space-y-4">
                 <div className="space-y-2">
                   <p className="text-slate-600 dark:text-slate-400">
-                    Este evento ya ha finalizado y no está disponible para
-                    nuevos registros.
+                    {error
+                      ? error
+                      : "Este evento ya ha finalizado y no está disponible para nuevos registros"}
                   </p>
                   {/* <div className="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-500">
                     <Clock className="h-4 w-4" />

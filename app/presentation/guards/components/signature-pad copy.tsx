@@ -257,7 +257,7 @@ export default function SignaturePad({
 
           <div className="flex gap-3">
             <Button variant="outline" onClick={clearCanvas}>
-              Limpiar canvas
+              Limpiar firmar
             </Button>
           </div>
 

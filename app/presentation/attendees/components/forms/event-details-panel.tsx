@@ -5,7 +5,6 @@ import {
   FileText,
   List,
   MapPin,
-  Users,
 } from "lucide-react";
 import type { EventEntity } from "~/domain/entities/event.entity";
 
@@ -120,23 +119,6 @@ export function EventDetailsPanel({
                   </div>
                 </div>
               )}
-              {/* Capacidad */}
-              <div className="flex items-start">
-                <div className="bg-white/20 p-2 rounded-lg mr-3">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm uppercase tracking-wide">
-                    Capacidad
-                  </p>
-                  <p className="text-sm opacity-90">
-                    {event?.capacity || "0"} personas ·{" "}
-                    {event?.maxTickets
-                      ? `${event.maxTickets} máx. por persona`
-                      : "Invitaciones limitadas"}
-                  </p>
-                </div>
-              </div>
               {/* Descripción */}
               {event?.description && (
                 <div className="flex items-start">

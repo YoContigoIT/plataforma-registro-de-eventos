@@ -249,7 +249,7 @@ export function RegistrationInfoCard({
                                 <span className="text-destructive ml-1">*</span>
                               )}
                             </p>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-muted-foreground mt-1 truncate">
                               {formatFieldValue(
                                 fieldResponse.value,
                                 fieldResponse.field.type

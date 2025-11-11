@@ -10,7 +10,7 @@ export function RegistrationLayout({ children }: RegistrationLayoutProps) {
   const isLoading = navigation.state === "loading";
 
   return (
-    <div className="relative">
+    <div className="relative min-h-screen w-full flex flex-col">
       {isLoading && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
           <div className="flex items-center gap-3">
