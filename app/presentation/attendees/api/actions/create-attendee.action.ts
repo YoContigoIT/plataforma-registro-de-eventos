@@ -31,6 +31,8 @@ export const createAttendeeAction = async ({
         ? tokenClassification.payload
         : { userId: "", eventId: "" };
 
+    console.log({ data });
+
     const result = createUserSchema.safeParse({
       email: data.email,
       name: data.name || "",
@@ -119,29 +121,29 @@ Por favor, intenta con otro correo si deseas adquirir más.`,
       };
     }
 
+    const registrationData = {
+      userId: user.id,
+      eventId,
+      status: RegistrationStatus.REGISTERED,
+      qrCode: generateQRCode(user.id, eventId),
+      purchasedTickets: userTickets + ticketsRequested,
+      registeredAt: new Date(),
+      respondedAt: new Date(),
+      // 👇 Datos variables por evento
+      email: data.email || user.email,
+      phone: data.phone || user.phone,
+      name: data.name || user.name,
+    };
     // Create or update registration depending on existence
     if (!registration) {
       // Public flow or no prior registration: create a new one
-      registration = await repositories.registrationRepository.create({
-        userId: user.id,
-        eventId,
-        status: RegistrationStatus.REGISTERED,
-        qrCode: generateQRCode(user.id, eventId),
-        purchasedTickets: ticketsRequested,
-        registeredAt: new Date(),
-        respondedAt: new Date(),
-      });
+      registration =
+        await repositories.registrationRepository.create(registrationData);
     } else {
       // Private flow or existing public registration: update quantities
       registration = await repositories.registrationRepository.update({
         id: registration.id,
-        userId: user.id,
-        eventId,
-        status: RegistrationStatus.REGISTERED,
-        qrCode: generateQRCode(user.id, eventId),
-        purchasedTickets: userTickets + ticketsRequested,
-        registeredAt: new Date(),
-        respondedAt: new Date(),
+        ...registrationData,
       });
     }
 

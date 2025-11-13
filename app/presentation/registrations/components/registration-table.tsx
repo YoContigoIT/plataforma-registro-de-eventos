@@ -86,14 +86,14 @@ export function RegistrationTable({
                 </TableHead>
                 <SortableHeader
                   headerName="Usuario"
-                  propName="user.name"
+                  propName="name"
                   currentSort={currentSort}
                   onSort={onSort}
                   Icon={User}
                 />
                 <SortableHeader
                   headerName="Contacto"
-                  propName="user.email"
+                  propName="email"
                   currentSort={currentSort}
                   onSort={onSort}
                   Icon={AtSign}
@@ -149,7 +149,7 @@ export function RegistrationTable({
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">
-                        {registration.user.name || "Sin nombre"}
+                        {registration.name || "Sin nombre"}
                       </div>
                       {registration.user.company && (
                         <div className="text-sm text-muted-foreground">
@@ -158,8 +158,8 @@ export function RegistrationTable({
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">{registration.user.email}</div>
-                      {registration.user.phone && (
+                      <div className="text-sm">{registration.email}</div>
+                      {registration.phone && (
                         <div className="text-xs text-muted-foreground">
                           {registration.user.phone}
                         </div>

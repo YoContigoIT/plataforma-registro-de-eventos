@@ -15,6 +15,9 @@ export const createRegistrationSchema = z.object({
   registeredAt: z.date().optional(),
   purchasedTickets: z.number().optional(),
   checkedInAt: z.date().optional(),
+  name: z.string().optional(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
 });
 
 export const updateRegistrationSchema = createRegistrationSchema

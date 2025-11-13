@@ -81,7 +81,7 @@ export const updateRegistrationAction = async ({
       const existingRegistration =
         await repositories.registrationRepository.findTickesPurchased(
           eventId,
-          user.id,
+          user.id
         );
 
       if (!existingRegistration) {
@@ -125,6 +125,13 @@ export const updateRegistrationAction = async ({
             name,
             phone,
           });
+
+          await repositories.registrationRepository.update({
+            id: existingRegistration.id,
+            name: name,
+            phone: phone,
+            email: email,
+          });
         }
 
         const eventFormData = {
@@ -144,7 +151,7 @@ export const updateRegistrationAction = async ({
 
         const existingFormResponse =
           await repositories.formResponseRepository.findByRegistrationId(
-            existingRegistration.id,
+            existingRegistration.id
           );
 
         if (existingFormResponse && eventFormData.fieldResponses.length > 0) {
@@ -164,7 +171,7 @@ export const updateRegistrationAction = async ({
               success: false,
               error: "Error de validación del formulario",
               errors: simplifyZodErrors<CreateFormResponseDTO>(
-                formResponseResult.error,
+                formResponseResult.error
               ),
             };
           }
@@ -192,7 +199,7 @@ export const updateRegistrationAction = async ({
       if (existingRegistration.status === RegistrationStatus.REGISTERED) {
         await repositories.registrationRepository.update({
           id: existingRegistration.id,
-          status: RegistrationStatus.REGISTERED,
+          status: RegistrationStatus.CHECKED_IN,
           checkedInAt: new Date(),
           purchasedTickets: ticketsRequested,
         });
@@ -201,6 +208,13 @@ export const updateRegistrationAction = async ({
           await repositories.userRepository.update(user.id, {
             name,
             phone,
+          });
+
+          await repositories.registrationRepository.update({
+            id: existingRegistration.id,
+            name: name,
+            phone: phone,
+            email: email,
           });
         }
 
@@ -221,7 +235,7 @@ export const updateRegistrationAction = async ({
 
         const existingFormResponse =
           await repositories.formResponseRepository.findByRegistrationId(
-            existingRegistration.id,
+            existingRegistration.id
           );
 
         if (existingFormResponse && eventFormData.fieldResponses.length > 0) {
@@ -241,7 +255,7 @@ export const updateRegistrationAction = async ({
               success: false,
               error: "Error de validación del formulario",
               errors: simplifyZodErrors<CreateFormResponseDTO>(
-                formResponseResult.error,
+                formResponseResult.error
               ),
             };
           }
@@ -276,6 +290,12 @@ export const updateRegistrationAction = async ({
             name,
             phone,
           });
+          await repositories.registrationRepository.update({
+            id: existingRegistration.id,
+            name: name,
+            phone: phone,
+            email: email,
+          });
         }
 
         const eventFormData = {
@@ -296,7 +316,7 @@ export const updateRegistrationAction = async ({
         if (eventFormData.fieldResponses.length > 0) {
           const existingFormResponse =
             await repositories.formResponseRepository.findByRegistrationId(
-              existingRegistration.id,
+              existingRegistration.id
             );
 
           if (existingFormResponse) {
@@ -316,7 +336,7 @@ export const updateRegistrationAction = async ({
                 success: false,
                 error: "Error de validación del formulario",
                 errors: simplifyZodErrors<CreateFormResponseDTO>(
-                  formResponseResult.error,
+                  formResponseResult.error
                 ),
               };
             }

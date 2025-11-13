@@ -277,6 +277,7 @@ export function RegistrationForm({
                 maxLength={10}
                 max={10}
                 onChange={(value) => {
+                  console.log("value: ", value);
                   if (handleInputChange) {
                     handleInputChange({
                       target: {

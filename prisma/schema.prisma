@@ -140,6 +140,10 @@ model Registration {
 
     registeredAt DateTime? // Make nullable since they might not be registered yet
 
+    // 👇 Datos variables por evento
+    email        String?
+    phone        String?
+    name         String?
     //formResponses Json? //for the simpler approach
     FormResponse FormResponse?
 

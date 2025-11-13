@@ -41,7 +41,7 @@ export function RegistrationFormHandler() {
   const [showEventDetails, setShowEventDetails] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [_formResponseCompleted, setFormResponseCompleted] = useState(
-    hasResponse || false,
+    hasResponse || false
   );
   const [_registrationCompleted, setRegistrationCompleted] = useState(false);
 
@@ -129,7 +129,7 @@ export function RegistrationFormHandler() {
         setIsOrchestrating(false);
         setPendingEventFormData(null);
         toast.error(
-          "Error al crear el registro. Por favor, intenta nuevamente.",
+          "Error al crear el registro. Por favor, intenta nuevamente."
         );
         return;
       }
@@ -204,7 +204,7 @@ export function RegistrationFormHandler() {
           setOrchestrationPhase("error");
           setIsOrchestrating(false);
           toast.error(
-            "Error al guardar el formulario del evento. Por favor, contacta al organizador.",
+            "Error al guardar el formulario del evento. Por favor, contacta al organizador."
           );
         } else if (formResponseData?.success === true) {
           setOrchestrationPhase("completed");
@@ -230,7 +230,7 @@ export function RegistrationFormHandler() {
           setIsOrchestrating(false);
           setPendingEventFormData(null);
           toast.error(
-            "Error al crear el registro. Por favor, intenta nuevamente.",
+            "Error al crear el registro. Por favor, intenta nuevamente."
           );
         }
       }
@@ -258,7 +258,7 @@ export function RegistrationFormHandler() {
       setOrchestrationPhase("error");
       setPendingEventFormData(null);
       toast.error(
-        "El proceso está tardando más de lo esperado. Por favor, intenta nuevamente.",
+        "El proceso está tardando más de lo esperado. Por favor, intenta nuevamente."
       );
     }, 30_000);
     return () => clearTimeout(timeout);
@@ -488,12 +488,12 @@ export function RegistrationFormHandler() {
                     } else {
                       setValidationErrors(errors);
                       toast.error(
-                        "Por favor, corrige los errores antes de continuar.",
+                        "Por favor, corrige los errores antes de continuar."
                       );
                     }
                   } else {
                     const formEl = document.getElementById(
-                      "registration-form",
+                      "registration-form"
                     ) as HTMLFormElement | null;
                     formEl?.requestSubmit();
                   }
@@ -505,7 +505,7 @@ export function RegistrationFormHandler() {
                       // Muestra mensajes de validación nativos
                       eventFormRef.current.reportValidity();
                       toast.error(
-                        "Completa los campos obligatorios del formulario del evento.",
+                        "Completa los campos obligatorios del formulario del evento."
                       );
                       return;
                     }
@@ -515,7 +515,7 @@ export function RegistrationFormHandler() {
                       validateEventFormRequiredFields();
                     if (!isValid) {
                       toast.error(
-                        "Completa los campos obligatorios del formulario del evento.",
+                        "Completa los campos obligatorios del formulario del evento."
                       );
                       return;
                     }
@@ -535,15 +535,17 @@ export function RegistrationFormHandler() {
 
                     // Crear FormData para el registro con los datos locales
                     const registrationData = new FormData();
+                    console.log("registrationFormData: ", registrationFormData);
+
                     registrationData.set("name", registrationFormData.name);
                     registrationData.set("email", registrationFormData.email);
                     registrationData.set(
                       "phone",
-                      registrationFormData.phone ?? "",
+                      registrationFormData.phone ?? ""
                     );
                     registrationData.set(
                       "quantity",
-                      registrationFormData.quantity.toString(),
+                      registrationFormData.quantity.toString()
                     );
 
                     // Ejecutar create-attendee primero

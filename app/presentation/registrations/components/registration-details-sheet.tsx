@@ -400,7 +400,7 @@ export function RegistrationDetailsSheet({
                       <User className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">
-                          {user.name || "Sin nombre"}
+                          {registration.name || "Sin nombre"}
                         </p>
                         <p className="text-xs text-muted-foreground">Nombre</p>
                       </div>
@@ -409,7 +409,9 @@ export function RegistrationDetailsSheet({
                     <div className="flex items-center gap-3">
                       <Mail className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-sm font-medium">{user.email}</p>
+                        <p className="text-sm font-medium">
+                          {registration.email}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           Correo electrónico
                         </p>
@@ -420,7 +422,9 @@ export function RegistrationDetailsSheet({
                       <div className="flex items-center gap-3">
                         <Phone className="h-4 w-4 text-muted-foreground" />
                         <div>
-                          <p className="text-sm font-medium">{user.phone}</p>
+                          <p className="text-sm font-medium">
+                            {registration.phone}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             Teléfono
                           </p>
