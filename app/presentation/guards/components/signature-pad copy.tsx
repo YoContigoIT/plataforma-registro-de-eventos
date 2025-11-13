@@ -185,6 +185,8 @@ export default function SignaturePad({
             alt="Firma guardada"
             className="border rounded-md w-full"
           />
+          <input type="hidden" name="signature" value={signaturePreview} />
+
           <div className="flex gap-3">
             <Button variant="outline" onClick={clearSavedSignature}>
               Limpiar
@@ -193,7 +195,9 @@ export default function SignaturePad({
           </div>
         </div>
       ) : (
-        <Button onClick={() => setModalOpen(true)}>Firmar</Button>
+        <Button type="button" onClick={() => setModalOpen(true)}>
+          Firmar
+        </Button>
       )}
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>

@@ -5,6 +5,7 @@ import {
   UserPlus,
   UserSearch,
 } from "lucide-react";
+import { useState } from "react";
 import type { FetcherWithComponents } from "react-router";
 import type { EventEntityWithEventForm } from "~/domain/entities/event.entity";
 import type { RegistrationWithFullRelations } from "~/domain/entities/registration.entity";
@@ -25,6 +26,7 @@ import {
 } from "~/shared/components/ui/dropdown-menu";
 import type { ValidationErrors } from "~/shared/hooks/use-form-validation.hook";
 import { RegisterAttendeeForm } from "../register-attendee-form";
+import SignaturePad from "../signature-pad copy";
 
 interface RegistrationFormStepProps {
   selectedEvent: EventEntityWithEventForm;
@@ -63,10 +65,18 @@ export function RegistrationFormStep({
     description || `Completando registro para: ${selectedEmail}`;
 
   const isUpdateMode = !!defaultValues;
-
+  const [signatureData, setSignatureData] = useState<string | null>(null);
+  const handleSignatureChange = (data: string | null) => {
+    setSignatureData(data);
+  };
   return (
     <div>
-      <fetcher.Form method="post" action={actionUrl} className="space-y-6">
+      <fetcher.Form
+        method="post"
+        action={actionUrl}
+        className="space-y-6"
+        encType="multipart/form-data"
+      >
         <PageHeader
           title={defaultTitle}
           description={defaultDescription}
@@ -142,7 +152,20 @@ export function RegistrationFormStep({
             />
           </CardContent>
         </Card>
-
+        {selectedEvent.requiresSignature && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Firma</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SignaturePad
+                onSignatureChange={handleSignatureChange}
+                inviteStatus={defaultValues?.status}
+                iniviteCheckedInAt={defaultValues?.checkedInAt || undefined}
+              />
+            </CardContent>
+          </Card>
+        )}
         {selectedEvent?.EventForm?.isActive && (
           <Card>
             <CardHeader>
