@@ -16,6 +16,7 @@ export const loader = registerAttendeeLoader;
 export default function CreateRegistrationHandler() {
   const { events, selectedEvent, existingRegistration } =
     useLoaderData<typeof loader>();
+
   const { updateMultipleParams, getParamValue, resetAllParams } =
     useSearchParamsManager();
   const { fetcher, isSubmitting, errors, handleInputChange } = useFetcherForm({

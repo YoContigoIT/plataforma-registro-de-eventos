@@ -1,3 +1,4 @@
+import { EventStatus } from "@prisma/client";
 import type { Route as RegisterAttendeeRoute } from "../../routes/+types/create-registration";
 
 export const registerAttendeeLoader = async ({
@@ -17,10 +18,15 @@ export const registerAttendeeLoader = async ({
     };
   }
 
-  const { data: events } = await repositories.eventRepository.findMany({
-    page: 1,
-    limit: 100,
-  });
+  const { data: events } = await repositories.eventRepository.findMany(
+    {
+      page: 1,
+      limit: 100,
+    },
+    {
+      status: EventStatus.ONGOING,
+    }
+  );
 
   if (!eventId) {
     return {
@@ -32,12 +38,15 @@ export const registerAttendeeLoader = async ({
 
   const selectedEvent = await repositories.eventRepository.findUnique(eventId);
 
+  console.log("events", events);
+
   let existingRegistration = null;
   if (email && eventId) {
-    existingRegistration = await repositories.registrationRepository.findByEmailAndEventId(
-      email,
-      eventId,
-    );
+    existingRegistration =
+      await repositories.registrationRepository.findByEmailAndEventId(
+        email,
+        eventId
+      );
   }
 
   return {
