@@ -104,6 +104,9 @@ export const createRegistrationAction = async ({
         respondedAt: new Date(),
         purchasedTickets: ticketsRequested,
         checkedInAt: new Date(),
+        name: name,
+        phone: phone,
+        email: email,
       };
 
       const newRegistration =
@@ -125,25 +128,27 @@ export const createRegistrationAction = async ({
       }
 
       //we dont need it right now but we might as well validate right now
-      const formResponseResult =
-        createFormResponseSchema.safeParse(eventFormData);
+      // SOLO SI HAY RESPUESTAS DINÁMICAS
+      if (eventFormData.fieldResponses.length > 0) {
+        const formResponseResult =
+          createFormResponseSchema.safeParse(eventFormData);
 
-      if (!formResponseResult.success) {
-        return {
-          success: false,
-          error: "Error de validación",
-          errors: simplifyZodErrors<CreateFormResponseDTO>(
-            formResponseResult.error
-          ),
-        };
+        if (!formResponseResult.success) {
+          return {
+            success: false,
+            error: "Error de validación",
+            errors: simplifyZodErrors<CreateFormResponseDTO>(
+              formResponseResult.error
+            ),
+          };
+        }
+
+        const formResponse = await repositories.formResponseRepository.create({
+          registrationId: newRegistration.id,
+          fieldResponses: eventFormData.fieldResponses,
+        });
+        console.log("registered response: ", formResponse);
       }
-
-      const formResponse = await repositories.formResponseRepository.create({
-        registrationId: newRegistration.id,
-        fieldResponses: eventFormData.fieldResponses,
-      });
-
-      console.log("registered response: ", formResponse);
 
       // Actualizar capacidad del evento
       await repositories.eventRepository.update({
