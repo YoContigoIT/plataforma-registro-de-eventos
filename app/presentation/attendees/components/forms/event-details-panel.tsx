@@ -97,9 +97,10 @@ export function EventDetailsPanel({
                   </p>
                   <p className="text-xs opacity-75">
                     {event?.start_date
-                      ? new Date(event.start_date).toLocaleTimeString("es-ES", {
+                      ? new Date(event.start_date).toLocaleTimeString("es-MX", {
                           hour: "2-digit",
                           minute: "2-digit",
+                          hour12: true,
                         })
                       : "Hora del evento"}
                   </p>

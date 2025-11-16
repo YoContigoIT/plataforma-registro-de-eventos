@@ -406,9 +406,10 @@ export function RegistrationForm({
             <div className="text-gray-600">Hora:</div>
             <div className="font-medium text-right">
               {event?.start_date
-                ? new Date(event.start_date).toLocaleTimeString("es-ES", {
+                ? new Date(event.start_date).toLocaleTimeString("es-MX", {
                     hour: "2-digit",
                     minute: "2-digit",
+                    hour12: true,
                   })
                 : "Hora por confirmar"}
             </div>

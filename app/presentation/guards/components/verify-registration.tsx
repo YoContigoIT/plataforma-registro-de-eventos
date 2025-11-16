@@ -191,9 +191,10 @@ export function VerifyRegistration({
         month: "short",
         year: "numeric",
       }),
-      time: date.toLocaleTimeString("es-ES", {
+      time: date.toLocaleTimeString("es-MX", {
         hour: "2-digit",
         minute: "2-digit",
+        hour12: true,
       }),
       fullDate: date.toLocaleDateString("es-ES", {
         weekday: "long",

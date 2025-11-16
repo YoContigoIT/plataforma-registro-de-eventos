@@ -582,3 +582,12 @@ export const typeEventStatus = (status: string) => {
       return status;
   }
 };
+
+export const formatHour = (value?: string) => {
+  if (!value) return "";
+  return new Date(value).toLocaleTimeString("es-MX", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};

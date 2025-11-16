@@ -54,6 +54,7 @@ export default function Verify() {
   }
 
   const { data } = loaderData;
+  console.log("data: ", data?.event);
 
   if ((!data?.userId || data?.userRole !== UserRole.GUARD) && data?.event) {
     return <InviteDetailsPage event={data?.event} />;
